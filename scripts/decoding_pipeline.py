@@ -63,8 +63,8 @@ def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
     return encoder.fit_transform(y[idx]), idx
 
 
-def prep_x(data, parc, preproc=StandardScaler()):
-    return preproc.fit_transform(data[:, np.flatnonzero(parc)])
+def prep_x(data, parc):
+    return data[:, np.flatnonzero(parc)]
 
 
 def get_xy(fname, network, feature):
@@ -85,8 +85,9 @@ def crossval(folds=5):
 def train_and_test_model(X, y, classifier=classifier()):
     cmat = np.zeros((np.unique(y).size, np.unique(y).size))
     for train, test in crossval().split(X):
-        model = classifier.fit(X[train], y[train])
-        cmat += confusion_matrix(y[test], model.predict(X[test]))
+        scaler = StandardScaler()
+        model = classifier.fit(scaler.fit_transform(X[train]), y[train])
+        cmat += confusion_matrix(y[test], model.predict(scaler.transform(X[test])))
     return cmat
 
 
