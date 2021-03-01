@@ -10,7 +10,7 @@ def summarize(data):
         features = data[data.NETWORK == network]
         for feature in features.FEATURE.unique():
             subjects = features[features.FEATURE == feature]
-            print("%s\t%s\t%.3f" % (network, feature, subjects.ACC.mean()))
+            print("%s      \t%s\t%.3f" % (network, feature, subjects.ACC.mean()))
             # expand to run t-test and save ../outputs/stats.csv
 
 
