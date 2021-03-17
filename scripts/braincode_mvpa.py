@@ -1,44 +1,11 @@
 import os
 import numpy as np
-from scipy.io import loadmat
 from scipy.stats import binom_test
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
 from sklearn.svm import LinearSVC
-
-
-def memoize(function):
-    memo = {}
-
-    def wrapper(*args):
-        if args in memo:
-            return memo[args]
-        else:
-            rv = function(*args)
-            memo[args] = rv
-            return rv
-
-    return wrapper
-
-
-@memoize
-def get_mat(fname):
-    return loadmat(fname)
-
-
-def parse_mat(mat, network):
-    return (
-        mat["data"],
-        mat[network + "_tags"],
-        mat["problem_content"],
-        mat["problem_lang"],
-        mat["problem_structure"],
-    )
-
-
-def formatcell(matcellarray):
-    return np.array([i[0][0] for i in matcellarray])
+from braincode_util import *
 
 
 def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
@@ -63,14 +30,10 @@ def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
     return encoder.fit_transform(y[idx]), idx
 
 
-def prep_x(data, parc):
-    return data[:, np.flatnonzero(parc)]
-
-
 def get_xy(fname, network, feature):
     data, parc, content, lang, structure = parse_mat(get_mat(fname), network)
     y, idx = prep_y(content, lang, structure, feature)
-    X = prep_x(data[idx], parc)
+    X = prep_x(data, parc)[idx]
     return X, y
 
 
@@ -85,9 +48,8 @@ def crossval(folds=5):
 def train_and_test_model(X, y, classifier=classifier()):
     cmat = np.zeros((np.unique(y).size, np.unique(y).size))
     for train, test in crossval().split(X):
-        scaler = StandardScaler()
-        model = classifier.fit(scaler.fit_transform(X[train]), y[train])
-        cmat += confusion_matrix(y[test], model.predict(scaler.transform(X[test])))
+        model = classifier.fit(X[train], y[train])
+        cmat += confusion_matrix(y[test], model.predict(X[test]))
     return cmat
 
 

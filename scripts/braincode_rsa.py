@@ -2,35 +2,34 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from braincode_mvpa import memoize, get_mat, parse_mat, formatcell
+from braincode_util import *
 
 
 class correlation_matrix:
     def __init__(self):
-        self.matrix = np.zeros((72, 72), dtype="float64")
-        self.axes = np.empty((72, 3), dtype="U4")
-        self.subjects = 0
+        self._matrix = np.zeros((72, 72), dtype="float64")
+        self._axes = np.empty((72, 3), dtype="U4")
+        self._subjects = 0
 
     def _axes_empty(self):
-        return "" in self.axes
+        return "" in self._axes
 
     def _set_axis(self, index, array):
-        self.axes[:, index] = array
+        self._axes[:, index] = array
 
-    def _update_coef(self, data, parc):
-        self.matrix += np.corrcoef(data[:, np.flatnonzero(parc)])
-        self.subjects += 1
+    def _update_coef(self, data):
+        self._matrix += np.corrcoef(data)
+        self._subjects += 1
 
     def get_axes(self):
-        return self.axes
+        return self._axes
 
     def get_coef(self):
-        return self.matrix / self.subjects
+        return self._matrix / self._subjects
 
     def add_subject(self, fname, network):
         data, parc, content, lang, structure = parse_mat(get_mat(fname), network)
-        data = StandardScaler().fit_transform(data.T).T
-        self._update_coef(data, parc)
+        self._update_coef(prep_x(data, parc))
         if self._axes_empty():
             self._set_axis(0, formatcell(content))
             self._set_axis(1, formatcell(lang))
