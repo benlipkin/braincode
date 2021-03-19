@@ -1,2 +1,3 @@
 archive
+**/._*
 **/__pycache__/**
