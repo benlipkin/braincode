@@ -57,7 +57,7 @@ def main():
         corr = correlation_matrix()
         for subject in sorted(os.listdir(input_dir)):
             corr.add_subject(input_dir + subject, network)
-        corr.plot("../outputs/%s_corr.jpg" % (network))
+        corr.plot("../plots/corr/%s.jpg" % (network))
 
 
 if __name__ == "__main__":

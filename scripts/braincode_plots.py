@@ -23,7 +23,7 @@ def make_plot(table):
     plt.ylim([mu - 0.4, mu + 0.4])
     plt.title(feature.upper())
     plt.xticks()
-    plt.savefig("../outputs/%s_bar.jpg" % "_".join(feature.split()))
+    plt.savefig("../plots/bar/%s.jpg" % "_".join(feature.split()))
     plt.clf()
 
 
