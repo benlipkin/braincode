@@ -94,7 +94,7 @@ def summarize(network, feature, subject, cmat):
 def main():
     ostream = "NETWORK,FEATURE,SUBJECT,N,P,K,ACC,PVAL\n"
     input_dir = "../inputs/item_data_tvals_20201002/"
-    networks = ["lang", "MD", "code", "code_lang", "code_MD"]
+    networks = ["lang", "MD", "code"]
     features = ["sent v code", "math v str", "seq v for", "seq v if", "for v if"]
     for network in networks:
         for feature in features:
