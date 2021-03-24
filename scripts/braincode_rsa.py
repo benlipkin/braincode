@@ -52,7 +52,7 @@ class correlation_matrix:
 
 def main():
     input_dir = "../inputs/item_data_tvals_20201002/"
-    networks = ["lang", "MD", "code"]
+    networks = ["lang", "MD", "aud"]
     for network in networks:
         corr = correlation_matrix()
         for subject in sorted(os.listdir(input_dir)):
