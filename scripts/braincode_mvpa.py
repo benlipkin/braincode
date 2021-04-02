@@ -45,9 +45,9 @@ def crossval(folds=5):
     return KFold(n_splits=folds, shuffle=True, random_state=0)
 
 
-def train_and_test_model(X, y, classifier=classifier()):
+def train_and_test_model(X, y, classifier=classifier(), crossval=crossval()):
     cmat = np.zeros((np.unique(y).size, np.unique(y).size))
-    for train, test in crossval().split(X):
+    for train, test in crossval.split(X):
         model = classifier.fit(X[train], y[train])
         cmat += confusion_matrix(y[test], model.predict(X[test]))
     return cmat
@@ -94,7 +94,7 @@ def summarize(network, feature, subject, cmat):
 def main():
     ostream = "NETWORK,FEATURE,SUBJECT,N,P,K,ACC,PVAL\n"
     input_dir = "../inputs/item_data_tvals_20201002/"
-    networks = ["lang", "MD", "aud"]
+    networks = ["lang", "MD", "aud", "vis"]
     features = ["sent v code", "math v str", "seq v for", "seq v if", "for v if"]
     for network in networks:
         for feature in features:
