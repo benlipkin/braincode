@@ -1,6 +1,8 @@
 import os
+import sys
 import numpy as np
-from scipy.stats import binom_test
+from tqdm import tqdm
+from matplotlib import pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
@@ -19,14 +21,15 @@ def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
             y = formatcell(content)
         else:
             y = formatcell(structure)
-            if feature == "seq v for":
-                idx = idx & ((y == "seq") | (y == "for"))
-            elif feature == "seq v if":
-                idx = idx & ((y == "seq") | (y == "if"))
-            elif feature == "for v if":
-                idx = idx & ((y == "for") | (y == "if"))
-            else:
-                raise LookupError()
+            if feature != "seq v for v if":
+                if feature == "seq v for":
+                    idx = idx & ((y == "seq") | (y == "for"))
+                elif feature == "seq v if":
+                    idx = idx & ((y == "seq") | (y == "if"))
+                elif feature == "for v if":
+                    idx = idx & ((y == "for") | (y == "if"))
+                else:
+                    raise LookupError()
     return encoder.fit_transform(y[idx]), idx
 
 
@@ -37,76 +40,88 @@ def get_xy(fname, network, feature):
     return X, y
 
 
+def init_cmat(n):
+    return np.zeros((n, n))
+
+
 def classifier():
-    return LinearSVC(C=1.0, max_iter=10000)
+    return LinearSVC(C=1.0, max_iter=1e5)
 
 
 def crossval(folds=5):
     return KFold(n_splits=folds, shuffle=True, random_state=0)
 
 
+def accuracy(cmat):
+    return np.trace(cmat) / cmat.sum()
+
+
 def train_and_test_model(X, y, classifier=classifier(), crossval=crossval()):
-    cmat = np.zeros((np.unique(y).size, np.unique(y).size))
+    classes = np.unique(y)
+    cmat = init_cmat(classes.size)
     for train, test in crossval.split(X):
         model = classifier.fit(X[train], y[train])
-        cmat += confusion_matrix(y[test], model.predict(X[test]))
+        cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
     return cmat
 
 
-def run_decoding_pipeline(fname, network, feature):
-    X, y = get_xy(fname, network, feature)
-    return train_and_test_model(X, y)
+def run_decoding_pipeline(input_dir, feature, network, mode, iters=1):
+    assert mode in ["test", "null"]
+    if mode == "null":
+        fname = f"../outputs/null_{'_'.join(feature.split())}_{network}.npy"
+        if os.path.exists(fname):
+            return np.load(fname)
+        null = np.zeros((iters))
+    for idx in tqdm(range(iters), file=sys.stdout, leave=False):
+        cmat = init_cmat(len(feature.split(" v ")))
+        for subject in sorted(os.listdir(input_dir)):
+            X, y = get_xy(input_dir + subject, network, feature)
+            if mode == "null":
+                np.random.shuffle(y)
+            cmat += train_and_test_model(X, y)
+        if mode == "test":
+            return accuracy(cmat)
+        null[idx] = accuracy(cmat)
+    np.save(fname, null)
+    return null
 
 
-def k(cmat):
-    return np.trace(cmat)
+def print_progress(feature, network):
+    print(f"\nrunning MVPA pipeline on {feature} in {network}")
 
 
-def n(cmat):
-    return cmat.sum()
+def print_results(test, null):
+    print(f"acc = {test}\np = {(test < null).sum() / null.size}")
 
 
-def p(cmat):
-    return cmat.sum(axis=1).max() / n(cmat)
+def get_range(feature):
+    if feature == "sent v code":
+        return [0.4, 0.9]
+    elif feature == "math v str":
+        return [0.4, 0.65]
+    elif feature == "seq v for v if":
+        return [0.25, 0.55]
+    else:
+        raise LookupError()
 
 
-def accuracy(cmat):
-    return k(cmat) / n(cmat)
-
-
-def stats(cmat):
-    return binom_test(k(cmat), n(cmat), p(cmat), alternative="greater")
-
-
-def summarize(network, feature, subject, cmat):
-    return "%s,%s,%s,%d,%f,%d,%f,%f\n" % (
-        network,
-        feature,
-        subject,
-        n(cmat),
-        p(cmat),
-        k(cmat),
-        accuracy(cmat),
-        stats(cmat),
-    )
+def save_results(test, null, feature, network):
+    print_results(test, null)
+    plt.hist(null, bins=25, color="lightblue", edgecolor="black")
+    plt.axvline(test, color="black", linewidth=3)
+    plt.xlim(get_range(feature))
+    plt.savefig(f"../plots/hist/{'_'.join(feature.split())}_{network}.png")
+    plt.clf()
 
 
 def main():
-    ostream = "NETWORK,FEATURE,SUBJECT,N,P,K,ACC,PVAL\n"
     input_dir = "../inputs/item_data_tvals_20201002/"
-    networks = ["lang", "MD", "aud", "vis"]
-    features = ["sent v code", "math v str", "seq v for", "seq v if", "for v if"]
-    for network in networks:
-        for feature in features:
-            for subject in sorted(os.listdir(input_dir)):
-                ostream += summarize(
-                    network,
-                    feature,
-                    subject,
-                    run_decoding_pipeline(input_dir + subject, network, feature),
-                )
-    with open("../outputs/results.csv", "w") as f:
-        f.write(ostream)
+    for feature in ["sent v code", "math v str", "seq v for v if"]:
+        for network in ["lang", "MD", "aud", "vis"]:
+            print_progress(feature, network)
+            test = run_decoding_pipeline(input_dir, feature, network, "test")
+            null = run_decoding_pipeline(input_dir, feature, network, "null", iters=1e3)
+            save_results(test, null, feature, network)
 
 
 if __name__ == "__main__":

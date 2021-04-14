@@ -21,10 +21,12 @@ class correlation_matrix:
         self._matrix += np.corrcoef(data)
         self._subjects += 1
 
-    def get_axes(self):
+    @property
+    def axes(self):
         return self._axes
 
-    def get_coef(self):
+    @property
+    def coef(self):
         return self._matrix / self._subjects
 
     def add_subject(self, fname, network):
@@ -36,12 +38,10 @@ class correlation_matrix:
             self._set_axis(2, formatcell(structure))
 
     def plot(self, fname, show=False):
-        corr_coef = self.get_coef()
-        axes = self.get_axes()
-        ticks = np.arange(corr_coef.shape[0])
-        labels = np.array(["_".join(row) for row in axes])
+        ticks = np.arange(self.coef.shape[0])
+        labels = np.array(["_".join(row) for row in self.axes])
         indices = np.argsort(labels)
-        plt.imshow(corr_coef[indices, :][:, indices])
+        plt.imshow(self.coef[indices, :][:, indices])
         plt.xticks(ticks, labels[indices], fontsize=5, rotation=90)
         plt.yticks(ticks, labels[indices], fontsize=5)
         plt.clim([0, 1])
@@ -57,7 +57,7 @@ def main():
         corr = correlation_matrix()
         for subject in sorted(os.listdir(input_dir)):
             corr.add_subject(input_dir + subject, network)
-        corr.plot("../plots/corr/%s.jpg" % (network))
+        corr.plot(f"../plots/corr/{network}.jpg")
 
 
 if __name__ == "__main__":
