@@ -29,24 +29,7 @@ def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
                 elif feature == "for v if":
                     idx = idx & ((y == "for") | (y == "if"))
                 else:
-                    if feature == "sent v sent":
-                        idx = code == "sent"
-                    elif feature == "code v code":
-                        idx = code == "code"
-                    elif feature == "math v math":
-                        idx = (code == "code") & (formatcell(content) == "math")
-                    elif feature == "str v str":
-                        idx = (code == "code") & (formatcell(content) == "str")
-                    elif feature == "seq v seq":
-                        idx = (code == "code") & (formatcell(structure) == "seq")
-                    elif feature == "for v for":
-                        idx = (code == "code") & (formatcell(structure) == "for")
-                    elif feature == "if v if":
-                        idx = (code == "code") & (formatcell(structure) == "if")
-                    else:
-                        raise LookupError()
-                    n = idx.sum() // 2
-                    return np.concatenate((np.zeros(n), np.ones(n))), idx
+                    raise LookupError()
     return encoder.fit_transform(y[idx]), idx
 
 
@@ -83,8 +66,8 @@ def train_and_test_model(X, y, classifier=classifier(), crossval=crossval()):
 
 
 def run_decoding_pipeline(input_dir, feature, network, mode, iters=1):
-    assert mode in ["test", "null", "diagnostic"]
-    if mode in ["null", "diagnostic"]:
+    assert mode in ["test", "null"]
+    if mode == "null":
         fname = f"../outputs/{mode}_{'_'.join(feature.split())}_{network}.npy"
         if os.path.exists(fname):
             return np.load(fname)
@@ -93,7 +76,7 @@ def run_decoding_pipeline(input_dir, feature, network, mode, iters=1):
         cmat = init_cmat(len(feature.split(" v ")))
         for subject in sorted(os.listdir(input_dir)):
             X, y = get_xy(input_dir + subject, network, feature)
-            if mode in ["null", "diagnostic"]:
+            if mode == "null":
                 np.random.shuffle(y)
             cmat += train_and_test_model(X, y)
         if mode == "test":
@@ -109,12 +92,6 @@ def print_progress(feature, network):
 
 def print_results(test, null):
     print(f"acc = {test}\np = {(test < null).sum() / null.size}")
-
-
-def print_diagnostic(feature, network, diagnostic):
-    print(
-        f"{feature.split()[0]} {network}:\nmu={diagnostic.mean()}\nsigma={diagnostic.std()}\nmin={diagnostic.min()}\nmax={diagnostic.max()}"
-    )
 
 
 def get_range(feature):
@@ -140,25 +117,11 @@ def save_results(test, null, feature, network):
 def main():
     input_dir = "../inputs/item_data_tvals_20201002/"
     for network in ["lang", "MD", "aud", "vis"]:
-        # for feature in ["sent v code", "math v str", "seq v for v if"]:
-        #     print_progress(feature, network)
-        #     test = run_decoding_pipeline(input_dir, feature, network, "test")
-        #     null = run_decoding_pipeline(input_dir, feature, network, "null", iters=1000)
-        #     save_results(test, null, feature, network)
-        for feature in [
-            "sent v sent",
-            "code v code",
-            "math v math",
-            "str v str",
-            "seq v seq",
-            "for v for",
-            "if v if",
-        ]:
+        for feature in ["sent v code", "math v str", "seq v for v if"]:
             print_progress(feature, network)
-            diagnostic = run_decoding_pipeline(
-                input_dir, feature, network, "diagnostic", iters=100
-            )
-            print_diagnostic(feature, network, diagnostic)
+            test = run_decoding_pipeline(input_dir, feature, network, "test")
+            null = run_decoding_pipeline(input_dir, feature, network, "null", 1000)
+            save_results(test, null, feature, network)
 
 
 if __name__ == "__main__":
