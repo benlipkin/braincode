@@ -1,13 +1,19 @@
 import os
 import sys
+import itertools
 import numpy as np
 from tqdm import tqdm
+from joblib import Parallel, delayed
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import KFold
+from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.svm import LinearSVC
 from braincode_util import *
+
+
+def print_progress(feature, network):
+    print(f"\nrunning MVPA pipeline on {feature} in {network}")
 
 
 def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
@@ -33,61 +39,63 @@ def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):
     return encoder.fit_transform(y[idx]), idx
 
 
-def get_xy(fname, network, feature):
+def get_runs():
+    return np.tile(np.arange(12), 6)
+
+
+def get_xyr(fname, network, feature):
     data, parc, content, lang, structure = parse_mat(get_mat(fname), network)
     y, idx = prep_y(content, lang, structure, feature)
     X = prep_x(data, parc)[idx]
-    return X, y
+    runs = get_runs()[idx]
+    return X, y, runs
 
 
 def init_cmat(n):
     return np.zeros((n, n))
 
 
-def classifier():
-    return LinearSVC(C=1.0, max_iter=1e5)
+def shuffle_within_runs(y, runs):
+    for run in np.unique(runs):
+        y[runs == run] = np.random.permutation(y[runs == run])
+    return y
 
 
-def crossval(folds=5):
-    return KFold(n_splits=folds, shuffle=True, random_state=0)
+def train_and_test_model(X, y, runs):
+    classes = np.unique(y)
+    classifier = LinearSVC(C=1.0, max_iter=1e5)
+    cmat = init_cmat(classes.size)
+    for train, test in LeaveOneGroupOut().split(X, y, runs):
+        model = classifier.fit(X[train], y[train])
+        cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
+    return cmat
 
 
 def accuracy(cmat):
     return np.trace(cmat) / cmat.sum()
 
 
-def train_and_test_model(X, y, classifier=classifier(), crossval=crossval()):
-    classes = np.unique(y)
-    cmat = init_cmat(classes.size)
-    for train, test in crossval.split(X):
-        model = classifier.fit(X[train], y[train])
-        cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
-    return cmat
-
-
-def run_decoding_pipeline(input_dir, feature, network, mode, iters=1):
+def run_decoding_pipeline(feature, network, mode, iters=1):
     assert mode in ["test", "null"]
     if mode == "null":
         fname = f"../outputs/{mode}_{'_'.join(feature.split())}_{network}.npy"
         if os.path.exists(fname):
             return np.load(fname)
         null = np.zeros((iters))
-    for idx in tqdm(range(iters), file=sys.stdout, leave=False):
+    input_dir = "../inputs/item_data_tvals_20201002/"
+    for idx in tqdm(range(iters), leave=False):
+        print(f"iter {idx} of {iters}")
         cmat = init_cmat(len(feature.split(" v ")))
         for subject in sorted(os.listdir(input_dir)):
-            X, y = get_xy(input_dir + subject, network, feature)
+            X, y, runs = get_xyr(input_dir + subject, network, feature)
             if mode == "null":
-                np.random.shuffle(y)
-            cmat += train_and_test_model(X, y)
+                y = shuffle_within_runs(y, runs)
+            cmat += train_and_test_model(X, y, runs)
         if mode == "test":
             return accuracy(cmat)
         null[idx] = accuracy(cmat)
     np.save(fname, null)
     return null
-
-
-def print_progress(feature, network):
-    print(f"\nrunning MVPA pipeline on {feature} in {network}")
 
 
 def print_results(test, null):
@@ -114,15 +122,16 @@ def save_results(test, null, feature, network):
     plt.clf()
 
 
-def main():
-    input_dir = "../inputs/item_data_tvals_20201002/"
-    for network in ["lang", "MD", "aud", "vis"]:
-        for feature in ["sent v code", "math v str", "seq v for v if"]:
-            print_progress(feature, network)
-            test = run_decoding_pipeline(input_dir, feature, network, "test")
-            null = run_decoding_pipeline(input_dir, feature, network, "null", 1000)
-            save_results(test, null, feature, network)
+def main(args):
+    feature, network = args
+    print_progress(feature, network)
+    test = run_decoding_pipeline(feature, network, mode="test")
+    null = run_decoding_pipeline(feature, network, mode="null", iters=100)
+    save_results(test, null, feature, network)
 
 
 if __name__ == "__main__":
-    main()
+    features = ["sent v code", "math v str", "seq v for v if"]
+    networks = ["lang", "MD", "aud", "vis"]
+    args = list(itertools.product(features, networks))
+    Parallel(n_jobs=len(args))(delayed(main)(args[i]) for i in range(len(args)))
