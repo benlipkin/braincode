@@ -126,7 +126,7 @@ def main(args):
     feature, network = args
     print_progress(feature, network)
     test = run_decoding_pipeline(feature, network, mode="test")
-    null = run_decoding_pipeline(feature, network, mode="null", iters=100)
+    null = run_decoding_pipeline(feature, network, mode="null", iters=1000)
     save_results(test, null, feature, network)
 
 
