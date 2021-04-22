@@ -41,14 +41,14 @@ class DataLoader:
 
     def prep_y(self, content, lang, structure, encoder=LabelEncoder()):
         code = np.array(["sent" if i == "sent" else "code" for i in formatcell(lang)])
-        if self.feature == "sent v code":
+        if self.feature == "code":
             y = code
             idx = np.ones(code.size, dtype="bool")
         else:
             idx = code == "code"
-            if self.feature == "math v str":
+            if self.feature == "content":
                 y = formatcell(content)
-            elif self.feature == "seq v for v if":
+            elif self.feature == "structure":
                 y = formatcell(structure)
             else:
                 raise LookupError()

@@ -75,7 +75,7 @@ class MVPA:
     def __run_pipeline(self, mode, iters=1):
         assert mode in ["score", "null"]
         fname = Path(__file__).parent.joinpath(
-            "outputs", f"{mode}_{'_'.join(self.feature.split())}_{self.network}.npy"
+            "outputs", f"{mode}_{self.feature}_{self.network}.npy"
         )
         if fname.exists():
             setattr(self, mode, np.load(fname, allow_pickle=True))
@@ -96,14 +96,14 @@ class MVPA:
         plt.axvline(self.score, color="black", linewidth=3)
         plt.xlim(
             {
-                "sent v code": [0.4, 0.9],
-                "math v str": [0.4, 0.65],
-                "seq v for v if": [0.25, 0.55],
+                "code": [0.4, 0.9],
+                "content": [0.4, 0.65],
+                "structure": [0.25, 0.55],
             }[self.feature]
         )
         plt.savefig(
             Path(__file__).parent.joinpath(
-                "plots", "mvpa", f"{'_'.join(self.feature.split())}_{self.network}.png"
+                "plots", "mvpa", f"{self.feature}_{self.network}.png"
             )
         )
         plt.clf()

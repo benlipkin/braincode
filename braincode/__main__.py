@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from argparse import ArgumentParser
 
 from joblib import Parallel, delayed
@@ -15,15 +16,29 @@ def mvpa_analysis(network, feature):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="run specified analysis type")
-    parser.add_argument("analysis", choices=["rsa", "mvpa"])
-    args = parser.parse_args()
+    default = "all"
+    analyses = ["rsa", "mvpa"]
     networks = ["lang", "MD", "aud", "vis"]
-    if args.analysis == "rsa":
+    features = ["code", "content", "structure"]
+    parser = ArgumentParser(description="run specified analysis type")
+    parser.add_argument("analysis", choices=analyses)
+    parser.add_argument(
+        "-n", "--network", choices=[default] + networks, default=default
+    )
+    parser.add_argument(
+        "-f", "--feature", choices=[default] + features, default=default
+    )
+    args = parser.parse_args()
+    if args.network != default:
+        networks = [args.network]
+    if args.feature != default:
+        features = [args.feature]
+    if args.analysis == analyses[0]:
+        if args.feature != default:
+            warnings.warn("rsa does not use feature; ignoring argument")
         params = [[network] for network in networks]
         function = rsa_analysis
-    elif args.analysis == "mvpa":
-        features = ["sent v code", "math v str", "seq v for v if"]
+    elif args.analysis == analyses[1]:
         params = list(itertools.product(networks, features))
         function = mvpa_analysis
     else:
