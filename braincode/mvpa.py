@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.svm import LinearSVC
 from tqdm import tqdm
-from util import accuracy, init_cmat
+from util import accuracy
 
 
 class MVPA:
@@ -52,20 +52,20 @@ class MVPA:
     @staticmethod
     def __cross_validate_model(X, y, runs):
         classes = np.unique(y)
-        classifier = LinearSVC(C=1.0, max_iter=1e5)
-        cmat = init_cmat(classes.size)
+        classifier = LinearSVC(max_iter=1e5)
+        cmat = np.zeros((classes.size, classes.size))
         for train, test in LeaveOneGroupOut().split(X, y, runs):
             model = classifier.fit(X[train], y[train])
             cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
         return cmat
 
     def __run_mvpa(self, mode):
-        cmat = init_cmat(len(self.feature.split(" v ")))
         for subject in sorted(os.listdir(self.__loader.datadir)):
             X, y, runs = self.__loader.get_xyr(subject, self.network, self.feature)
             if mode == "null":
                 y = self.__shuffle_within_runs(y, runs)
-            cmat += self.__cross_validate_model(X, y, runs)
+            cv_results = self.__cross_validate_model(X, y, runs)
+            cmat = cmat + cv_results if "cmat" in locals() else cv_results
         return cmat
 
     def __run_pipeline(self, mode, iters=1):
@@ -104,7 +104,7 @@ class MVPA:
             os.path.join(
                 os.path.dirname(__file__),
                 "plots",
-                "hist",
+                "mvpa",
                 f"{'_'.join(self.feature.split())}_{self.network}.png",
             )
         )

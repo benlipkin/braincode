@@ -23,9 +23,5 @@ def formatcell(matcellarray):
     return np.array([i[0][0] for i in matcellarray])
 
 
-def init_cmat(n):
-    return np.zeros((n, n))
-
-
 def accuracy(cmat):
     return np.trace(cmat) / cmat.sum()

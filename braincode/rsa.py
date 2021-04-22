@@ -29,7 +29,7 @@ class RSA:
             os.path.join(
                 os.path.dirname(__file__),
                 "plots",
-                "corr",
+                "rsa",
                 f"{self.network}.jpg",
             )
         )
