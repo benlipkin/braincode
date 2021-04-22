@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,17 +21,12 @@ class RSA:
 
     def __calc_corr(self):
         self.__corr = CorrelationMatrix()
-        for subject in sorted(os.listdir(self.corr.loader.datadir)):
+        for subject in sorted(self.corr.loader.datadir.iterdir()):
             self.corr.add_subject(subject, self.network)
 
     def __plot_corr(self):
         self.corr.plot(
-            os.path.join(
-                os.path.dirname(__file__),
-                "plots",
-                "rsa",
-                f"{self.network}.jpg",
-            )
+            Path(__file__).parent.joinpath("plots", "rsa", f"{self.network}.jpg")
         )
 
     def run(self):

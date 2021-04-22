@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -7,14 +7,14 @@ from util import formatcell, get_mat, parse_mat
 
 class DataLoader:
     def __init__(self):
-        self.__datadir = os.path.join(os.path.dirname(__file__), "inputs", "data_tvals")
+        self.__datadir = Path(__file__).parent.joinpath("inputs", "data_tvals")
 
     @property
     def datadir(self):
         return self.__datadir
 
     def load_data(self, subject, network):
-        return parse_mat(get_mat(os.path.join(self.datadir, subject)), network)
+        return parse_mat(get_mat(subject), network)
 
     @staticmethod
     def prep_y(content, lang, structure, feature, encoder=LabelEncoder()):

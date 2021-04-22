@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -60,7 +60,7 @@ class MVPA:
         return cmat
 
     def __run_mvpa(self, mode):
-        for subject in sorted(os.listdir(self.__loader.datadir)):
+        for subject in sorted(self.__loader.datadir.iterdir()):
             X, y, runs = self.__loader.get_xyr(subject, self.network, self.feature)
             if mode == "null":
                 y = self.__shuffle_within_runs(y, runs)
@@ -70,12 +70,10 @@ class MVPA:
 
     def __run_pipeline(self, mode, iters=1):
         assert mode in ["score", "null"]
-        fname = os.path.join(
-            os.path.dirname(__file__),
-            "outputs",
-            f"{mode}_{'_'.join(self.feature.split())}_{self.network}.npy",
+        fname = Path(__file__).parent.joinpath(
+            "outputs", f"{mode}_{'_'.join(self.feature.split())}_{self.network}.npy"
         )
-        if os.path.exists(fname):
+        if fname.exists():
             setattr(self, mode, np.load(fname, allow_pickle=True))
             return
         if mode == "null":
@@ -101,11 +99,8 @@ class MVPA:
             }[self.feature]
         )
         plt.savefig(
-            os.path.join(
-                os.path.dirname(__file__),
-                "plots",
-                "mvpa",
-                f"{'_'.join(self.feature.split())}_{self.network}.png",
+            Path(__file__).parent.joinpath(
+                "plots", "mvpa", f"{'_'.join(self.feature.split())}_{self.network}.png"
             )
         )
         plt.clf()
