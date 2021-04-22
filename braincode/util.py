@@ -1,22 +1,10 @@
+from functools import lru_cache
+
 import numpy as np
 from scipy.io import loadmat
 
 
-def memoize(function):
-    memo = {}
-
-    def wrapper(*args):
-        if args in memo:
-            return memo[args]
-        else:
-            value = function(*args)
-            memo[args] = value
-            return value
-
-    return wrapper
-
-
-@memoize
+@lru_cache(maxsize=32)
 def get_mat(fname):
     return loadmat(fname)
 

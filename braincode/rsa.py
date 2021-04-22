@@ -19,15 +19,10 @@ class RSA:
     def corr(self):
         return self.__corr
 
-    @corr.setter
-    def corr(self, value):
-        self.__corr = value
-
     def __calc_corr(self):
-        corr = CorrelationMatrix()
-        for subject in sorted(os.listdir(DataLoader().datadir)):
-            corr.add_subject(subject, self.network)
-        self.corr = corr
+        self.__corr = CorrelationMatrix()
+        for subject in sorted(os.listdir(self.corr.loader.datadir)):
+            self.corr.add_subject(subject, self.network)
 
     def __plot_corr(self):
         self.corr.plot(
@@ -47,47 +42,36 @@ class RSA:
 
 class CorrelationMatrix:
     def __init__(self):
+        self.__loader = DataLoader()
         self.__matrix = np.zeros((72, 72), dtype="float64")
         self.__axes = np.empty((72, 3), dtype="U4")
         self.__subjects = 0
 
     @property
-    def matrix(self):
-        return self.__matrix
+    def loader(self):
+        return self.__loader
 
     @property
     def axes(self):
         return self.__axes
 
     @property
-    def subjects(self):
-        return self.__subjects
-
-    @property
     def coef(self):
-        return self.matrix / self.subjects
-
-    @matrix.setter
-    def matrix(self, value):
-        self.__matrix = value
-
-    @subjects.setter
-    def subjects(self, value):
-        self.__subjects = value
+        return self.__matrix / self.__subjects
 
     def __axes_empty(self):
-        return "" in self.axes
+        return "" in self.__axes
 
     def __set_axis(self, index, array):
         self.__axes[:, index] = array
 
     def __update_coef(self, data):
-        self.matrix += np.corrcoef(data)
-        self.subjects += 1
+        self.__matrix += np.corrcoef(data)
+        self.__subjects += 1
 
     def add_subject(self, subject, network):
-        data, parc, content, lang, structure = DataLoader().load_data(subject, network)
-        self.__update_coef(DataLoader().prep_x(data, parc))
+        data, parc, content, lang, structure = self.loader.load_data(subject, network)
+        self.__update_coef(self.loader.prep_x(data, parc))
         if self.__axes_empty():
             self.__set_axis(0, formatcell(content))
             self.__set_axis(1, formatcell(lang))

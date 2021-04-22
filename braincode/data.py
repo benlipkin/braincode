@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from util import formatcell, get_mat, memoize, parse_mat
+from util import formatcell, get_mat, parse_mat
 
 
 class DataLoader:
@@ -13,7 +13,6 @@ class DataLoader:
     def datadir(self):
         return self.__datadir
 
-    @memoize
     def load_data(self, subject, network):
         return parse_mat(get_mat(os.path.join(self.datadir, subject)), network)
 

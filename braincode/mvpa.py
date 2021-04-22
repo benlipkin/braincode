@@ -12,6 +12,7 @@ from util import accuracy, init_cmat
 
 class MVPA:
     def __init__(self, network, feature):
+        self.__loader = DataLoader()
         self.__network = network
         self.__feature = feature
         self.__score = None
@@ -42,10 +43,11 @@ class MVPA:
         self.__null = value
 
     @staticmethod
-    def __shuffle_within_runs(y, runs):
+    def __shuffle_within_runs(y_in, runs):
+        y_out = np.zeros(y_in.shape)
         for run in np.unique(runs):
-            y[runs == run] = np.random.permutation(y[runs == run])
-        return y
+            y_out[runs == run] = np.random.permutation(y_in[runs == run])
+        return y_out
 
     @staticmethod
     def __cross_validate_model(X, y, runs):
@@ -59,8 +61,8 @@ class MVPA:
 
     def __run_mvpa(self, mode):
         cmat = init_cmat(len(self.feature.split(" v ")))
-        for subject in sorted(os.listdir(DataLoader().datadir)):
-            X, y, runs = DataLoader().get_xyr(subject, self.network, self.feature)
+        for subject in sorted(os.listdir(self.__loader.datadir)):
+            X, y, runs = self.__loader.get_xyr(subject, self.network, self.feature)
             if mode == "null":
                 y = self.__shuffle_within_runs(y, runs)
             cmat += self.__cross_validate_model(X, y, runs)
@@ -108,8 +110,9 @@ class MVPA:
         )
         plt.clf()
 
-    def run(self, iters=1000):
+    def run(self, perms=True, iters=1000):
         self.__run_pipeline("score")
-        self.__run_pipeline("null", iters)
-        self.__plot_results()
+        if perms:
+            self.__run_pipeline("null", iters)
+            self.__plot_results()
         return self
