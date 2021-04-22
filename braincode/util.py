@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.io import loadmat
-from sklearn.preprocessing import StandardScaler
 
 
 def memoize(function):
@@ -36,9 +35,9 @@ def formatcell(matcellarray):
     return np.array([i[0][0] for i in matcellarray])
 
 
-def prep_x(data, parc):
-    data = data[:, np.flatnonzero(parc)]
-    for i in range(12):
-        idx = np.arange(i, 72, 12)
-        data[idx, :] = StandardScaler().fit_transform(data[idx, :])
-    return data
+def init_cmat(n):
+    return np.zeros((n, n))
+
+
+def accuracy(cmat):
+    return np.trace(cmat) / cmat.sum()
