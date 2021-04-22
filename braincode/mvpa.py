@@ -12,9 +12,9 @@ from util import accuracy
 
 class MVPA:
     def __init__(self, network, feature):
-        self.__loader = DataLoader()
         self.__network = network
         self.__feature = feature
+        self.__loader = DataLoader(self.network, self.feature)
         self.__score = None
         self.__null = None
 
@@ -65,7 +65,7 @@ class MVPA:
 
     def __run_mvpa(self, mode):
         for subject in sorted(self.__loader.datadir.iterdir()):
-            X, y, runs = self.__loader.get_xyr(subject, self.network, self.feature)
+            X, y, runs = self.__loader.get_xyr(subject)
             if mode == "null":
                 y = self.__shuffle_within_runs(y, runs)
             cv_results = self.__cross_validate_model(X, y, runs)

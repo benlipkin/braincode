@@ -6,9 +6,11 @@ from util import formatcell, get_mat, parse_mat
 
 
 class DataLoader:
-    def __init__(self):
+    def __init__(self, network, feature=None):
         self.__datadir = Path(__file__).parent.joinpath("inputs", "data_tvals")
         self.__events = (12, 6)  # ntrials, nruns
+        self.__network = network
+        self.__feature = feature
 
     @property
     def datadir(self):
@@ -26,19 +28,27 @@ class DataLoader:
     def samples(self):
         return np.prod(self.__events)
 
-    def load_data(self, subject, network):
-        return parse_mat(get_mat(subject), network)
+    @property
+    def network(self):
+        return self.__network
 
-    def prep_y(self, content, lang, structure, feature, encoder=LabelEncoder()):
+    @property
+    def feature(self):
+        return self.__feature
+
+    def load_data(self, subject):
+        return parse_mat(get_mat(subject), self.network)
+
+    def prep_y(self, content, lang, structure, encoder=LabelEncoder()):
         code = np.array(["sent" if i == "sent" else "code" for i in formatcell(lang)])
-        if feature == "sent v code":
+        if self.feature == "sent v code":
             y = code
             idx = np.ones(code.size, dtype="bool")
         else:
             idx = code == "code"
-            if feature == "math v str":
+            if self.feature == "math v str":
                 y = formatcell(content)
-            elif feature == "seq v for v if":
+            elif self.feature == "seq v for v if":
                 y = formatcell(structure)
             else:
                 raise LookupError()
@@ -54,9 +64,9 @@ class DataLoader:
     def get_runs(self):
         return np.tile(np.arange(self.runs), self.trials)
 
-    def get_xyr(self, subject, network, feature):
-        data, parc, content, lang, structure = self.load_data(subject, network)
-        y, idx = self.prep_y(content, lang, structure, feature)
+    def get_xyr(self, subject):
+        data, parc, content, lang, structure = self.load_data(subject)
+        y, idx = self.prep_y(content, lang, structure)
         X = self.prep_x(data, parc)[idx]
         runs = self.get_runs()[idx]
         return X, y, runs
