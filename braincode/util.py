@@ -9,9 +9,9 @@ def memoize(function):
         if args in memo:
             return memo[args]
         else:
-            rv = function(*args)
-            memo[args] = rv
-            return rv
+            value = function(*args)
+            memo[args] = value
+            return value
 
     return wrapper
 
