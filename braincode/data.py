@@ -8,7 +8,7 @@ from util import formatcell, get_mat, parse_mat
 class DataLoader:
     def __init__(self, network, feature=None):
         self.__datadir = Path(__file__).parent.joinpath("inputs", "data_tvals")
-        self.__events = (12, 6)  # ntrials, nruns
+        self.__events = (12, 6)  # nruns, nblocks
         self.__network = network
         self.__feature = feature
 
@@ -21,7 +21,7 @@ class DataLoader:
         return self.__events[0]
 
     @property
-    def trials(self):
+    def blocks(self):
         return self.__events[1]
 
     @property
@@ -62,7 +62,7 @@ class DataLoader:
         return data
 
     def get_runs(self):
-        return np.tile(np.arange(self.runs), self.trials)
+        return np.tile(np.arange(self.runs), self.blocks)
 
     def get_xyr(self, subject):
         data, parc, content, lang, structure = self.load_data(subject)
