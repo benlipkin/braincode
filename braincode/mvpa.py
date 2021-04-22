@@ -34,6 +34,10 @@ class MVPA:
     def null(self):
         return self.__null
 
+    @property
+    def pval(self):
+        return (self.score < self.null).sum() / self.null.size
+
     @score.setter
     def score(self, value):
         self.__score = value
@@ -76,16 +80,15 @@ class MVPA:
         if fname.exists():
             setattr(self, mode, np.load(fname, allow_pickle=True))
             return
-        if mode == "null":
-            null = np.zeros((iters))
-        for idx in tqdm(range(iters), leave=False):
+        samples = np.zeros((iters))
+        for idx in tqdm(range(iters)):
             cmat = self.__run_mvpa(mode)
             if mode == "score":
                 self.score = accuracy(cmat)
                 np.save(fname, self.score)
                 return
-            null[idx] = accuracy(cmat)
-        self.null = null
+            samples[idx] = accuracy(cmat)
+        self.null = samples
         np.save(fname, self.null)
 
     def __plot_results(self):

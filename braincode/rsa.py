@@ -38,8 +38,8 @@ class RSA:
 class CorrelationMatrix:
     def __init__(self):
         self.__loader = DataLoader()
-        self.__matrix = np.zeros((72, 72), dtype="float64")
-        self.__axes = np.empty((72, 3), dtype="U4")
+        self.__matrix = np.zeros((self.loader.samples, self.loader.samples))
+        self.__axes = np.array([])
         self.__subjects = 0
 
     @property
@@ -54,12 +54,6 @@ class CorrelationMatrix:
     def coef(self):
         return self.__matrix / self.__subjects
 
-    def __axes_empty(self):
-        return "" in self.__axes
-
-    def __set_axis(self, index, array):
-        self.__axes[:, index] = array
-
     def __update_coef(self, data):
         self.__matrix += np.corrcoef(data)
         self.__subjects += 1
@@ -67,10 +61,10 @@ class CorrelationMatrix:
     def add_subject(self, subject, network):
         data, parc, content, lang, structure = self.loader.load_data(subject, network)
         self.__update_coef(self.loader.prep_x(data, parc))
-        if self.__axes_empty():
-            self.__set_axis(0, formatcell(content))
-            self.__set_axis(1, formatcell(lang))
-            self.__set_axis(2, formatcell(structure))
+        if not self.axes.size:
+            self.__axes = np.vstack(
+                [formatcell(arr) for arr in [content, lang, structure]]
+            ).T
 
     def plot(self, fname, show=False):
         ticks = np.arange(self.coef.shape[0])
