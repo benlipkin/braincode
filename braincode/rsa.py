@@ -37,7 +37,7 @@ class RSA:
 class CorrelationMatrix:
     def __init__(self, network):
         self.__network = network
-        self.__loader = DataLoader(self.network)
+        self.__loader = DataLoader(self.__network)
         self.__matrix = np.zeros((self.loader.samples, self.loader.samples))
         self.__axes = np.array([])
         self.__subjects = 0
