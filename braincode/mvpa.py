@@ -7,7 +7,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.svm import LinearSVC
 from tqdm import tqdm
-from util import accuracy
 
 
 class MVPA:
@@ -72,6 +71,10 @@ class MVPA:
             cmat = cmat + cv_results if "cmat" in locals() else cv_results
         return cmat
 
+    @staticmethod
+    def __accuracy(cmat):
+        return np.trace(cmat) / cmat.sum()
+
     def __run_pipeline(self, mode, iters=1):
         assert mode in ["score", "null"]
         fname = Path(__file__).parent.joinpath(
@@ -84,10 +87,10 @@ class MVPA:
         for idx in tqdm(range(iters)):
             cmat = self.__run_mvpa(mode)
             if mode == "score":
-                self.score = accuracy(cmat)
+                self.score = self.__accuracy(cmat)
                 np.save(fname, self.score)
                 return
-            samples[idx] = accuracy(cmat)
+            samples[idx] = self.__accuracy(cmat)
         self.null = samples
         np.save(fname, self.null)
 

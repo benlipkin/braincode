@@ -3,7 +3,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from data import DataLoader
-from util import formatcell
 
 
 class RSA:
@@ -63,7 +62,7 @@ class CorrelationMatrix:
         self.__update_coef(X)
         if not self.axes.size:
             self.__axes = np.vstack(
-                [formatcell(arr) for arr in [content, lang, structure]]
+                [self.loader.formatcell(arr) for arr in [content, lang, structure]]
             ).T
 
     def plot(self, fname, show=False):

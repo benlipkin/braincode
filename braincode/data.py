@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import numpy as np
+from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from util import formatcell, get_mat, parse_mat
 
 
 class DataLoader:
@@ -29,19 +29,32 @@ class DataLoader:
         return np.prod(self.__events)
 
     def __load_data(self, subject):
-        return parse_mat(get_mat(subject), self.__network)
+        mat = loadmat(subject)
+        return (
+            mat["data"],
+            mat[self.__network + "_tags"],
+            mat["problem_content"],
+            mat["problem_lang"],
+            mat["problem_structure"],
+        )
+
+    @staticmethod
+    def formatcell(matcellarray):
+        return np.array([i[0][0] for i in matcellarray])
 
     def __prep_y(self, content, lang, structure, encoder=LabelEncoder()):
-        code = np.array(["sent" if i == "sent" else "code" for i in formatcell(lang)])
+        code = np.array(
+            ["sent" if i == "sent" else "code" for i in self.formatcell(lang)]
+        )
         if self.__feature == "code":
             y = code
             mask = np.ones(code.size, dtype="bool")
         else:
             mask = code == "code"
             if self.__feature == "content":
-                y = formatcell(content)
+                y = self.formatcell(content)
             elif self.__feature == "structure":
-                y = formatcell(structure)
+                y = self.formatcell(structure)
             else:
                 raise LookupError()
         return encoder.fit_transform(y[mask]), mask
