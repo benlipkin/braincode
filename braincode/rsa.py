@@ -21,7 +21,7 @@ class RSA:
 
     def __calc_corr(self):
         for subject in sorted(self.corr.loader.datadir.iterdir()):
-            self.corr.add_subject(subject, self.network)
+            self.corr.add_subject(subject)
 
     def __plot_corr(self):
         self.corr.plot(
@@ -43,10 +43,6 @@ class CorrelationMatrix:
         self.__subjects = 0
 
     @property
-    def network(self):
-        return self.__network
-
-    @property
     def loader(self):
         return self.__loader
 
@@ -62,7 +58,7 @@ class CorrelationMatrix:
         self.__matrix += np.corrcoef(data)
         self.__subjects += 1
 
-    def add_subject(self, subject, network):
+    def add_subject(self, subject):
         X, content, lang, structure = self.loader.get_xcls(subject)
         self.__update_coef(X)
         if not self.axes.size:
