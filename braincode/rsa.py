@@ -9,7 +9,7 @@ from util import formatcell
 class RSA:
     def __init__(self, network):
         self.__network = network
-        self.__corr = None
+        self.__corr = CorrelationMatrix(self.network)
 
     @property
     def network(self):
@@ -20,7 +20,6 @@ class RSA:
         return self.__corr
 
     def __calc_corr(self):
-        self.__corr = CorrelationMatrix(self.network)
         for subject in sorted(self.corr.loader.datadir.iterdir()):
             self.corr.add_subject(subject, self.network)
 
@@ -64,8 +63,8 @@ class CorrelationMatrix:
         self.__subjects += 1
 
     def add_subject(self, subject, network):
-        data, parc, content, lang, structure = self.loader.load_data(subject)
-        self.__update_coef(self.loader.prep_x(data, parc))
+        X, content, lang, structure = self.loader.get_xcls(subject)
+        self.__update_coef(X)
         if not self.axes.size:
             self.__axes = np.vstack(
                 [formatcell(arr) for arr in [content, lang, structure]]

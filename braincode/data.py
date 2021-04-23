@@ -17,56 +17,53 @@ class DataLoader:
         return self.__datadir
 
     @property
-    def runs(self):
+    def __runs(self):
         return self.__events[0]
 
     @property
-    def blocks(self):
+    def __blocks(self):
         return self.__events[1]
 
     @property
     def samples(self):
         return np.prod(self.__events)
 
-    @property
-    def network(self):
-        return self.__network
+    def __load_data(self, subject):
+        return parse_mat(get_mat(subject), self.__network)
 
-    @property
-    def feature(self):
-        return self.__feature
-
-    def load_data(self, subject):
-        return parse_mat(get_mat(subject), self.network)
-
-    def prep_y(self, content, lang, structure, encoder=LabelEncoder()):
+    def __prep_y(self, content, lang, structure, encoder=LabelEncoder()):
         code = np.array(["sent" if i == "sent" else "code" for i in formatcell(lang)])
-        if self.feature == "code":
+        if self.__feature == "code":
             y = code
-            idx = np.ones(code.size, dtype="bool")
+            mask = np.ones(code.size, dtype="bool")
         else:
-            idx = code == "code"
-            if self.feature == "content":
+            mask = code == "code"
+            if self.__feature == "content":
                 y = formatcell(content)
-            elif self.feature == "structure":
+            elif self.__feature == "structure":
                 y = formatcell(structure)
             else:
                 raise LookupError()
-        return encoder.fit_transform(y[idx]), idx
+        return encoder.fit_transform(y[mask]), mask
 
-    def prep_x(self, data, parc):
+    def __prep_x(self, data, parc, mask):
         data = data[:, np.flatnonzero(parc)]
-        for i in range(self.runs):
-            idx = np.arange(i, self.samples, self.runs)
+        for i in range(self.__runs):
+            idx = np.arange(i, self.samples, self.__runs)
             data[idx, :] = StandardScaler().fit_transform(data[idx, :])
-        return data
+        return data[mask]
 
-    def get_runs(self):
-        return np.tile(np.arange(self.runs), self.blocks)
+    def __prep_runs(self, mask):
+        return np.tile(np.arange(self.__runs), self.__blocks)[mask]
 
-    def get_xyr(self, subject):
-        data, parc, content, lang, structure = self.load_data(subject)
-        y, idx = self.prep_y(content, lang, structure)
-        X = self.prep_x(data, parc)[idx]
-        runs = self.get_runs()[idx]
+    def get_xcls(self, subject):  # rsa
+        data, parc, content, lang, structure = self.__load_data(subject)
+        X = self.__prep_x(data, parc, np.ones(self.samples, dtype="bool"))
+        return X, content, lang, structure
+
+    def get_xyr(self, subject):  # mvpa
+        data, parc, content, lang, structure = self.__load_data(subject)
+        y, mask = self.__prep_y(content, lang, structure)
+        X = self.__prep_x(data, parc, mask)
+        runs = self.__prep_runs(mask)
         return X, y, runs
