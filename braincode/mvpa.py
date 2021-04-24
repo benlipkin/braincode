@@ -11,49 +11,41 @@ from tqdm import tqdm
 
 class MVPA:
     def __init__(self, network, feature):
-        self.__network = network
-        self.__feature = feature
-        self.__loader = DataLoader(self.network, self.feature)
-        self.__score = None
-        self.__null = None
+        self._network = network
+        self._feature = feature
+        self._loader = DataLoader(self.network, self.feature)
+        self._score = None
+        self._null = None
 
     @property
     def network(self):
-        return self.__network
+        return self._network
 
     @property
     def feature(self):
-        return self.__feature
+        return self._feature
 
     @property
     def score(self):
-        return self.__score
+        return self._score
 
     @property
     def null(self):
-        return self.__null
+        return self._null
 
     @property
     def pval(self):
         return (self.score < self.null).sum() / self.null.size
 
-    @score.setter
-    def score(self, value):
-        self.__score = value
-
-    @null.setter
-    def null(self, value):
-        self.__null = value
-
     @staticmethod
-    def __shuffle_within_runs(y_in, runs):
+    def _shuffle_within_runs(y_in, runs):
         y_out = np.zeros(y_in.shape)
         for run in np.unique(runs):
             y_out[runs == run] = np.random.permutation(y_in[runs == run])
         return y_out
 
     @staticmethod
-    def __cross_validate_model(X, y, runs):
+    def _cross_validate_model(X, y, runs):
         classes = np.unique(y)
         classifier = LinearSVC(max_iter=1e5)
         cmat = np.zeros((classes.size, classes.size))
@@ -62,39 +54,39 @@ class MVPA:
             cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
         return cmat
 
-    def __run_mvpa(self, mode):
-        for subject in sorted(self.__loader.datadir.iterdir()):
-            X, y, runs = self.__loader.get_xyr(subject)
+    def _run_mvpa(self, mode):
+        for subject in sorted(self._loader.datadir.iterdir()):
+            X, y, runs = self._loader.get_xyr(subject)
             if mode == "null":
-                y = self.__shuffle_within_runs(y, runs)
-            cv_results = self.__cross_validate_model(X, y, runs)
+                y = self._shuffle_within_runs(y, runs)
+            cv_results = self._cross_validate_model(X, y, runs)
             cmat = cmat + cv_results if "cmat" in locals() else cv_results
         return cmat
 
     @staticmethod
-    def __accuracy(cmat):
+    def _accuracy(cmat):
         return np.trace(cmat) / cmat.sum()
 
-    def __run_pipeline(self, mode, iters=1):
+    def _run_pipeline(self, mode, iters=1):
         assert mode in ["score", "null"]
         fname = Path(__file__).parent.joinpath(
             "outputs", f"{mode}_{self.feature}_{self.network}.npy"
         )
         if fname.exists():
-            setattr(self, mode, np.load(fname, allow_pickle=True))
+            setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
             return
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
-            cmat = self.__run_mvpa(mode)
+            cmat = self._run_mvpa(mode)
             if mode == "score":
-                self.score = self.__accuracy(cmat)
+                self.score = self._accuracy(cmat)
                 np.save(fname, self.score)
                 return
-            samples[idx] = self.__accuracy(cmat)
+            samples[idx] = self._accuracy(cmat)
         self.null = samples
         np.save(fname, self.null)
 
-    def __plot_results(self):
+    def _plot_results(self):
         plt.hist(self.null, bins=25, color="lightblue", edgecolor="black")
         plt.axvline(self.score, color="black", linewidth=3)
         plt.xlim(
@@ -112,8 +104,8 @@ class MVPA:
         plt.clf()
 
     def run(self, perms=True, iters=1000):
-        self.__run_pipeline("score")
+        self._run_pipeline("score")
         if perms:
-            self.__run_pipeline("null", iters)
-            self.__plot_results()
+            self._run_pipeline("null", iters)
+            self._plot_results()
         return self

@@ -7,61 +7,61 @@ from data import DataLoader
 
 class RSA:
     def __init__(self, network):
-        self.__network = network
-        self.__corr = CorrelationMatrix(self.network)
+        self._network = network
+        self._corr = CorrelationMatrix(self.network)
 
     @property
     def network(self):
-        return self.__network
+        return self._network
 
     @property
     def corr(self):
-        return self.__corr
+        return self._corr
 
-    def __calc_corr(self):
+    def _calc_corr(self):
         for subject in sorted(self.corr.loader.datadir.iterdir()):
             self.corr.add_subject(subject)
 
-    def __plot_corr(self):
+    def _plot_corr(self):
         self.corr.plot(
             Path(__file__).parent.joinpath("plots", "rsa", f"{self.network}.jpg")
         )
 
     def run(self):
-        self.__calc_corr()
-        self.__plot_corr()
+        self._calc_corr()
+        self._plot_corr()
         return self
 
 
 class CorrelationMatrix:
     def __init__(self, network):
-        self.__network = network
-        self.__loader = DataLoader(self.__network)
-        self.__matrix = np.zeros((self.loader.samples, self.loader.samples))
-        self.__axes = np.array([])
-        self.__subjects = 0
+        self._network = network
+        self._loader = DataLoader(self._network)
+        self._matrix = np.zeros((self.loader.samples, self.loader.samples))
+        self._axes = np.array([])
+        self._subjects = 0
 
     @property
     def loader(self):
-        return self.__loader
+        return self._loader
 
     @property
     def axes(self):
-        return self.__axes
+        return self._axes
 
     @property
     def coef(self):
-        return self.__matrix / self.__subjects
+        return self._matrix / self._subjects
 
-    def __update_coef(self, data):
-        self.__matrix += np.corrcoef(data)
-        self.__subjects += 1
+    def _update_coef(self, data):
+        self._matrix += np.corrcoef(data)
+        self._subjects += 1
 
     def add_subject(self, subject):
         X, content, lang, structure = self.loader.get_xcls(subject)
-        self.__update_coef(X)
+        self._update_coef(X)
         if not self.axes.size:
-            self.__axes = np.vstack(
+            self._axes = np.vstack(
                 [self.loader.formatcell(arr) for arr in [content, lang, structure]]
             ).T
 
