@@ -19,7 +19,7 @@ if __name__ == "__main__":
     default = "all"
     analyses = ["rsa", "mvpa"]
     networks = ["lang", "MD", "aud", "vis"]
-    features = ["code", "content", "structure"]
+    features = ["code", "content", "structure", "bow"]
     parser = ArgumentParser(description="run specified analysis type")
     parser.add_argument("analysis", choices=analyses)
     parser.add_argument(
