@@ -9,6 +9,14 @@ setup(
     author_email="lipkinb@mit.edu",
     license="MIT",
     packages=find_packages(where="braincode"),
-    install_requires=["numpy", "scipy", "sklearn", "matplotlib", "joblib", "tqdm"],
+    install_requires=[
+        "numpy",
+        "scipy",
+        "sklearn",
+        "tensorflow",
+        "matplotlib",
+        "joblib",
+        "tqdm",
+    ],
     python_requires=">=3.6, <4",
 )

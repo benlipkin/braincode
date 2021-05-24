@@ -57,6 +57,7 @@ class MVPA:
     def _run_mvpa(self, mode):
         for subject in sorted(self._loader.datadir.iterdir()):
             X, y, runs = self._loader.get_xyr(subject)
+            BREAK  # resume here, handle y.shape[1]>1 for dense embeddings
             if mode == "null":
                 y = self._shuffle_within_runs(y, runs)
             cv_results = self._cross_validate_model(X, y, runs)

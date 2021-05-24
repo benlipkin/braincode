@@ -47,7 +47,7 @@ class DataLoader:
         elif isinstance(matcellarray[0][0], np.uint8):
             return np.array([i[0] for i in matcellarray])
         else:
-            raise LookupError()
+            raise NotImplementedError()
 
     def _get_programs(self, lang, id):
         programs = []
@@ -74,13 +74,13 @@ class DataLoader:
                 y = self.formatcell(content)[mask]
             elif self._feature == "structure":
                 y = self.formatcell(structure)[mask]
-            elif self._feature in ["bow"]:  # returns dense features
+            elif self._feature in ["bow", "tfidf"]:  # returns dense features
                 y = self._get_programs(
                     self.formatcell(lang)[mask], self.formatcell(id)[mask]
                 )
-                encoder = FeatureExtractor(self._feature)  # note to self: resume here
+                encoder = FeatureExtractor(self._feature)
             else:
-                raise LookupError()
+                raise NotImplementedError()
         return encoder.fit_transform(y), mask
 
     def _prep_x(self, data, parc, mask):
