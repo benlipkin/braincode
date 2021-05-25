@@ -45,28 +45,31 @@ class MVPA:
         return y_out
 
     @staticmethod
-    def _cross_validate_model(X, y, runs):
+    def _cross_validate_sparse_model(X, y, runs):
         classes = np.unique(y)
         classifier = LinearSVC(max_iter=1e5)
         cmat = np.zeros((classes.size, classes.size))
         for train, test in LeaveOneGroupOut().split(X, y, runs):
             model = classifier.fit(X[train], y[train])
             cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
-        return cmat
-
-    def _run_mvpa(self, mode):
-        for subject in sorted(self._loader.datadir.iterdir()):
-            X, y, runs = self._loader.get_xyr(subject)
-            BREAK  # resume here, handle y.shape[1]>1 for dense embeddings
-            if mode == "null":
-                y = self._shuffle_within_runs(y, runs)
-            cv_results = self._cross_validate_model(X, y, runs)
-            cmat = cmat + cv_results if "cmat" in locals() else cv_results
-        return cmat
+        return np.trace(cmat) / cmat.sum()
 
     @staticmethod
-    def _accuracy(cmat):
-        return np.trace(cmat) / cmat.sum()
+    def _cross_validate_dense_model(X, y, runs):
+        raise NotImplementedError()  # resume here
+
+    def _run_mvpa(self, mode):
+        subjects = sorted(self._loader.datadir.iterdir())
+        scores = np.zeros(len(subjects))
+        for idx, subject in enumerate(subjects):
+            X, y, runs = self._loader.get_xyr(subject)
+            if mode == "null":
+                y = self._shuffle_within_runs(y, runs)
+            if y.ndim > 1:
+                scores[idx] = self._cross_validate_dense_model(X, y, runs)
+            else:
+                scores[idx] = self._cross_validate_sparse_model(X, y, runs)
+        return scores.mean()
 
     def _run_pipeline(self, mode, iters=1):
         assert mode in ["score", "null"]
@@ -78,12 +81,12 @@ class MVPA:
             return
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
-            cmat = self._run_mvpa(mode)
+            score = self._run_mvpa(mode)
             if mode == "score":
-                self._score = self._accuracy(cmat)
+                self._score = score
                 np.save(fname, self.score)
                 return
-            samples[idx] = self._accuracy(cmat)
+            samples[idx] = score
         self.null = samples
         np.save(fname, self.null)
 
@@ -95,6 +98,8 @@ class MVPA:
                 "code": [0.4, 0.9],
                 "content": [0.4, 0.65],
                 "structure": [0.25, 0.55],
+                # "bow":[],
+                # "tfidf":[],
             }[self.feature]
         )
         plt.savefig(
