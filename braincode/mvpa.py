@@ -80,7 +80,7 @@ class MVPA:
         for idx in tqdm(range(iters)):
             cmat = self._run_mvpa(mode)
             if mode == "score":
-                self.score = self._accuracy(cmat)
+                self._score = self._accuracy(cmat)
                 np.save(fname, self.score)
                 return
             samples[idx] = self._accuracy(cmat)
