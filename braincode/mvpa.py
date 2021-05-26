@@ -3,7 +3,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from data import DataLoader
-from sklearn.metrics import confusion_matrix
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import confusion_matrix, pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.svm import LinearSVC
 from tqdm import tqdm
@@ -45,18 +46,23 @@ class MVPA:
         return y_out
 
     @staticmethod
-    def _cross_validate_sparse_model(X, y, runs):
-        classes = np.unique(y)
-        classifier = LinearSVC(max_iter=1e5)
-        cmat = np.zeros((classes.size, classes.size))
-        for train, test in LeaveOneGroupOut().split(X, y, runs):
-            model = classifier.fit(X[train], y[train])
-            cmat += confusion_matrix(y[test], model.predict(X[test]), labels=classes)
-        return np.trace(cmat) / cmat.sum()
+    def _rank_accuracy(pred, true):
+        distances = pairwise_distances(pred, true, metric="cosine")
+        scores = np.zeros(distances.shape[0])
+        for idx, val in enumerate(np.diag(distances)):
+            scores[idx] = (distances[idx, :] > val).sum() / (distances.shape[1] - 1)
+        return scores.mean()
 
-    @staticmethod
-    def _cross_validate_dense_model(X, y, runs):
-        raise NotImplementedError()  # resume here
+    def _cross_validate_model(self, X, y, runs):
+        model_class = LinearSVC(max_iter=1e5) if y.ndim == 1 else LinearRegression()
+        scores = np.zeros(np.unique(runs).size)
+        for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, y, runs)):
+            model = model_class.fit(X[train], y[train])
+            if y.ndim == 1:
+                scores[idx] = model.score(X[test], y[test])
+            else:
+                scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
+        return scores.mean()
 
     def _run_mvpa(self, mode):
         subjects = sorted(self._loader.datadir.iterdir())
@@ -65,10 +71,7 @@ class MVPA:
             X, y, runs = self._loader.get_xyr(subject)
             if mode == "null":
                 y = self._shuffle_within_runs(y, runs)
-            if y.ndim > 1:
-                scores[idx] = self._cross_validate_dense_model(X, y, runs)
-            else:
-                scores[idx] = self._cross_validate_sparse_model(X, y, runs)
+            scores[idx] = self._cross_validate_model(X, y, runs)
         return scores.mean()
 
     def _run_pipeline(self, mode, iters=1):
