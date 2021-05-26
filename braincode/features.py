@@ -27,6 +27,11 @@ class CountVectorizer(ABC):
     def __init__(self):
         self.tokenizer = None
 
+    @property
+    @abstractmethod
+    def _mode(self):
+        raise NotImplementedError()
+
     @staticmethod
     def _clean_programs(programs):
         keywords = keyword.kwlist + dir(builtins) + dir(str) + dir(list) + dir(math)
@@ -54,9 +59,8 @@ class CountVectorizer(ABC):
         self.tokenizer = Tokenizer(filters=filters)
         self.tokenizer.fit_on_texts(programs)
 
-    @abstractmethod
     def _transform(self, programs):
-        raise NotImplementedError()
+        return self.tokenizer.texts_to_matrix(programs, mode=self._mode)
 
     def fit_transform(self, programs, clean_source_code=True):
         if clean_source_code:
@@ -66,10 +70,12 @@ class CountVectorizer(ABC):
 
 
 class BagOfWords(CountVectorizer):
-    def _transform(self, programs):
-        return self.tokenizer.texts_to_matrix(programs, mode="count")
+    @property
+    def _mode(self):
+        return "count"
 
 
 class TFIDF(CountVectorizer):
-    def _transform(self, programs):
-        return self.tokenizer.texts_to_matrix(programs, mode="tfidf")
+    @property
+    def _mode(self):
+        return "tfidf"
