@@ -101,8 +101,8 @@ class MVPA:
                 "code": [0.4, 0.9],
                 "content": [0.4, 0.65],
                 "structure": [0.25, 0.55],
-                # "bow":[],
-                # "tfidf":[],
+                "bow": [0.4, 0.65],
+                "tfidf": [0.4, 0.65],
             }[self.feature]
         )
         plt.savefig(
