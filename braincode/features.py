@@ -1,8 +1,6 @@
 import builtins
 import keyword
-import math
 import os
-import re
 from abc import ABC, abstractmethod
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress tf warnings, e.g. cuda not found
@@ -25,7 +23,8 @@ class FeatureExtractor:
 
 class CountVectorizer(ABC):
     def __init__(self):
-        self.tokenizer = None
+        # filters = '!"#$&(),.:;?@[\\]^_`{|}~\t\n'  # leaving in <=>+-*/%
+        self.tokenizer = Tokenizer()
 
     @property
     @abstractmethod
@@ -34,7 +33,7 @@ class CountVectorizer(ABC):
 
     @staticmethod
     def _clean_programs(programs):
-        keywords = keyword.kwlist + dir(builtins) + dir(str) + dir(list) + dir(math)
+        keywords = keyword.kwlist + dir(builtins)  # + dir(str) + dir(list) + dir(math)
         filters = "!#$%&()*+,-./:;<=>?@[\\]^`{|}~\t\n"  # leaving in _"
         subs = {}
         tokenizer = Tokenizer(filters=filters, lower=False)
@@ -44,19 +43,17 @@ class CountVectorizer(ABC):
                 subs[token] = f" {token.upper()} "
             else:
                 if '"' in token:
-                    subs[token] = " STR "
+                    subs[token] = "   STR   "
                 elif token.isdigit():
-                    subs[token] = " NUM "
+                    subs[token] = "   NUM   "
                 else:
-                    subs[token] = " VAR "
+                    subs[token] = ""  # "   VAR   "
         for token in reversed(sorted(subs.keys(), key=len)):
             for idx in range(programs.shape[0]):
                 programs[idx] = programs[idx].replace(token, subs[token])
         return programs
 
     def _fit(self, programs):
-        filters = '!"#$&(),.:;?@[\\]^_`{|}~\t\n'  # leaving in <=>+-*/%
-        self.tokenizer = Tokenizer(filters=filters)
         self.tokenizer.fit_on_texts(programs)
 
     def _transform(self, programs):
