@@ -47,9 +47,9 @@ class MVPA:
     @staticmethod
     def _rank_accuracy(pred, true, metric="cosine"):
         distances = pairwise_distances(pred, true, metric=metric)
-        scores = np.zeros(distances.shape[0])
-        for idx, val in enumerate(np.diag(distances)):
-            scores[idx] = (distances[idx, :] > val).sum() / (distances.shape[1] - 1)
+        scores = (distances.T > np.diag(distances)).sum(axis=0) / (
+            distances.shape[1] - 1
+        )
         return scores.mean()
 
     def _cross_validate_model(self, X, y, runs):
