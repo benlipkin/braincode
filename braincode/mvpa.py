@@ -90,7 +90,7 @@ class MVPA:
                 np.save(fname, self.score)
                 return
             samples[idx] = score
-        self.null = samples
+        self._null = samples
         np.save(fname, self.null)
 
     def _plot_results(self):
