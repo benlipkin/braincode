@@ -42,7 +42,7 @@ if __name__ == "__main__":
         params = list(itertools.product(networks, features))
         function = mvpa_analysis
     else:
-        raise argparse.ArgumentTypeError
+        raise argparse.ArgumentError()
     Parallel(n_jobs=len(params))(
         delayed(function)(*params[i]) for i in range(len(params))
     )
