@@ -93,7 +93,7 @@ class MVPA:
         np.save(fname, self.null)
 
     def _plot_results(self):
-        plt.hist(self.null, bins=25, color="lightblue", edgecolor="black")
+        plt.hist(self.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self.score, color="black", linewidth=3)
         plt.xlim(
             {
