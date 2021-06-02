@@ -43,6 +43,4 @@ if __name__ == "__main__":
         function = mvpa_analysis
     else:
         raise argparse.ArgumentError()
-    Parallel(n_jobs=len(params))(
-        delayed(function)(*params[i]) for i in range(len(params))
-    )
+    Parallel(n_jobs=len(params))(delayed(function)(*param) for param in params)

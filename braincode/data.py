@@ -51,7 +51,7 @@ class DataLoader:
 
     def _get_programs(self, lang, id):
         programs = []
-        for i in range(len(id)):
+        for i in range(id.size):
             fname = list(
                 self.datadir.parent.joinpath("one_file_per_item", lang[i]).glob(
                     f"{id[i]}_*"
