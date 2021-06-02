@@ -5,7 +5,7 @@ setup(
     version="0.1.0",
     description="",
     url="https://github.com/benlipkin/braincode",
-    author="Ben Lipkin",
+    author="Benjamin Lipkin",
     author_email="lipkinb@mit.edu",
     license="MIT",
     packages=find_packages(where="braincode"),
