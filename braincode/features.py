@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress tf warnings, e.g. cuda not found
 
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 
@@ -18,7 +19,7 @@ class FeatureExtractor:
             raise NotImplementedError()
 
     def fit_transform(self, programs):
-        return self._extractor.fit_transform(programs)
+        return StandardScaler().fit_transform(self._extractor.fit_transform(programs))
 
 
 class CountVectorizer(ABC):
