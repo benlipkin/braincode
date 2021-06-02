@@ -70,10 +70,8 @@ class DataLoader:
             mask = np.ones(code.size, dtype="bool")
         else:
             mask = code == "code"
-            if self._feature == "content":
-                y = self.formatcell(content)[mask]
-            elif self._feature == "structure":
-                y = self.formatcell(structure)[mask]
+            if self._feature in ["content", "structure"]:
+                y = self.formatcell(locals()[self._feature])[mask]
             elif self._feature in ["bow", "tfidf"]:  # returns dense features
                 y = self._get_programs(
                     self.formatcell(lang)[mask], self.formatcell(id)[mask]
