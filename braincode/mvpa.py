@@ -40,10 +40,14 @@ class MVPA(Analysis):
 
     @property
     def score(self):
+        if self._score is None:
+            raise RuntimeError("Score not set. Need to run.")
         return self._score
 
     @property
     def null(self):
+        if self._null is None:
+            raise RuntimeError("Null not set. Need to run.")
         return self._null
 
     @property

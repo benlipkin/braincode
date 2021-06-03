@@ -39,10 +39,14 @@ class CorrelationMatrix:
 
     @property
     def axes(self):
+        if self._axes.size == 0:
+            raise RuntimeError("Axes not set. Need to add subject.")
         return self._axes
 
     @property
     def coef(self):
+        if self._subjects == 0:
+            raise RuntimeError("Coef not set. Need to add subject.")
         return self._matrix / self._subjects
 
     def _update_coef(self, data):
@@ -52,7 +56,7 @@ class CorrelationMatrix:
     def add_subject(self, subject):
         X, content, lang, structure = self.loader.get_xcls(subject)
         self._update_coef(X)
-        if not self.axes.size:
+        if not self._axes.size:
             self._axes = np.vstack(
                 [self.loader.formatcell(arr) for arr in [content, lang, structure]]
             ).T

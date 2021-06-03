@@ -62,6 +62,8 @@ class DataLoader:
         return np.array(programs)
 
     def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
+        if self._feature is None:
+            raise RuntimeError("Feature attribute not set. Need to properly init.")
         code = np.array(
             ["sent" if i == "sent" else "code" for i in self.formatcell(lang)]
         )
