@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
@@ -9,17 +10,29 @@ from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
 
 
-class MVPA:
-    def __init__(self, network, feature):
+class Analysis(ABC):
+    def __init__(self, network):
         self._network = network
-        self._feature = feature
-        self._loader = DataLoader(self.network, self.feature)
-        self._score = None
-        self._null = None
 
     @property
     def network(self):
         return self._network
+
+    def _plot(self):
+        Plotter(self).plot()
+
+    @abstractmethod
+    def run(self):
+        raise NotImplementedError()
+
+
+class MVPA(Analysis):
+    def __init__(self, network, feature):
+        super().__init__(network)
+        self._feature = feature
+        self._loader = DataLoader(self.network, self.feature)
+        self._score = None
+        self._null = None
 
     @property
     def feature(self):
@@ -91,9 +104,6 @@ class MVPA:
             samples[idx] = score
         self._null = samples
         np.save(fname, self.null)
-
-    def _plot(self):
-        Plotter(self).plot()
 
     def run(self, perms=True, iters=1000):
         self._run_pipeline("score")

@@ -2,17 +2,14 @@ from pathlib import Path
 
 import numpy as np
 from data import DataLoader
+from mvpa import Analysis
 from plots import Plotter
 
 
-class RSA:
+class RSA(Analysis):
     def __init__(self, network):
-        self._network = network
+        super().__init__(network)
         self._corr = CorrelationMatrix(self.network)
-
-    @property
-    def network(self):
-        return self._network
 
     @property
     def corr(self):
@@ -21,9 +18,6 @@ class RSA:
     def _calc_corr(self):
         for subject in sorted(self.corr.loader.datadir.iterdir()):
             self.corr.add_subject(subject)
-
-    def _plot(self):
-        Plotter(self).plot()
 
     def run(self):
         self._calc_corr()
