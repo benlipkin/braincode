@@ -1,9 +1,9 @@
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 from data import DataLoader
-from sklearn.linear_model import RidgeCV, RidgeClassifierCV
+from plots import Plotter
+from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
@@ -56,7 +56,7 @@ class MVPA:
         model_class = RidgeClassifierCV if y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
         for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, y, runs)):
-            model = model_class(alphas=np.logspace(-2,2,9)).fit(X[train], y[train])
+            model = model_class(alphas=np.logspace(-2, 2, 9)).fit(X[train], y[train])
             if y.ndim == 1:
                 scores[idx] = model.score(X[test], y[test])
             else:
@@ -92,28 +92,12 @@ class MVPA:
         self._null = samples
         np.save(fname, self.null)
 
-    def _plot_results(self):
-        plt.hist(self.null, bins=25, color="turquoise", edgecolor="black")
-        plt.axvline(self.score, color="black", linewidth=3)
-        plt.xlim(
-            {
-                "code": [0.4, 0.9],
-                "content": [0.4, 0.65],
-                "structure": [0.25, 0.55],
-                "bow": [0.4, 0.7],
-                "tfidf": [0.4, 0.7],
-            }[self.feature]
-        )
-        plt.savefig(
-            Path(__file__).parent.joinpath(
-                "plots", "mvpa", f"{self.feature}_{self.network}.png"
-            )
-        )
-        plt.clf()
+    def _plot(self):
+        Plotter(self).plot()
 
     def run(self, perms=True, iters=1000):
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)
-            self._plot_results()
+            self._plot()
         return self

@@ -1,8 +1,8 @@
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 from data import DataLoader
+from plots import Plotter
 
 
 class RSA:
@@ -22,14 +22,12 @@ class RSA:
         for subject in sorted(self.corr.loader.datadir.iterdir()):
             self.corr.add_subject(subject)
 
-    def _plot_corr(self):
-        self.corr.plot(
-            Path(__file__).parent.joinpath("plots", "rsa", f"{self.network}.jpg")
-        )
+    def _plot(self):
+        Plotter(self).plot()
 
     def run(self):
         self._calc_corr()
-        self._plot_corr()
+        self._plot()
         return self
 
 
@@ -64,15 +62,3 @@ class CorrelationMatrix:
             self._axes = np.vstack(
                 [self.loader.formatcell(arr) for arr in [content, lang, structure]]
             ).T
-
-    def plot(self, fname, show=False):
-        ticks = np.arange(self.coef.shape[0])
-        labels = np.array(["_".join(row) for row in self.axes])
-        indices = np.argsort(labels)
-        plt.imshow(self.coef[indices, :][:, indices])
-        plt.xticks(ticks, labels[indices], fontsize=5, rotation=90)
-        plt.yticks(ticks, labels[indices], fontsize=5)
-        plt.clim([0, 1])
-        plt.colorbar()
-        plt.savefig(fname)
-        plt.show() if show else plt.clf()
