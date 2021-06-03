@@ -3,7 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from data import DataLoader
-from sklearn.linear_model import Ridge, RidgeClassifier
+from sklearn.linear_model import RidgeCV, RidgeClassifierCV
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
@@ -53,10 +53,10 @@ class MVPA:
         return scores.mean()
 
     def _cross_validate_model(self, X, y, runs):
-        model_class = RidgeClassifier if y.ndim == 1 else Ridge
+        model_class = RidgeClassifierCV if y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
         for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, y, runs)):
-            model = model_class().fit(X[train], y[train])
+            model = model_class(alphas=np.logspace(-2,2,9)).fit(X[train], y[train])
             if y.ndim == 1:
                 scores[idx] = model.score(X[test], y[test])
             else:
