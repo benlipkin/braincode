@@ -47,7 +47,7 @@ class DataLoader:
         elif isinstance(matcellarray[0][0], np.uint8):
             return np.array([i[0] for i in matcellarray])
         else:
-            raise NotImplementedError()
+            raise TypeError("MATLAB cell array type not handled.")
 
     def _get_programs(self, lang, id):
         programs = []
@@ -80,7 +80,7 @@ class DataLoader:
                 )
                 encoder = FeatureExtractor(self._feature)
             else:
-                raise NotImplementedError()
+                raise ValueError("Feature not recognized. Select valid feature.")
         return encoder.fit_transform(y), mask
 
     def _prep_x(self, data, parc, mask):

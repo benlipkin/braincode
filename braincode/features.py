@@ -16,7 +16,7 @@ class FeatureExtractor:
         elif feature == "tfidf":
             self._extractor = TFIDF()
         else:
-            raise NotImplementedError()
+            raise ValueError("Feature not recognized. Select valid feature.")
 
     def fit_transform(self, programs):
         return StandardScaler().fit_transform(self._extractor.fit_transform(programs))
@@ -30,7 +30,7 @@ class CountVectorizer(ABC):
     @property
     @abstractmethod
     def _mode(self):
-        raise NotImplementedError()
+        raise NotImplementedError("Handled by subclass.")
 
     @staticmethod
     def _clean_programs(programs):

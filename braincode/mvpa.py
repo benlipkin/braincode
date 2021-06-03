@@ -23,7 +23,7 @@ class Analysis(ABC):
 
     @abstractmethod
     def run(self):
-        raise NotImplementedError()
+        raise NotImplementedError("Handled by subclass.")
 
 
 class MVPA(Analysis):
@@ -91,7 +91,8 @@ class MVPA(Analysis):
         return scores.mean()
 
     def _run_pipeline(self, mode, iters=1):
-        assert mode in ["score", "null"]
+        if mode not in ["score", "null"]:
+            raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
         fname = Path(__file__).parent.joinpath(
             "outputs", f"{mode}_{self.feature}_{self.network}.npy"
         )

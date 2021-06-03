@@ -13,7 +13,7 @@ class Plotter:
         elif type == "RSA":
             self.plot = self._plot_rsa
         else:
-            raise TypeError()
+            raise TypeError("Analysis type not handled.")
 
     def _plot_mvpa(self, show=False):
         fname = Path(__file__).parent.joinpath(

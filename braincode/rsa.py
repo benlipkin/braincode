@@ -46,7 +46,7 @@ class CorrelationMatrix:
     @property
     def coef(self):
         if self._subjects == 0:
-            raise RuntimeError("Coef not set. Need to add subject.")
+            raise RuntimeError("Coefficients not set. Need to add subject.")
         return self._matrix / self._subjects
 
     def _update_coef(self, data):
