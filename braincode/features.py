@@ -1,16 +1,19 @@
 import builtins
 import keyword
+import os
 from abc import ABC, abstractmethod
 
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.preprocessing.text import Tokenizer
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress tf warnings, e.g. cuda not found
+
 
 class FeatureExtractor:
     def __init__(self, feature):
-        if feature == "bow":
+        if feature == "code-bow":
             self._extractor = BagOfWords()
-        elif feature == "tfidf":
+        elif feature == "code-tfidf":
             self._extractor = TFIDF()
         else:
             raise ValueError("Feature not recognized. Select valid feature.")

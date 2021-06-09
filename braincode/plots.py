@@ -20,17 +20,17 @@ class Plotter:
             "outputs",
             "plots",
             "mvpa",
-            f"{self._analysis.feature}_{self._analysis.network}.png",
+            f"{self._analysis.feature.split('-')[1]}_{self._analysis.embedding.split('-')[1]}.png",
         )
         plt.hist(self._analysis.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self._analysis.score, color="black", linewidth=3)
         plt.xlim(
             {
-                "code": [0.4, 0.9],
-                "content": [0.4, 0.65],
-                "structure": [0.25, 0.55],
-                "bow": [0.4, 0.7],
-                "tfidf": [0.4, 0.7],
+                "task-code": [0.4, 0.9],
+                "task-content": [0.4, 0.65],
+                "task-structure": [0.25, 0.55],
+                "code-bow": [0.4, 0.7],
+                "code-tfidf": [0.4, 0.7],
             }[self._analysis.feature]
         )
         plt.savefig(fname)
@@ -38,7 +38,7 @@ class Plotter:
 
     def _plot_rsa(self, show=False):
         fname = Path(__file__).parent.joinpath(
-            "outputs", "plots", "rsa", f"{self._analysis.network}.jpg"
+            "outputs", "plots", "rsa", f"{self._analysis.embedding.split('-')[1]}.jpg"
         )
         ticks = np.arange(self._analysis.corr.coef.shape[0])
         labels = np.array(["_".join(row) for row in self._analysis.corr.axes])

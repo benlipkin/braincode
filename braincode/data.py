@@ -7,10 +7,10 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 class DataLoader:
-    def __init__(self, network, feature=None):
+    def __init__(self, embedding, feature=None):
         self._datadir = Path(__file__).parent.joinpath("inputs", "neural_data")
         self._events = (12, 6)  # nruns, nblocks
-        self._network = network
+        self._embedding = embedding
         self._feature = feature
 
     @property
@@ -30,10 +30,14 @@ class DataLoader:
         return np.prod(self._events)
 
     def _load_data(self, subject):
+        if "brain" not in self._embedding:
+            raise ValueError(
+                "Embedding set incorrectly. Must be brain network to load subject data."
+            )
         mat = loadmat(subject)
         return (
             mat["data"],
-            mat[self._network + "_tags"],
+            mat[self._embedding.split("-")[1] + "_tags"],
             mat["problem_content"],
             mat["problem_lang"],
             mat["problem_structure"],
@@ -67,14 +71,14 @@ class DataLoader:
         code = np.array(
             ["sent" if i == "sent" else "code" for i in self.formatcell(lang)]
         )
-        if self._feature == "code":
+        if self._feature == "task-code":
             y = code
             mask = np.ones(code.size, dtype="bool")
         else:
             mask = code == "code"
-            if self._feature in ["content", "structure"]:
-                y = self.formatcell(locals()[self._feature])[mask]
-            elif self._feature in ["bow", "tfidf"]:  # returns dense features
+            if self._feature in ["task-content", "task-structure"]:
+                y = self.formatcell(locals()[self._feature.split("-")[1]])[mask]
+            elif self._feature in ["code-bow", "code-tfidf"]:  # returns dense features
                 y = self._get_programs(
                     self.formatcell(lang)[mask], self.formatcell(id)[mask]
                 )

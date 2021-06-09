@@ -11,12 +11,12 @@ from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, network):
-        self._network = network
+    def __init__(self, embedding):
+        self._embedding = embedding
 
     @property
-    def network(self):
-        return self._network
+    def embedding(self):
+        return self._embedding
 
     def _plot(self):
         Plotter(self).plot()
@@ -26,11 +26,11 @@ class Analysis(ABC):
         raise NotImplementedError("Handled by subclass.")
 
 
-class MVPA(Analysis):
-    def __init__(self, network, feature):
-        super().__init__(network)
+class Decoder(Analysis):
+    def __init__(self, embedding, feature):
+        super().__init__(embedding)
         self._feature = feature
-        self._loader = DataLoader(self.network, self.feature)
+        self._loader = DataLoader(self.embedding, self.feature)
         self._score = None
         self._null = None
 
@@ -81,20 +81,15 @@ class MVPA(Analysis):
         return scores.mean()
 
     def _run_mvpa(self, mode):
-        subjects = sorted(self._loader.datadir.iterdir())
-        scores = np.zeros(len(subjects))
-        for idx, subject in enumerate(subjects):
-            X, y, runs = self._loader.get_xyr(subject)
-            if mode == "null":
-                y = self._shuffle_within_runs(y, runs)
-            scores[idx] = self._cross_validate_model(X, y, runs)
-        return scores.mean()
+        raise NotImplementedError("Handled by subclass.")
 
     def _run_pipeline(self, mode, iters=1):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
         fname = Path(__file__).parent.joinpath(
-            "outputs", "cache", f"{mode}_{self.feature}_{self.network}.npy"
+            "outputs",
+            "cache",
+            f"{mode}_{self.feature.split('-')[1]}_{self.embedding.split('-')[1]}.npy",
         )
         if fname.exists():
             setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
@@ -116,3 +111,19 @@ class MVPA(Analysis):
             self._run_pipeline("null", iters)
             self._plot()
         return self
+
+
+class MVPA(Decoder):
+    def _run_mvpa(self, mode):
+        subjects = sorted(self._loader.datadir.iterdir())
+        scores = np.zeros(len(subjects))
+        for idx, subject in enumerate(subjects):
+            X, y, runs = self._loader.get_xyr(subject)
+            if mode == "null":
+                y = self._shuffle_within_runs(y, runs)
+            scores[idx] = self._cross_validate_model(X, y, runs)
+        return scores.mean()
+
+
+class PRDA(Decoder):  # progam representation decoding analysis
+    pass
