@@ -126,4 +126,9 @@ class MVPA(Decoder):
 
 
 class PRDA(Decoder):  # progam representation decoding analysis
-    pass
+    def _run_mvpa(self, mode):
+        X, y = self._loader.get_xy()
+        runs = np.tile(np.array(range(5)), 45)[: y.size] + 1
+        if mode == "null":
+            y = self._shuffle_within_runs(y, runs)
+        return self._cross_validate_model(X, y, runs)

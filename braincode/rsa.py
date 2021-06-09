@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 from data import DataLoader
-from mvpa import Analysis
+from decoding import Analysis
 from plots import Plotter
 
 
