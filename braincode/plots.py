@@ -17,6 +17,7 @@ class Plotter:
 
     def _plot_mvpa(self, show=False):
         fname = Path(__file__).parent.joinpath(
+            "outputs",
             "plots",
             "mvpa",
             f"{self._analysis.feature}_{self._analysis.network}.png",
@@ -37,7 +38,7 @@ class Plotter:
 
     def _plot_rsa(self, show=False):
         fname = Path(__file__).parent.joinpath(
-            "plots", "rsa", f"{self._analysis.network}.jpg"
+            "outputs", "plots", "rsa", f"{self._analysis.network}.jpg"
         )
         ticks = np.arange(self._analysis.corr.coef.shape[0])
         labels = np.array(["_".join(row) for row in self._analysis.corr.axes])

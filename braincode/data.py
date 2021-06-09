@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 class DataLoader:
     def __init__(self, network, feature=None):
-        self._datadir = Path(__file__).parent.joinpath("inputs", "data_tvals")
+        self._datadir = Path(__file__).parent.joinpath("inputs", "neural_data")
         self._events = (12, 6)  # nruns, nblocks
         self._network = network
         self._feature = feature
@@ -53,7 +53,7 @@ class DataLoader:
         programs = []
         for i in range(id.size):
             fname = list(
-                self.datadir.parent.joinpath("one_file_per_item", lang[i]).glob(
+                self.datadir.parent.joinpath("python_programs", lang[i]).glob(
                     f"{id[i]}_*"
                 )
             )[0].as_posix()

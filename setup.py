@@ -13,10 +13,11 @@ setup(
         "numpy",
         "scipy",
         "sklearn",
+        "pytorch",
         "tensorflow",
         "matplotlib",
         "joblib",
         "tqdm",
     ],
-    python_requires=">=3.6, <4",
+    python_requires=">=3.7",
 )

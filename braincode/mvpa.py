@@ -94,7 +94,7 @@ class MVPA(Analysis):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
         fname = Path(__file__).parent.joinpath(
-            "outputs", f"{mode}_{self.feature}_{self.network}.npy"
+            "outputs", "cache", f"{mode}_{self.feature}_{self.network}.npy"
         )
         if fname.exists():
             setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
