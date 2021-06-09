@@ -80,7 +80,8 @@ class Decoder(Analysis):
                 scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
         return scores.mean()
 
-    def _run_mvpa(self, mode):
+    @abstractmethod
+    def _run_decoding(self, mode):
         raise NotImplementedError("Handled by subclass.")
 
     def _run_pipeline(self, mode, iters=1):
@@ -96,7 +97,7 @@ class Decoder(Analysis):
             return
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
-            score = self._run_mvpa(mode)
+            score = self._run_decoding(mode)
             if mode == "score":
                 self._score = score
                 np.save(fname, self.score)
@@ -114,7 +115,7 @@ class Decoder(Analysis):
 
 
 class MVPA(Decoder):
-    def _run_mvpa(self, mode):
+    def _run_decoding(self, mode):
         subjects = sorted(self._loader.datadir.iterdir())
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
@@ -126,9 +127,9 @@ class MVPA(Decoder):
 
 
 class PRDA(Decoder):  # progam representation decoding analysis
-    def _run_mvpa(self, mode):
-        X, y = self._loader.get_xy()
-        runs = np.tile(np.array(range(5)), 45)[: y.size] + 1
+    def _run_decoding(self, mode, k=5):
+        X, y = self._loader.get_xy()  # need to implement
+        runs = np.tile(np.arange(k), (y.size // k + 1))[: y.size]  # kfold CV
         if mode == "null":
             y = self._shuffle_within_runs(y, runs)
         return self._cross_validate_model(X, y, runs)

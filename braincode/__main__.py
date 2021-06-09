@@ -25,7 +25,7 @@ class CLI:
             # "code-seq2seq",
         ]
         self._features = [
-            "task-code",
+            "test-code",
             "task-content",
             "task-structure",
             "code-bow",

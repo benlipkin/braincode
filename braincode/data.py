@@ -108,3 +108,6 @@ class DataLoader:
         X = self._prep_x(data, parc, mask)
         runs = self._prep_runs(mask)
         return X, y, runs
+
+    def get_xy(self):  # prda
+        raise NotImplementedError()  # resume work here
