@@ -126,7 +126,7 @@ class MVPA(Decoder):
 
 class PRDA(Decoder):  # progam representation decoding analysis
     def _run_decoding(self, mode, k=5):
-        X, y = self._loader.get_xy()  # need to implement
+        X, y = self._loader.get_xy()
         runs = np.tile(np.arange(k), (y.size // k + 1))[: y.size]  # kfold CV
         if mode == "null":
             y = self._shuffle_within_runs(y, runs)

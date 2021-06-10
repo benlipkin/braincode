@@ -29,7 +29,7 @@ class DataLoader:
     def samples(self):
         return np.prod(self._events)
 
-    def _load_data(self, subject):
+    def _load_brain_data(self, subject):
         if "brain" not in self._embedding:
             raise ValueError(
                 "Embedding set incorrectly. Must be brain network to load subject data."
@@ -53,7 +53,7 @@ class DataLoader:
         else:
             raise TypeError("MATLAB cell array type not handled.")
 
-    def _get_programs(self, lang, id):
+    def _load_select_programs(self, lang, id):
         programs = []
         for i in range(id.size):
             fname = list(
@@ -79,7 +79,7 @@ class DataLoader:
             if self._feature in ["task-content", "task-structure"]:
                 y = self.formatcell(locals()[self._feature.split("-")[1]])[mask]
             elif self._feature in ["code-bow", "code-tfidf"]:  # returns dense features
-                y = self._get_programs(
+                y = self._load_select_programs(
                     self.formatcell(lang)[mask], self.formatcell(id)[mask]
                 )
                 encoder = FeatureExtractor(self._feature)
@@ -97,17 +97,32 @@ class DataLoader:
     def _prep_runs(self, mask):
         return np.tile(np.arange(self._runs), self._blocks)[mask]
 
+    def _load_all_programs(self):
+        prog, content, structure = [], [], []
+        files = list(self.datadir.parent.joinpath("python_programs").rglob("*.py"))
+        for file in sorted(files):
+            fname = file.as_posix()
+            with open(fname, "r") as f:
+                prog.append(f.read())
+            info = fname.split("/")[4].split(" ")[1].split("_")
+            content.append(info[0])
+            structure.append(info[1])
+        return np.array(prog), np.array(content), np.array(structure)
+
     def get_xcls(self, subject):  # rsa
-        data, parc, content, lang, structure, id = self._load_data(subject)
+        data, parc, content, lang, structure, id = self._load_brain_data(subject)
         X = self._prep_x(data, parc, np.ones(self.samples, dtype="bool"))
         return X, content, lang, structure
 
     def get_xyr(self, subject):  # mvpa
-        data, parc, content, lang, structure, id = self._load_data(subject)
+        data, parc, content, lang, structure, id = self._load_brain_data(subject)
         y, mask = self._prep_y(content, lang, structure, id)
         X = self._prep_x(data, parc, mask)
         runs = self._prep_runs(mask)
         return X, y, runs
 
     def get_xy(self):  # prda
-        raise NotImplementedError()  # resume work here
+        programs, content, structure = self._load_all_programs()
+        X = FeatureExtractor(self._embedding).fit_transform(programs)
+        y = locals()[self._feature.split("-")[1]]
+        return X, y
