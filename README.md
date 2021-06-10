@@ -111,7 +111,7 @@ python braincode mvpa -e brain-MD -f code-tfidf
 
 **Sample run**
 
-To decode program structure (seq v for v if) from the TF-IDF program representations:
+To decode program structure (seq vs. for vs. if) from the TF-IDF program representations:
 
 ```bash
 python braincode prda -e code-tfidf -f task-structure
