@@ -26,7 +26,7 @@ class Plotter:
         plt.axvline(self._analysis.score, color="black", linewidth=3)
         plt.xlim(
             {
-                "task-code": [0.4, 0.9],
+                "test-code": [0.4, 0.9],
                 "task-content": [0.4, 0.65],
                 "task-structure": [0.25, 0.55],
                 "code-bow": [0.4, 0.7],
