@@ -19,7 +19,7 @@ class Plotter:
 
     def _plot_decoder(self, show=False):
         fname = Path(__file__).parent.joinpath(
-            "outputs", "plots", "mvpa", f"{self._feature}_{self._embedding}.png"
+            "outputs", "plots", "decoding", f"{self._feature}_{self._embedding}.png"
         )
         plt.hist(self._analysis.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self._analysis.score, color="black", linewidth=3)
