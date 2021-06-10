@@ -15,6 +15,8 @@ class FeatureExtractor:
             self._extractor = BagOfWords()
         elif feature == "code-tfidf":
             self._extractor = TFIDF()
+        elif feature == "code-seq2seq":
+            self._extractor = Seq2Seq()
         else:
             raise ValueError("Feature not recognized. Select valid feature.")
 
@@ -77,3 +79,8 @@ class TFIDF(CountVectorizer):
     @property
     def _mode(self):
         return "tfidf"
+
+
+class Seq2Seq:
+    def fit_transform(self, programs):
+        raise NotImplementedError()  # resume here

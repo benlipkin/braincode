@@ -78,7 +78,7 @@ class DataLoader:
             mask = code == "code"
             if self._feature in ["task-content", "task-structure"]:
                 y = self.formatcell(locals()[self._feature.split("-")[1]])[mask]
-            elif self._feature in ["code-bow", "code-tfidf"]:  # returns dense features
+            elif self._feature in ["code-bow", "code-tfidf", "code-seq2seq"]:
                 y = self._load_select_programs(
                     self.formatcell(lang)[mask], self.formatcell(id)[mask]
                 )
