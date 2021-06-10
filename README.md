@@ -6,7 +6,7 @@ This pipeline supports three major functions.
 
 -   **RSA** (representational similarity analysis): models program representational structure within the supported brain networks.
 -   **MVPA** (multivariate pattern analysis): evaluates decoding of program features or embeddings from their respective neural representations within a collection of canonical brain networks.
--   **PRDA** (program representation decoding analysis): evaluates decoding of program features from their respective artificially-generated multivariate representations.
+-   **PRDA** (program representation decoding analysis): evaluates decoding of program features from their respective artificially-generated multivariate embeddings.
 
 ### Supported Brain Networks
 
