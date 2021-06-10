@@ -11,7 +11,7 @@ This pipeline supports three major functions.
 ### Supported Brain Networks
 
 -   Language
--   Multiple Demand
+-   Multiple Demand (MD)
 -   Visual
 -   Auditory
 
