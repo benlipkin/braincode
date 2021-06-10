@@ -50,6 +50,8 @@ class CLI:
         )
 
     def _parse_args(self):
+        if not hasattr(self, "_parser"):
+            raise RuntimeError("CLI parser not set. Need to build first.")
         self._args = self._parser.parse_args()
 
     def _clean_arg(self, arg, match, input):
@@ -61,7 +63,9 @@ class CLI:
                 f"{self._args.analysis.upper()} only accepts '{match}' arguments for '{input}'."
             )
 
-    def _prep_analysis(self):
+    def _prep_analyses(self):
+        if not hasattr(self, "_args"):
+            raise RuntimeError("CLI args not set. Need to parse first.")
         if self._args.embedding != self._default:
             self._embeddings = [self._args.embedding]
         if self._args.feature != self._default:
@@ -83,15 +87,22 @@ class CLI:
         self._analysis = globals()[self._args.analysis.upper()]
 
     def _run_analysis(self, param):
+        if not hasattr(self, "_analysis"):
+            raise RuntimeError("Analysis type not set. Need to prep first.")
         self._analysis(*param).run()
+
+    def _run_parallel_analyses(self):
+        if not hasattr(self, "_params"):
+            raise RuntimeError("Analysis parameters not set. Need to prep first.")
+        Parallel(n_jobs=len(self._params))(
+            delayed(self._run_analysis)(param) for param in self._params
+        )
 
     def run_main(self):
         self._build_parser()
         self._parse_args()
-        self._prep_analysis()
-        Parallel(n_jobs=len(self._params))(
-            delayed(self._run_analysis)(param) for param in self._params
-        )
+        self._prep_analyses()
+        self._run_parallel_analyses()
 
 
 if __name__ == "__main__":

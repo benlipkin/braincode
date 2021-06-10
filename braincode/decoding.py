@@ -31,8 +31,6 @@ class Decoder(Analysis):
         super().__init__(embedding)
         self._feature = feature
         self._loader = DataLoader(self.embedding, self.feature)
-        self._score = None
-        self._null = None
 
     @property
     def feature(self):
@@ -40,13 +38,13 @@ class Decoder(Analysis):
 
     @property
     def score(self):
-        if self._score is None:
+        if not hasattr(self, "_score"):
             raise RuntimeError("Score not set. Need to run.")
         return self._score
 
     @property
     def null(self):
-        if self._null is None:
+        if not hasattr(self, "_null"):
             raise RuntimeError("Null not set. Need to run.")
         return self._null
 
