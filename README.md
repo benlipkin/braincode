@@ -69,7 +69,7 @@ optional arguments:
 To model representational similarity of programs within the brain's Language network:
 
 ```bash
-python braincode rsa -n brain-lang
+python braincode rsa -e brain-lang
 ```
 
 ### MVPA
@@ -94,7 +94,7 @@ python braincode rsa -n brain-lang
 To decode TF-IDF embeddings from the the brain's MD network program representations:
 
 ```bash
-python braincode mvpa -n brain-MD -f code-tfidf
+python braincode mvpa -e brain-MD -f code-tfidf
 ```
 
 ### PRDA
@@ -114,7 +114,7 @@ python braincode mvpa -n brain-MD -f code-tfidf
 To decode program structure (seq v for v if) from the TF-IDF program representations:
 
 ```bash
-python braincode prda -n code-tfidf -f task-structure
+python braincode prda -e code-tfidf -f task-structure
 ```
 
 ## Citation
