@@ -129,5 +129,5 @@ class PRDA(Decoder):  # progam representation decoding analysis
         X, y = self._loader.get_xy()
         runs = np.tile(np.arange(k), (y.size // k + 1))[: y.size]  # kfold CV
         if mode == "null":
-            y = self._shuffle_within_runs(y, runs)
+            np.random.shuffle(y)
         return self._cross_validate_model(X, y, runs)
