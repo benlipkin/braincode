@@ -21,7 +21,7 @@ class CLI:
             "brain-vis",
             "code-bow",
             "code-tfidf",
-            "code-seq2seq",
+            "code-codeberta",
         ]
         self._features = [
             "test-code",
@@ -29,7 +29,7 @@ class CLI:
             "task-structure",
             "code-bow",
             "code-tfidf",
-            "code-seq2seq",
+            "code-codeberta",
         ]
 
     def _build_parser(self):
