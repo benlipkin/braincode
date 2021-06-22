@@ -3,10 +3,13 @@ import keyword
 import os
 from abc import ABC, abstractmethod
 
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.preprocessing.text import Tokenizer
+from transformers import RobertaModel, RobertaTokenizer, logging
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress tf warnings, e.g. cuda not found
+logging.set_verbosity_error()  # suppress hf warnings, e.g. lmhead weights uninitialized
 
 
 class FeatureExtractor:
@@ -27,7 +30,7 @@ class FeatureExtractor:
 class CountVectorizer(ABC):
     def __init__(self):
         # filters = '!"#$&(),.:;?@[\\]^_`{|}~\t\n'  # leaving in <=>+-*/%
-        self.tokenizer = Tokenizer()
+        self._tokenizer = Tokenizer()
 
     @property
     @abstractmethod
@@ -56,17 +59,11 @@ class CountVectorizer(ABC):
                 programs[idx] = programs[idx].replace(token, subs[token])
         return programs
 
-    def _fit(self, programs):
-        self.tokenizer.fit_on_texts(programs)
-
-    def _transform(self, programs):
-        return self.tokenizer.texts_to_matrix(programs, mode=self._mode)
-
     def fit_transform(self, programs, clean_source_code=True):
         if clean_source_code:
             programs = self._clean_programs(programs)
-        self._fit(programs)
-        return self._transform(programs)
+        self._tokenizer.fit_on_texts(programs)
+        return self._tokenizer.texts_to_matrix(programs, mode=self._mode)
 
 
 class BagOfWords(CountVectorizer):
@@ -82,5 +79,20 @@ class TFIDF(CountVectorizer):
 
 
 class CodeBERTa:
+    def __init__(self):
+        self._spec = "huggingface/CodeBERTa-small-v1"
+        self._tokenizer = RobertaTokenizer.from_pretrained(self._spec)
+        self._model = RobertaModel.from_pretrained(self._spec)
+
     def fit_transform(self, programs):
-        raise NotImplementedError()  # resume here
+        outputs = []
+        for program in programs:
+            outputs.append(
+                self._model(self._tokenizer.encode(program, return_tensors="pt"))
+                .last_hidden_state.detach()
+                .numpy()
+                .mean(axis=1)
+                .flatten()
+            )
+        return np.array(outputs)
+        # only using last hidden state for now; can expand later if we want
