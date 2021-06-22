@@ -31,6 +31,8 @@ This pipeline supports three major functions.
 ## Installation
 
 ```bash
+conda create -n braincode python=3.6 # virtual environment recommended
+source activate braincode
 git clone https://github.com/benlipkin/braincode.git
 cd braincode
 pip install -e .
