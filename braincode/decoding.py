@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from tqdm import tqdm
 class Analysis(ABC):
     def __init__(self, feature):
         self._feature = feature
+        self._logger = logging.getLogger(self.__class__.__name__)
 
     @property
     def feature(self):
@@ -95,6 +97,7 @@ class Decoder(Analysis):
             fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
             setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
+            self._logger.info(f"Loading {fname.name} from cache.")
             return
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
@@ -102,10 +105,12 @@ class Decoder(Analysis):
             if mode == "score":
                 self._score = score
                 np.save(fname, self.score)
+                self._logger.info(f"Caching {fname.name}.")
                 return
             samples[idx] = score
         self._null = samples
         np.save(fname, self.null)
+        self._logger.info(f"Caching {fname.name}.")
 
     def run(self, perms=True, iters=100):
         self._run_pipeline("score")

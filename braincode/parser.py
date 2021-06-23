@@ -1,5 +1,7 @@
 import itertools
+import logging
 import multiprocessing
+import sys
 import warnings
 from argparse import ArgumentParser
 
@@ -33,6 +35,7 @@ class CLI:
             "code-tfidf",
             "code-codeberta",
         ]
+        self._logger = logging.getLogger(self.__class__.__name__)
 
     def _build_parser(self):
         self._parser = ArgumentParser(description="run specified analysis type")
@@ -90,12 +93,17 @@ class CLI:
     def _run_analysis(self, param):
         if not hasattr(self, "_analysis"):
             raise RuntimeError("Analysis type not set. Need to prep first.")
+        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
         self._analysis(*param).run()
 
     def _run_parallel_analyses(self):
         if not hasattr(self, "_params"):
             raise RuntimeError("Analysis parameters not set. Need to prep first.")
-        Parallel(n_jobs=min(multiprocessing.cpu_count(), len(self._params)))(
+        n_jobs = min(multiprocessing.cpu_count(), len(self._params))
+        self._logger.info(
+            f"Running {self._analysis.__name__} for each set of {self._params} parameters using {n_jobs} CPUs."
+        )
+        Parallel(n_jobs=n_jobs)(
             delayed(self._run_analysis)(param) for param in self._params
         )
 
