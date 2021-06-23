@@ -71,7 +71,7 @@ class DataLoader:
         code = np.array(
             ["sent" if i == "sent" else "code" for i in self.formatcell(lang)]
         )
-        if self._feature == "task-code":
+        if self._feature == "test-code":
             y = code
             mask = np.ones(code.size, dtype="bool")
         else:

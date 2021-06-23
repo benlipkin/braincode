@@ -92,7 +92,7 @@ class Decoder(Analysis):
             f"{mode}_{self.embedding.split('-')[1]}_{self.feature.split('-')[1]}.npy",
         )
         if not fname.parent.exists():
-            fname.parent.mkdir(parents=True)
+            fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
             setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
             return

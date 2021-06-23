@@ -25,7 +25,7 @@ class Plotter:
             f"{self._embedding}_{self._feature}.png",
         )
         if not fname.parent.exists():
-            fname.parent.mkdir(parents=True)
+            fname.parent.mkdir(parents=True, exist_ok=True)
         plt.hist(self._analysis.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self._analysis.score, color="black", linewidth=3)
         plt.xlim([0, 1])
@@ -34,10 +34,10 @@ class Plotter:
 
     def _plot_rsa(self, show=False):
         fname = Path(__file__).parent.joinpath(
-            "outputs", "plots", self._type, f"{self._embedding}.jpg"
+            "outputs", "plots", self._type.lower(), f"{self._embedding}.jpg"
         )
         if not fname.parent.exists():
-            fname.parent.mkdir(parents=True)
+            fname.parent.mkdir(parents=True, exist_ok=True)
         ticks = np.arange(self._analysis.corr.coef.shape[0])
         labels = np.array(["_".join(row) for row in self._analysis.corr.axes])
         indices = np.argsort(labels)

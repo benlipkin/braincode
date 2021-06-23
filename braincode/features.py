@@ -86,7 +86,7 @@ class CodeBERTa:
             "outputs", "cache", "models", self._spec
         )
         if not self._cache_dir.exists():
-            self._cache_dir.mkdir(parents=True)
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
         self._tokenizer = RobertaTokenizer.from_pretrained(
             self._spec, cache_dir=self._cache_dir
         )
