@@ -33,7 +33,7 @@ class Plotter:
         plt.xlim([0, 1])
         plt.savefig(fname)
         plt.show() if show else plt.clf()
-        self._logger.info(f"Plotting {fname.name}")
+        self._logger.info(f"Plotting '{fname.name}'.")
 
     def _plot_rsa(self, show=False):
         fname = Path(__file__).parent.joinpath(
@@ -51,4 +51,4 @@ class Plotter:
         plt.colorbar()
         plt.savefig(fname)
         plt.show() if show else plt.clf()
-        self._logger.info(f"Plotting {fname.name}")
+        self._logger.info(f"Plotting '{fname.name}'.")

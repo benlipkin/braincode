@@ -15,16 +15,16 @@ logging.set_verbosity_error()  # suppress hf warnings, e.g. lmhead weights unini
 class ProgramEncoder:
     def __init__(self, encoder):
         if encoder == "code-bow":
-            self._extractor = BagOfWords()
+            self._encoder = BagOfWords()
         elif encoder == "code-tfidf":
-            self._extractor = TFIDF()
+            self._encoder = TFIDF()
         elif encoder == "code-codeberta":
-            self._extractor = CodeBERTa()
+            self._encoder = CodeBERTa()
         else:
             raise ValueError("Encoder not recognized. Select valid encoder.")
 
     def fit_transform(self, programs):
-        return self._extractor.fit_transform(programs)
+        return self._encoder.fit_transform(programs)
 
 
 class CountVectorizer(ABC):

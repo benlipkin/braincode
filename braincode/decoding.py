@@ -84,6 +84,11 @@ class Decoder(Analysis):
     def _run_decoding(self, mode):
         raise NotImplementedError("Handled by subclass.")
 
+    def _set_and_save(self, mode, val, fname):
+        setattr(self, "_" + mode, val)
+        np.save(fname, val)
+        self._logger.info(f"Caching '{fname.name}'.")
+
     def _run_pipeline(self, mode, iters=1):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
@@ -97,20 +102,16 @@ class Decoder(Analysis):
             fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
             setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
-            self._logger.info(f"Loading {fname.name} from cache.")
+            self._logger.info(f"Loading '{fname.name}' from cache.")
             return
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
             score = self._run_decoding(mode)
             if mode == "score":
-                self._score = score
-                np.save(fname, self.score)
-                self._logger.info(f"Caching {fname.name}.")
+                self._set_and_save(mode, score, fname)
                 return
             samples[idx] = score
-        self._null = samples
-        np.save(fname, self.null)
-        self._logger.info(f"Caching {fname.name}.")
+        self._set_and_save(mode, samples, fname)
 
     def run(self, perms=True, iters=1000):
         self._run_pipeline("score")
