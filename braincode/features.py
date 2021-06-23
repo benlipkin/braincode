@@ -2,6 +2,7 @@ import builtins
 import keyword
 import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -81,8 +82,17 @@ class TFIDF(CountVectorizer):
 class CodeBERTa:
     def __init__(self):
         self._spec = "huggingface/CodeBERTa-small-v1"
-        self._tokenizer = RobertaTokenizer.from_pretrained(self._spec)
-        self._model = RobertaModel.from_pretrained(self._spec)
+        self._cache_dir = Path(__file__).parent.joinpath(
+            "outputs", "cache", "models", self._spec
+        )
+        if not self._cache_dir.exists():
+            self._cache_dir.mkdir(parents=True)
+        self._tokenizer = RobertaTokenizer.from_pretrained(
+            self._spec, cache_dir=self._cache_dir
+        )
+        self._model = RobertaModel.from_pretrained(
+            self._spec, cache_dir=self._cache_dir
+        )
 
     def fit_transform(self, programs):
         outputs = []

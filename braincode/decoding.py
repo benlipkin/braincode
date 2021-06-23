@@ -88,8 +88,11 @@ class Decoder(Analysis):
         fname = Path(__file__).parent.joinpath(
             "outputs",
             "cache",
-            f"{mode}_{self.feature.split('-')[1]}_{self.embedding.split('-')[1]}.npy",
+            "scores",
+            f"{mode}_{self.embedding.split('-')[1]}_{self.feature.split('-')[1]}.npy",
         )
+        if not fname.parent.exists():
+            fname.parent.mkdir(parents=True)
         if fname.exists():
             setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
             return
