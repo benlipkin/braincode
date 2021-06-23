@@ -1,10 +1,12 @@
 import itertools
+import multiprocessing
 import warnings
 from argparse import ArgumentParser
 
 from decoding import MVPA, PRDA
 from joblib import Parallel, delayed
 from rsa import RSA
+
 
 class CLI:
     def __init__(self):
@@ -93,7 +95,7 @@ class CLI:
     def _run_parallel_analyses(self):
         if not hasattr(self, "_params"):
             raise RuntimeError("Analysis parameters not set. Need to prep first.")
-        Parallel(n_jobs=len(self._params))(
+        Parallel(n_jobs=min(multiprocessing.cpu_count(), len(self._params)))(
             delayed(self._run_analysis)(param) for param in self._params
         )
 
