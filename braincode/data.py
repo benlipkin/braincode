@@ -1,3 +1,4 @@
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -114,6 +115,7 @@ class DataLoader:
         X = self._prep_x(data, parc, np.ones(self.samples, dtype="bool"))
         return X, content, lang, structure
 
+    @lru_cache(maxsize=None)
     def get_xyr(self, subject):  # mvpa
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
         y, mask = self._prep_y(content, lang, structure, id)
@@ -121,6 +123,7 @@ class DataLoader:
         runs = self._prep_runs(mask)
         return X, y, runs
 
+    @lru_cache(maxsize=None)
     def get_xy(self):  # prda
         programs, content, structure = self._load_all_programs()
         X = ProgramEncoder(self._feature).fit_transform(programs)

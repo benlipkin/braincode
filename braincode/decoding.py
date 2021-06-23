@@ -112,7 +112,7 @@ class Decoder(Analysis):
         np.save(fname, self.null)
         self._logger.info(f"Caching {fname.name}.")
 
-    def run(self, perms=True, iters=100):
+    def run(self, perms=True, iters=1000):
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)
