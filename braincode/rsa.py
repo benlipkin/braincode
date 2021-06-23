@@ -9,33 +9,10 @@ from plots import Plotter
 class RSA(Analysis):
     def __init__(self, feature):
         super().__init__(feature)
-        self._corr = CorrelationMatrix(self.feature)
-
-    @property
-    def corr(self):
-        return self._corr
-
-    def _calc_corr(self):
-        for subject in sorted(self.corr.loader.datadir.iterdir()):
-            self.corr.add_subject(subject)
-
-    def run(self):
-        self._calc_corr()
-        self._plot()
-        return self
-
-
-class CorrelationMatrix:
-    def __init__(self, feature):
-        self._feature = feature
         self._loader = DataLoader(self._feature)
-        self._matrix = np.zeros((self.loader.samples, self.loader.samples))
+        self._matrix = np.zeros((self._loader.samples, self._loader.samples))
         self._axes = np.array([])
         self._subjects = 0
-
-    @property
-    def loader(self):
-        return self._loader
 
     @property
     def axes(self):
@@ -53,10 +30,19 @@ class CorrelationMatrix:
         self._matrix += np.corrcoef(data)
         self._subjects += 1
 
-    def add_subject(self, subject):
-        X, content, lang, structure = self.loader.get_xcls(subject)
+    def _add_subject(self, subject):
+        X, content, lang, structure = self._loader.get_xcls(subject)
         self._update_coef(X)
         if not self._axes.size:
             self._axes = np.vstack(
-                [self.loader.formatcell(arr) for arr in [content, lang, structure]]
+                [self._loader.formatcell(arr) for arr in [content, lang, structure]]
             ).T
+
+    def _calc_corr(self):
+        for subject in sorted(self._loader.datadir.iterdir()):
+            self._add_subject(subject)
+
+    def run(self):
+        self._calc_corr()
+        self._plot()
+        return self

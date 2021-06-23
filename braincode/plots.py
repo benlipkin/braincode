@@ -38,10 +38,10 @@ class Plotter:
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
-        ticks = np.arange(self._analysis.corr.coef.shape[0])
-        labels = np.array(["_".join(row) for row in self._analysis.corr.axes])
+        ticks = np.arange(self._analysis.coef.shape[0])
+        labels = np.array(["_".join(row) for row in self._analysis.axes])
         indices = np.argsort(labels)
-        plt.imshow(self._analysis.corr.coef[indices, :][:, indices])
+        plt.imshow(self._analysis.coef[indices, :][:, indices])
         plt.xticks(ticks, labels[indices], fontsize=5, rotation=90)
         plt.yticks(ticks, labels[indices], fontsize=5)
         plt.clim([0, 1])
