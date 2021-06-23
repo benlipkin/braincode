@@ -7,9 +7,9 @@ from plots import Plotter
 
 
 class RSA(Analysis):
-    def __init__(self, embedding):
-        super().__init__(embedding)
-        self._corr = CorrelationMatrix(self.embedding)
+    def __init__(self, feature):
+        super().__init__(feature)
+        self._corr = CorrelationMatrix(self.feature)
 
     @property
     def corr(self):
@@ -26,9 +26,9 @@ class RSA(Analysis):
 
 
 class CorrelationMatrix:
-    def __init__(self, embedding):
-        self._embedding = embedding
-        self._loader = DataLoader(self._embedding)
+    def __init__(self, feature):
+        self._feature = feature
+        self._loader = DataLoader(self._feature)
         self._matrix = np.zeros((self.loader.samples, self.loader.samples))
         self._axes = np.array([])
         self._subjects = 0

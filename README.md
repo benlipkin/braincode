@@ -5,8 +5,8 @@ Project investigating human and artificial neural representations of python prog
 This pipeline supports three major functions.
 
 -   **RSA** (representational similarity analysis): models program representational structure within the supported brain networks.
--   **MVPA** (multivariate pattern analysis): evaluates decoding of program features or embeddings from their respective neural representations within a collection of canonical brain networks.
--   **PRDA** (program representation decoding analysis): evaluates decoding of program features from their respective artificially-generated multivariate embeddings.
+-   **MVPA** (multivariate pattern analysis): evaluates decoding of program benchmark tasks or embeddings from their respective neural representations within a collection of canonical brain networks.
+-   **PRDA** (program representation decoding analysis): evaluates decoding of program benchmark tasks from their respective in-silico embeddings.
 
 ### Supported Brain Networks
 
@@ -17,16 +17,17 @@ This pipeline supports three major functions.
 
 ### Supported Program Features
 
-**Univariate Targets**
+**Benchmark Tasks**
 
 -   Code (code vs. sentences)
 -   Content (math vs. str)
 -   Structure (seq vs. for vs. if)
 
-**Multivariate Embeddings**
+**Program Embeddings**
 
 -   BOW (bag of words)
 -   TF-IDF (term frequency inverse document frequency)
+-   CodeBERTa (HuggingFace RoBERTa-like model trained on the CodeSearchNet dataset from GitHub)
 
 ## Installation
 
@@ -42,8 +43,8 @@ pip install -e .
 
 ```bash
 usage:  [-h]
-        [-e {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf}]
-        [-f {all,test-code,task-content,task-structure,code-bow,code-tfidf}]
+        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}]
+        [-t {all,test-code,task-content,task-structure,code-bow,code-tfidf,code-codeberta}]
         {rsa,mvpa,prda}
 
 run specified analysis type
@@ -53,13 +54,13 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -e {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf}, --embedding {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf}
-  -f {all,test-code,task-content,task-structure,code-bow,code-tfidf}, --feature {all,test-code,task-content,task-structure,code-bow,code-tfidf}
+  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}
+  -t {all,test-code,task-content,task-structure,code-bow,code-tfidf,code-codeberta}, --target {all,test-code,task-content,task-structure,code-bow,code-tfidf,code-codeberta}
 ```
 
 ### RSA
 
-**Supported embeddings**
+**Supported features**
 
 -   brain-lang
 -   brain-MD
@@ -71,52 +72,54 @@ optional arguments:
 To model representational similarity of programs within the brain's Language network:
 
 ```bash
-python braincode rsa -e brain-lang
+python braincode rsa -f brain-lang
 ```
 
 ### MVPA
 
-**Supported embeddings**
+**Supported features**
 
 -   brain-lang
 -   brain-MD
 -   brain-vis
 -   brain-aud
 
-**Supported target features**
+**Supported targets**
 
 -   test-code
 -   task-content
 -   task-structure
 -   code-bow
 -   code-tfidf
+-   code-codeberta
 
 **Sample run**
 
-To decode TF-IDF embeddings from the the brain's MD network program representations:
+To decode TF-IDF embeddings from the brain's MD network program representations:
 
 ```bash
-python braincode mvpa -e brain-MD -f code-tfidf
+python braincode mvpa -f brain-MD -t code-tfidf
 ```
 
 ### PRDA
 
-**Supported embeddings**
+**Supported features**
 
 -   code-bow
 -   code-tfidf
+-   code-codeberta
 
-**Supported target features**
+**Supported targets**
 
 -   task-content
 -   task-structure
 
 **Sample run**
 
-To decode program structure (seq vs. for vs. if) from the TF-IDF program representations:
+To decode program structure (seq vs. for vs. if) from the CodeBERTa program representations:
 
 ```bash
-python braincode prda -e code-tfidf -f task-structure
+python braincode prda -f code-codeberta -t task-structure
 ```
 
 ## Citation

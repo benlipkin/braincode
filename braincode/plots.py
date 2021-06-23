@@ -7,10 +7,10 @@ import numpy as np
 class Plotter:
     def __init__(self, analysis):
         self._analysis = analysis
-        self._embedding = self._analysis.embedding.split("-")[1]
+        self._feature = self._analysis.feature.split("-")[1]
         self._type = self._analysis.__class__.__name__
         if self._type in ["MVPA", "PRDA"]:
-            self._feature = self._analysis.feature.split("-")[1]
+            self._target = self._analysis.target.split("-")[1]
             self.plot = self._plot_decoder
         elif self._type == "RSA":
             self.plot = self._plot_rsa
@@ -22,7 +22,7 @@ class Plotter:
             "outputs",
             "plots",
             self._type.lower(),
-            f"{self._embedding}_{self._feature}.png",
+            f"{self._feature}_{self._target}.png",
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
@@ -34,7 +34,7 @@ class Plotter:
 
     def _plot_rsa(self, show=False):
         fname = Path(__file__).parent.joinpath(
-            "outputs", "plots", self._type.lower(), f"{self._embedding}.jpg"
+            "outputs", "plots", self._type.lower(), f"{self._feature}.jpg"
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)

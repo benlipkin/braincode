@@ -1,17 +1,17 @@
 from pathlib import Path
 
 import numpy as np
-from features import FeatureExtractor
+from encoding import ProgramEncoder
 from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 class DataLoader:
-    def __init__(self, embedding, feature=None):
+    def __init__(self, feature, target=None):
         self._datadir = Path(__file__).parent.joinpath("inputs", "neural_data")
         self._events = (12, 6)  # nruns, nblocks
-        self._embedding = embedding
         self._feature = feature
+        self._target = target
 
     @property
     def datadir(self):
@@ -30,14 +30,14 @@ class DataLoader:
         return np.prod(self._events)
 
     def _load_brain_data(self, subject):
-        if "brain" not in self._embedding:
+        if "brain" not in self._feature:
             raise ValueError(
-                "Embedding set incorrectly. Must be brain network to load subject data."
+                "Feature set incorrectly. Must be brain network to load subject data."
             )
         mat = loadmat(subject)
         return (
             mat["data"],
-            mat[self._embedding.split("-")[1] + "_tags"],
+            mat[self._feature.split("-")[1] + "_tags"],
             mat["problem_content"],
             mat["problem_lang"],
             mat["problem_structure"],
@@ -66,25 +66,25 @@ class DataLoader:
         return np.array(programs)
 
     def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
-        if self._feature is None:
-            raise RuntimeError("Feature attribute not set. Need to properly init.")
+        if self._target is None:
+            raise RuntimeError("Target attribute not set. Need to properly init.")
         code = np.array(
             ["sent" if i == "sent" else "code" for i in self.formatcell(lang)]
         )
-        if self._feature == "test-code":
+        if self._target == "test-code":
             y = code
             mask = np.ones(code.size, dtype="bool")
         else:
             mask = code == "code"
-            if self._feature in ["task-content", "task-structure"]:
-                y = self.formatcell(locals()[self._feature.split("-")[1]])[mask]
-            elif self._feature in ["code-bow", "code-tfidf", "code-codeberta"]:
+            if self._target in ["task-content", "task-structure"]:
+                y = self.formatcell(locals()[self._target.split("-")[1]])[mask]
+            elif self._target in ["code-bow", "code-tfidf", "code-codeberta"]:
                 y = self._load_select_programs(
                     self.formatcell(lang)[mask], self.formatcell(id)[mask]
                 )
-                encoder = FeatureExtractor(self._feature)
+                encoder = ProgramEncoder(self._target)
             else:
-                raise ValueError("Feature not recognized. Select valid feature.")
+                raise ValueError("Target not recognized. Select valid target.")
         return encoder.fit_transform(y), mask
 
     def _prep_x(self, data, parc, mask):
@@ -123,6 +123,6 @@ class DataLoader:
 
     def get_xy(self):  # prda
         programs, content, structure = self._load_all_programs()
-        X = FeatureExtractor(self._embedding).fit_transform(programs)
-        y = locals()[self._feature.split("-")[1]]
+        X = ProgramEncoder(self._feature).fit_transform(programs)
+        y = locals()[self._target.split("-")[1]]
         return X, y

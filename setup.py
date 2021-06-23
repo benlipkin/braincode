@@ -15,13 +15,6 @@ requirements = [
     "tqdm",
 ]
 
-classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python",
-    "Natural Language :: English",
-]
-
 setup(
     name="BrainCode",
     version="0.1.0",
@@ -34,5 +27,4 @@ setup(
     packages=find_packages(where="braincode"),
     install_requires=requirements,
     python_requires=">=3.6",
-    classifiers=classifiers,
 )

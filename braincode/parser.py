@@ -16,7 +16,7 @@ class CLI:
             "mvpa",
             "prda",
         ]
-        self._embeddings = [
+        self._features = [
             "brain-lang",
             "brain-MD",
             "brain-aud",
@@ -25,7 +25,7 @@ class CLI:
             "code-tfidf",
             "code-codeberta",
         ]
-        self._features = [
+        self._targets = [
             "test-code",
             "task-content",
             "task-structure",
@@ -38,15 +38,15 @@ class CLI:
         self._parser = ArgumentParser(description="run specified analysis type")
         self._parser.add_argument("analysis", choices=self._analyses)
         self._parser.add_argument(
-            "-e",
-            "--embedding",
-            choices=[self._default] + self._embeddings,
-            default=self._default,
-        )
-        self._parser.add_argument(
             "-f",
             "--feature",
             choices=[self._default] + self._features,
+            default=self._default,
+        )
+        self._parser.add_argument(
+            "-t",
+            "--target",
+            choices=[self._default] + self._targets,
             default=self._default,
         )
 
@@ -67,24 +67,24 @@ class CLI:
     def _prep_analyses(self):
         if not hasattr(self, "_args"):
             raise RuntimeError("CLI args not set. Need to parse first.")
-        if self._args.embedding != self._default:
-            self._embeddings = [self._args.embedding]
         if self._args.feature != self._default:
             self._features = [self._args.feature]
+        if self._args.target != self._default:
+            self._targets = [self._args.target]
         if self._args.analysis == "rsa":
-            if self._args.feature != self._default:
-                warnings.warn("rsa does not use feature; ignoring argument")
-            self._embeddings = self._clean_arg(self._embeddings, "brain", "-e")
-            self._params = [[embedding] for embedding in self._embeddings]
+            if self._args.target != self._default:
+                warnings.warn("rsa does not use target; ignoring argument")
+            self._features = self._clean_arg(self._features, "brain", "-f")
+            self._params = [[feature] for feature in self._features]
         else:
             if self._args.analysis == "mvpa":
-                self._embeddings = self._clean_arg(self._embeddings, "brain", "-e")
+                self._features = self._clean_arg(self._features, "brain", "-f")
             elif self._args.analysis == "prda":
-                self._embeddings = self._clean_arg(self._embeddings, "code", "-e")
-                self._features = self._clean_arg(self._features, "task", "-f")
+                self._features = self._clean_arg(self._features, "code", "-f")
+                self._targets = self._clean_arg(self._targets, "task", "-t")
             else:
                 raise ValueError("Invalid argument for analysis.")
-            self._params = list(itertools.product(self._embeddings, self._features))
+            self._params = list(itertools.product(self._features, self._targets))
         self._analysis = globals()[self._args.analysis.upper()]
 
     def _run_analysis(self, param):

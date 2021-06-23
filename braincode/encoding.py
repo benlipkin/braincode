@@ -13,16 +13,16 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress tf warnings, e.g. cuda not 
 logging.set_verbosity_error()  # suppress hf warnings, e.g. lmhead weights uninitialized
 
 
-class FeatureExtractor:
-    def __init__(self, feature):
-        if feature == "code-bow":
+class ProgramEncoder:
+    def __init__(self, encoder):
+        if encoder == "code-bow":
             self._extractor = BagOfWords()
-        elif feature == "code-tfidf":
+        elif encoder == "code-tfidf":
             self._extractor = TFIDF()
-        elif feature == "code-codeberta":
+        elif encoder == "code-codeberta":
             self._extractor = CodeBERTa()
         else:
-            raise ValueError("Feature not recognized. Select valid feature.")
+            raise ValueError("Encoder not recognized. Select valid encoder.")
 
     def fit_transform(self, programs):
         return StandardScaler().fit_transform(self._extractor.fit_transform(programs))

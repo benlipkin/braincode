@@ -11,12 +11,12 @@ from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, embedding):
-        self._embedding = embedding
+    def __init__(self, feature):
+        self._feature = feature
 
     @property
-    def embedding(self):
-        return self._embedding
+    def feature(self):
+        return self._feature
 
     def _plot(self):
         Plotter(self).plot()
@@ -27,14 +27,14 @@ class Analysis(ABC):
 
 
 class Decoder(Analysis):
-    def __init__(self, embedding, feature):
-        super().__init__(embedding)
-        self._feature = feature
-        self._loader = DataLoader(self.embedding, self.feature)
+    def __init__(self, feature, target):
+        super().__init__(feature)
+        self._target = target
+        self._loader = DataLoader(self.feature, self.target)
 
     @property
-    def feature(self):
-        return self._feature
+    def target(self):
+        return self._target
 
     @property
     def score(self):
@@ -89,7 +89,7 @@ class Decoder(Analysis):
             "outputs",
             "cache",
             "scores",
-            f"{mode}_{self.embedding.split('-')[1]}_{self.feature.split('-')[1]}.npy",
+            f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
