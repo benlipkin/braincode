@@ -107,7 +107,7 @@ class Decoder(Analysis):
         self._null = samples
         np.save(fname, self.null)
 
-    def run(self, perms=True, iters=1000):
+    def run(self, perms=True, iters=100):
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)

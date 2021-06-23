@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer, logging
 
@@ -25,7 +24,7 @@ class ProgramEncoder:
             raise ValueError("Encoder not recognized. Select valid encoder.")
 
     def fit_transform(self, programs):
-        return StandardScaler().fit_transform(self._extractor.fit_transform(programs))
+        return self._extractor.fit_transform(programs)
 
 
 class CountVectorizer(ABC):
