@@ -21,6 +21,7 @@ This pipeline supports three major functions.
 
 -   Code (code vs. sentences)
 -   Content (math vs. str)
+-   Language (english vs. japanese)
 -   Structure (seq vs. for vs. if)
 
 **Program Embeddings**
@@ -44,7 +45,7 @@ pip install -e .
 ```bash
 usage:  [-h]
         [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}]
-        [-t {all,test-code,task-content,task-structure,code-bow,code-tfidf,code-codeberta}]
+        [-t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-codeberta}]
         {rsa,mvpa,prda}
 
 run specified analysis type
@@ -55,7 +56,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}
-  -t {all,test-code,task-content,task-structure,code-bow,code-tfidf,code-codeberta}, --target {all,test-code,task-content,task-structure,code-bow,code-tfidf,code-codeberta}
+  -t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-codeberta}
 ```
 
 ### RSA
@@ -88,6 +89,7 @@ python braincode rsa -f brain-lang
 
 -   test-code
 -   task-content
+-   task-lang
 -   task-structure
 -   code-bow
 -   code-tfidf
@@ -112,6 +114,7 @@ python braincode mvpa -f brain-MD -t code-tfidf
 **Supported targets**
 
 -   task-content
+-   task-lang
 -   task-structure
 
 **Sample run**
