@@ -126,7 +126,7 @@ class MVPA(Decoder):
         subjects = sorted(self._loader.datadir.iterdir())
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
-            X, y, runs = self._loader.get_xyr(subject)
+            X, y, runs = self._loader.get_data_mvpa(subject)
             if mode == "null":
                 y = self._shuffle_within_runs(y, runs)
             scores[idx] = self._cross_validate_model(X, y, runs)
@@ -134,9 +134,8 @@ class MVPA(Decoder):
 
 
 class PRDA(Decoder):  # progam representation decoding analysis
-    def _run_decoding(self, mode, k=5):
-        X, y = self._loader.get_xy()
-        runs = np.tile(np.arange(k), (y.size // k + 1))[: y.size]  # kfold CV
+    def _run_decoding(self, mode):
+        X, y, runs = self._loader.get_data_prda()
         if mode == "null":
             np.random.shuffle(y)
         return self._cross_validate_model(X, y, runs)

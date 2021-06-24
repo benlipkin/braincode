@@ -31,12 +31,10 @@ class RSA(Analysis):
         self._subjects += 1
 
     def _add_subject(self, subject):
-        X, content, lang, structure = self._loader.get_xcls(subject)
+        X, axes = self._loader.get_data_rsa(subject)
         self._update_coef(X)
         if not self._axes.size:
-            self._axes = np.vstack(
-                [self._loader.formatcell(arr) for arr in [content, lang, structure]]
-            ).T
+            self._axes = axes
 
     def _calc_corr(self):
         for subject in sorted(self._loader.datadir.iterdir()):

@@ -24,6 +24,10 @@ class ProgramEncoder:
             raise ValueError("Encoder not recognized. Select valid encoder.")
 
     def fit_transform(self, programs):
+        if not callable(getattr(self._encoder, "fit_transform", None)):
+            raise NotImplementedError(
+                f"{self._encoder.__class__.__name__} must implement 'fit_transform' method."
+            )
         return self._encoder.fit_transform(programs)
 
 
@@ -53,7 +57,7 @@ class CountVectorizer(ABC):
                 elif token.isdigit():
                     subs[token] = "   NUM   "
                 else:
-                    subs[token] = ""  # "   VAR   "
+                    subs[token] = "   VAR   "
         for token in reversed(sorted(subs.keys(), key=len)):
             for idx in range(programs.shape[0]):
                 programs[idx] = programs[idx].replace(token, subs[token])

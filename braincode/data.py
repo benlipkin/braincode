@@ -46,7 +46,7 @@ class DataLoader:
         )
 
     @staticmethod
-    def formatcell(matcellarray):
+    def _formatcell(matcellarray):
         if isinstance(matcellarray[0][0], np.ndarray):
             return np.array([i[0][0] for i in matcellarray])
         elif isinstance(matcellarray[0][0], np.uint8):
@@ -70,7 +70,7 @@ class DataLoader:
         if self._target is None:
             raise RuntimeError("Target attribute not set. Need to properly init.")
         code = np.array(
-            ["sent" if i == "sent" else "code" for i in self.formatcell(lang)]
+            ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
         )
         if self._target == "test-code":
             y = code
@@ -78,10 +78,10 @@ class DataLoader:
         else:
             mask = code == "code"
             if self._target in ["task-content", "task-structure"]:
-                y = self.formatcell(locals()[self._target.split("-")[1]])[mask]
+                y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             elif self._target in ["code-bow", "code-tfidf", "code-codeberta"]:
                 y = self._load_select_programs(
-                    self.formatcell(lang)[mask], self.formatcell(id)[mask]
+                    self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )
                 encoder = ProgramEncoder(self._target)
             else:
@@ -95,8 +95,8 @@ class DataLoader:
             data[idx, :] = StandardScaler().fit_transform(data[idx, :])
         return data[mask]
 
-    def _prep_runs(self, mask):
-        return np.tile(np.arange(self._runs), self._blocks)[mask]
+    def _prep_runs(self, runs, blocks):
+        return np.tile(np.arange(runs), blocks)
 
     def _load_all_programs(self):
         prog, content, structure = [], [], []
@@ -110,22 +110,24 @@ class DataLoader:
             structure.append(info[1])
         return np.array(prog), np.array(content), np.array(structure)
 
-    def get_xcls(self, subject):  # rsa
+    def get_data_rsa(self, subject):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
         X = self._prep_x(data, parc, np.ones(self.samples, dtype="bool"))
-        return X, content, lang, structure
+        axes = np.vstack([self._formatcell(ar) for ar in [content, lang, structure]]).T
+        return X, axes
 
     @lru_cache(maxsize=None)
-    def get_xyr(self, subject):  # mvpa
+    def get_data_mvpa(self, subject):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
         y, mask = self._prep_y(content, lang, structure, id)
         X = self._prep_x(data, parc, mask)
-        runs = self._prep_runs(mask)
+        runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
 
     @lru_cache(maxsize=None)
-    def get_xy(self):  # prda
+    def get_data_prda(self, k=5):
         programs, content, structure = self._load_all_programs()
-        X = ProgramEncoder(self._feature).fit_transform(programs)
         y = locals()[self._target.split("-")[1]]
-        return X, y
+        X = ProgramEncoder(self._feature).fit_transform(programs)
+        runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
+        return X, y, runs
