@@ -77,7 +77,7 @@ class DataLoader:
             mask = np.ones(code.size, dtype="bool")
         else:
             mask = code == "code"
-            if self._target in ["task-content", "task-structure"]:
+            if self._target in ["task-content", "task-lang", "task-structure"]:
                 y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             elif self._target in ["code-bow", "code-tfidf", "code-codeberta"]:
                 y = self._load_select_programs(
@@ -99,16 +99,22 @@ class DataLoader:
         return np.tile(np.arange(runs), blocks)
 
     def _load_all_programs(self):
-        prog, content, structure = [], [], []
+        programs, content, lang, structure = [], [], [], []
         files = list(self.datadir.parent.joinpath("python_programs").rglob("*.py"))
         for file in sorted(files):
             fname = file.as_posix()
             with open(fname, "r") as f:
-                prog.append(f.read())
+                programs.append(f.read())
             info = fname.split("/")[4].split(" ")[1].split("_")
             content.append(info[0])
+            lang.append(fname.split("/")[3])
             structure.append(info[1])
-        return np.array(prog), np.array(content), np.array(structure)
+        return (
+            np.array(programs),
+            np.array(content),
+            np.array(lang),
+            np.array(structure),
+        )
 
     def get_data_rsa(self, subject):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
@@ -126,7 +132,7 @@ class DataLoader:
 
     @lru_cache(maxsize=None)
     def get_data_prda(self, k=5):
-        programs, content, structure = self._load_all_programs()
+        programs, content, lang, structure = self._load_all_programs()
         y = locals()[self._target.split("-")[1]]
         X = ProgramEncoder(self._feature).fit_transform(programs)
         runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV

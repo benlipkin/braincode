@@ -30,6 +30,7 @@ class CLI:
         self._targets = [
             "test-code",
             "task-content",
+            "task-lang",
             "task-structure",
             "code-bow",
             "code-tfidf",
