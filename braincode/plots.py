@@ -37,7 +37,7 @@ class Plotter:
 
     def _plot_rsa(self, show=False):
         fname = Path(__file__).parent.joinpath(
-            "outputs", "plots", self._type.lower(), f"{self._feature}.jpg"
+            "outputs", "plots", self._type.lower(), f"{self._feature}.png"
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
