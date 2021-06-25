@@ -7,6 +7,12 @@ from plots import Plotter
 
 
 class RSA(Analysis):
+    def run(self):
+        self.rdm = RDM(self.feature).run()
+        return self
+
+
+class RDM(Analysis):
     def __init__(self, feature):
         super().__init__(feature)
         self._loader = DataLoader(self._feature)
@@ -24,7 +30,7 @@ class RSA(Analysis):
     def coef(self):
         if self._subjects == 0:
             raise RuntimeError("Coefficients not set. Need to add subject.")
-        return self._matrix / self._subjects
+        return 1 - (self._matrix / self._subjects)
 
     def _update_coef(self, data):
         self._matrix += np.corrcoef(data)
