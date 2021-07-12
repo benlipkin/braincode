@@ -38,11 +38,11 @@ class ProgramEncoder:
 
 class CountVectorizer(ABC):
     def __init__(self):
-        self._cache_dir = Path(__file__).parent.joinpath("outputs", "cache", "datasets")
-        if not self._cache_dir.exists():
-            self._cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_dir = Path(__file__).parent.joinpath("outputs", "cache", "datasets")
+        if not cache_dir.exists():
+            cache_dir.mkdir(parents=True, exist_ok=True)
         self._dataset = load_dataset(
-            "code_search_net", "python", split="validation", cache_dir=self._cache_dir
+            "code_search_net", "python", split="validation", cache_dir=cache_dir
         )["func_code_string"]
         self._model = Tokenizer(num_words=200)  # arbitrary N > vocab size
 
@@ -91,18 +91,14 @@ class TFIDF(CountVectorizer):
 
 class CodeBERTa:
     def __init__(self):
-        self._spec = "huggingface/CodeBERTa-small-v1"
-        self._cache_dir = Path(__file__).parent.joinpath(
-            "outputs", "cache", "models", self._spec.split("/")[-1]
+        spec = "huggingface/CodeBERTa-small-v1"
+        cache_dir = Path(__file__).parent.joinpath(
+            "outputs", "cache", "models", spec.split("/")[-1]
         )
-        if not self._cache_dir.exists():
-            self._cache_dir.mkdir(parents=True, exist_ok=True)
-        self._tokenizer = RobertaTokenizer.from_pretrained(
-            self._spec, cache_dir=self._cache_dir
-        )
-        self._model = RobertaModel.from_pretrained(
-            self._spec, cache_dir=self._cache_dir
-        )
+        if not cache_dir.exists():
+            cache_dir.mkdir(parents=True, exist_ok=True)
+        self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
+        self._model = RobertaModel.from_pretrained(spec, cache_dir=cache_dir)
 
     def fit_transform(self, programs):
         outputs = []
