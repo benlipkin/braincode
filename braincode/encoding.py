@@ -93,7 +93,7 @@ class CodeBERTa:
     def __init__(self):
         self._spec = "huggingface/CodeBERTa-small-v1"
         self._cache_dir = Path(__file__).parent.joinpath(
-            "outputs", "cache", "models", self._spec
+            "outputs", "cache", "models", self._spec.split("/")[-1]
         )
         if not self._cache_dir.exists():
             self._cache_dir.mkdir(parents=True, exist_ok=True)
