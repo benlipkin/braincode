@@ -9,13 +9,15 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 class DataLoader:
     def __init__(self, feature, target=None):
-        self._datadir = Path(__file__).parent.joinpath("inputs", "neural_data")
+        self._datadir = Path(__file__).parent.joinpath("inputs")
         self._events = (12, 6)  # nruns, nblocks
         self._feature = feature
         self._target = target
 
     @property
     def datadir(self):
+        if not self._datadir.exists():
+            self._download_datadir()
         return self._datadir
 
     @property
@@ -29,6 +31,9 @@ class DataLoader:
     @property
     def samples(self):
         return np.prod(self._events)
+
+    def _download_datadir(self):
+        pass  # need to implement
 
     def _load_brain_data(self, subject):
         if "brain" not in self._feature:
@@ -58,9 +63,7 @@ class DataLoader:
         programs = []
         for i in range(id.size):
             fname = list(
-                self.datadir.parent.joinpath("python_programs", lang[i]).glob(
-                    f"{id[i]}_*"
-                )
+                self.datadir.joinpath("python_programs", lang[i]).glob(f"{id[i]}_*")
             )[0].as_posix()
             with open(fname, "r") as f:
                 programs.append(f.read())
@@ -100,7 +103,7 @@ class DataLoader:
 
     def _load_all_programs(self):
         programs, content, lang, structure = [], [], [], []
-        files = list(self.datadir.parent.joinpath("python_programs").rglob("*.py"))
+        files = list(self.datadir.joinpath("python_programs").rglob("*.py"))
         for file in sorted(files):
             fname = file.as_posix()
             with open(fname, "r") as f:

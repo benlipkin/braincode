@@ -123,7 +123,7 @@ class Decoder(Analysis):
 
 class MVPA(Decoder):
     def _run_decoding(self, mode):
-        subjects = sorted(self._loader.datadir.iterdir())
+        subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
             X, y, runs = self._loader.get_data_mvpa(subject)

@@ -43,7 +43,8 @@ class RDM(Analysis):
             self._axes = axes
 
     def _calc_corr(self):
-        for subject in sorted(self._loader.datadir.iterdir()):
+        subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
+        for subject in subjects:
             self._add_subject(subject)
 
     def run(self):
