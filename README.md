@@ -37,6 +37,7 @@ conda create -n braincode python=3.6 # virtual environment recommended
 source activate braincode
 git clone https://github.com/benlipkin/braincode.git
 cd braincode
+pip install -r requirements.txt # for exact development environment
 pip install -e .
 ```
 
