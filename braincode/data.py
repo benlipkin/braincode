@@ -16,8 +16,6 @@ class DataLoader:
 
     @property
     def datadir(self):
-        if not self._datadir.exists():
-            self._download_datadir()
         return self._datadir
 
     @property
@@ -31,9 +29,6 @@ class DataLoader:
     @property
     def samples(self):
         return np.prod(self._events)
-
-    def _download_datadir(self):
-        pass  # need to implement
 
     def _load_brain_data(self, subject):
         if "brain" not in self._feature:
