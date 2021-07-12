@@ -38,7 +38,7 @@ class DataLoader:
         mat = loadmat(subject)
         return (
             mat["data"],
-            mat[self._feature.split("-")[1] + "_tags"],
+            mat[f"{self._feature.split('-')[1]}_tags"],
             mat["problem_content"],
             mat["problem_lang"],
             mat["problem_structure"],

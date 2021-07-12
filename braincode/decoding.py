@@ -85,7 +85,7 @@ class Decoder(Analysis):
         raise NotImplementedError("Handled by subclass.")
 
     def _set_and_save(self, mode, val, fname):
-        setattr(self, "_" + mode, val)
+        setattr(self, f"_{mode}", val)
         np.save(fname, val)
         self._logger.info(f"Caching '{fname.name}'.")
 
@@ -101,7 +101,7 @@ class Decoder(Analysis):
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
-            setattr(self, "_" + mode, np.load(fname, allow_pickle=True))
+            setattr(self, f"_{mode}", np.load(fname, allow_pickle=True))
             self._logger.info(f"Loading '{fname.name}' from cache.")
             return
         samples = np.zeros((iters))
