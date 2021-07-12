@@ -10,6 +10,7 @@ requirements = [
     "torch",
     "tensorflow",
     "transformers",
+    "datasets",
     "matplotlib",
     "joblib",
     "tqdm",

@@ -1,15 +1,20 @@
 import builtins
+import io
 import keyword
 import os
+import token
 from abc import ABC, abstractmethod
 from pathlib import Path
+from tokenize import tokenize
 
 import numpy as np
+from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
-from transformers import RobertaModel, RobertaTokenizer, logging
+from transformers import RobertaModel, RobertaTokenizer
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # suppress tf warnings, e.g. cuda not found
-logging.set_verbosity_error()  # suppress hf warnings, e.g. lmhead weights uninitialized
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["DATASETS_VERBOSITY"] = "error"
 
 
 class ProgramEncoder:
@@ -33,8 +38,13 @@ class ProgramEncoder:
 
 class CountVectorizer(ABC):
     def __init__(self):
-        # filters = '!"#$&(),.:;?@[\\]^_`{|}~\t\n'  # leaving in <=>+-*/%
-        self._tokenizer = Tokenizer()
+        self._cache_dir = Path(__file__).parent.joinpath("outputs", "cache", "datasets")
+        if not self._cache_dir.exists():
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
+        self._dataset = load_dataset(
+            "code_search_net", "python", split="validation", cache_dir=self._cache_dir
+        )["func_code_string"]
+        self._model = Tokenizer(num_words=200)  # arbitrary N > vocab size
 
     @property
     @abstractmethod
@@ -42,32 +52,29 @@ class CountVectorizer(ABC):
         raise NotImplementedError("Handled by subclass.")
 
     @staticmethod
-    def _clean_programs(programs):
-        keywords = keyword.kwlist + dir(builtins)  # + dir(str) + dir(list) + dir(math)
-        filters = "!#$%&()*+,-./:;<=>?@[\\]^`{|}~\t\n"  # leaving in _"
-        subs = {}
-        tokenizer = Tokenizer(filters=filters, lower=False)
-        tokenizer.fit_on_texts(programs)
-        for token in tokenizer.word_index.keys():
-            if token in keywords:
-                subs[token] = f" {token.upper()} "
-            else:
-                if '"' in token:
-                    subs[token] = "   STR   "
-                elif token.isdigit():
-                    subs[token] = "   NUM   "
+    def _tokenize_programs(programs):
+        sequences = []
+        tokens = keyword.kwlist + dir(builtins)
+        for program in programs:
+            sequence = []
+            for type, text, _, _, _ in tokenize(io.BytesIO(program.encode()).readline):
+                if type is token.STRING:
+                    sequence.append(1)
+                elif type is token.NUMBER:
+                    sequence.append(2)
+                elif text in tokens:
+                    sequence.append(3 + tokens.index(text))
                 else:
-                    subs[token] = "   VAR   "
-        for token in reversed(sorted(subs.keys(), key=len)):
-            for idx in range(programs.shape[0]):
-                programs[idx] = programs[idx].replace(token, subs[token])
-        return programs
+                    continue
+            sequences.append(sequence)
+        return sequences
 
-    def fit_transform(self, programs, clean_source_code=True):
-        if clean_source_code:
-            programs = self._clean_programs(programs)
-        self._tokenizer.fit_on_texts(programs)
-        return self._tokenizer.texts_to_matrix(programs, mode=self._mode)
+    def fit_transform(self, programs):
+        self._model.fit_on_sequences(self._tokenize_programs(self._dataset))
+        outputs = self._model.sequences_to_matrix(
+            self._tokenize_programs(programs), mode=self._mode
+        )
+        return outputs[:, np.any(outputs, axis=0)]
 
 
 class BagOfWords(CountVectorizer):
@@ -108,4 +115,3 @@ class CodeBERTa:
                 .flatten()
             )
         return np.array(outputs)
-        # only using last hidden state for now; can expand later if we want
