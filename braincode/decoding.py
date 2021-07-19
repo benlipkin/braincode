@@ -113,7 +113,7 @@ class Decoder(Analysis):
             samples[idx] = score
         self._set_and_save(mode, samples, fname)
 
-    def run(self, perms=True, iters=1000):
+    def run(self, perms=True, iters=1):
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)

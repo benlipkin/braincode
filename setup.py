@@ -4,16 +4,17 @@ with open("README.md") as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "numpy",
-    "scipy",
-    "sklearn",
-    "torch",
-    "tensorflow",
-    "transformers",
-    "datasets",
-    "matplotlib",
-    "joblib",
-    "tqdm",
+    "numpy==1.18.1",
+    "scipy==1.4.1",
+    "scikit_learn==0.24.1",
+    "torch==1.4.0",
+    "tensorflow==2.3.0",
+    "transformers==3.1.0",
+    "datasets==1.9.0",
+    "matplotlib==3.3.4",
+    "joblib==0.14.1",
+    "tqdm==4.43.0",
+    "code-transformer @ git+https://github.com/danielzuegner/code-transformer.git",
 ]
 
 setup(
