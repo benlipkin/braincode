@@ -38,7 +38,7 @@ class ProgramEncoder:
 
 class CountVectorizer(ABC):
     def __init__(self):
-        cache_dir = Path(__file__).parent.joinpath("outputs", "cache", "datasets")
+        cache_dir = Path(__file__).parent.joinpath("outputs", "cache", "datasets", "huggingface")
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
         self._dataset = load_dataset(
@@ -93,7 +93,7 @@ class CodeBERTa:
     def __init__(self):
         spec = "huggingface/CodeBERTa-small-v1"
         cache_dir = Path(__file__).parent.joinpath(
-            "outputs", "cache", "models", spec.split("/")[-1]
+            "outputs", "cache", "models", "huggingface", spec.split("/")[-1]
         )
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
