@@ -4,7 +4,6 @@ set -e
 
 conda install -yc anaconda wget
 conda install -yc conda-forge tar
-conda install -yc ostrokach gzip
 
 NAME=code_transformer
 CACHE_DIR=$(dirname $(pwd))/braincode/.cache
