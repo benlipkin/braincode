@@ -26,14 +26,18 @@ This pipeline supports three major functions.
 
 **Program Embeddings**
 
--   BOW (bag of words)
--   TF-IDF (term frequency inverse document frequency)
--   CodeBERTa (HuggingFace RoBERTa-like model trained on the CodeSearchNet dataset from GitHub)
+-   Bag Of Words
+-   TF-IDF
+-   XLNet<sup> [1](https://arxiv.org/pdf/1906.08237.pdf)</sup>
+-   CodeTransformer<sup> [2](https://arxiv.org/pdf/2103.11318.pdf)</sup>
+-   CodeBERTa<sup> [3](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
 
 ## Installation
 
+Requirements: [Anaconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
+
 ```bash
-conda create -n braincode python=3.6
+conda create -n braincode python=3.7
 source activate braincode
 git clone https://github.com/benlipkin/braincode.git
 cd braincode
@@ -46,8 +50,8 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 
 ```bash
 usage:  [-h]
-        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}]
-        [-t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-codeberta}]
+        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}]
+        [-t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}]
         {rsa,mvpa,prda}
 
 run specified analysis type
@@ -57,8 +61,8 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-codeberta}
-  -t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-codeberta}
+  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}
+  -t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}
 ```
 
 ### RSA
@@ -95,6 +99,8 @@ python braincode rsa -f brain-lang
 -   task-structure
 -   code-bow
 -   code-tfidf
+-   code-xlnet
+-   code-ct
 -   code-codeberta
 
 **Sample run**
@@ -111,6 +117,8 @@ python braincode mvpa -f brain-MD -t code-tfidf
 
 -   code-bow
 -   code-tfidf
+-   code-xlnet
+-   code-ct
 -   code-codeberta
 
 **Supported targets**

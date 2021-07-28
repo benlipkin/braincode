@@ -77,7 +77,13 @@ class DataLoader:
             mask = code == "code"
             if self._target in ["task-content", "task-lang", "task-structure"]:
                 y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
-            elif self._target in ["code-bow", "code-tfidf", "code-codeberta"]:
+            elif self._target in [
+                "code-bow",
+                "code-tfidf",
+                "code-xlnet",
+                "code-ct",
+                "code-codeberta",
+            ]:
                 y = self._load_select_programs(
                     self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )

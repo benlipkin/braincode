@@ -28,5 +28,5 @@ setup(
     license="MIT",
     packages=find_packages(where="braincode"),
     install_requires=requirements,
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )

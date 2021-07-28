@@ -93,8 +93,7 @@ class Decoder(Analysis):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
         fname = Path(__file__).parent.joinpath(
-            "outputs",
-            "cache",
+            ".cache",
             "scores",
             f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
         )
@@ -107,13 +106,14 @@ class Decoder(Analysis):
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
             score = self._run_decoding(mode)
+            print(self.feature, self.target, score)
             if mode == "score":
                 self._set_and_save(mode, score, fname)
                 return
             samples[idx] = score
         self._set_and_save(mode, samples, fname)
 
-    def run(self, perms=True, iters=1):
+    def run(self, perms=True, iters=1):  # testing mode; change iters to 1000 when ready
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)

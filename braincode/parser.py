@@ -25,6 +25,8 @@ class CLI:
             "brain-vis",
             "code-bow",
             "code-tfidf",
+            "code-xlnet",
+            "code-ct",
             "code-codeberta",
         ]
         self._targets = [
@@ -34,6 +36,8 @@ class CLI:
             "task-structure",
             "code-bow",
             "code-tfidf",
+            "code-xlnet",
+            "code-ct",
             "code-codeberta",
         ]
         self._logger = logging.getLogger(self.__class__.__name__)
