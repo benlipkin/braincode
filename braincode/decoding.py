@@ -106,14 +106,13 @@ class Decoder(Analysis):
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
             score = self._run_decoding(mode)
-            print(self.feature, self.target, score)
             if mode == "score":
                 self._set_and_save(mode, score, fname)
                 return
             samples[idx] = score
         self._set_and_save(mode, samples, fname)
 
-    def run(self, perms=True, iters=1):  # testing mode; change iters to 1000 when ready
+    def run(self, perms=True, iters=1000):
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)
