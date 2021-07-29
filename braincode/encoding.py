@@ -1,6 +1,7 @@
 import builtins
 import io
 import keyword
+import multiprocessing
 import os
 import token
 from abc import ABC, abstractmethod
@@ -27,6 +28,8 @@ from transformers import RobertaModel, RobertaTokenizer
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 os.environ["DATASETS_VERBOSITY"] = "error"
+
+JOB_ID = multiprocessing.current_process().pid
 
 
 class ProgramEncoder:
@@ -182,7 +185,8 @@ class ZuegnerModel(ABC):
         outputs = []
         for program in programs:
             stage1_sample = CTStage1Preprocessor(self._language).process(
-                [("f", "", self._prep_program(program))], 0
+                [("f", "", self._prep_program(program))],
+                JOB_ID,
             )
             stage2_sample = stage1_sample[0]
             if self._data_config["preprocessing"]["remove_punctuation"]:

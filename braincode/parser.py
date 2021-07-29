@@ -6,7 +6,7 @@ import warnings
 from argparse import ArgumentParser
 
 from decoding import MVPA, PRDA
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, parallel_backend
 from rsa import RSA
 
 
@@ -108,9 +108,8 @@ class CLI:
         self._logger.info(
             f"Running {self._analysis.__name__} for each set of {self._params} parameters using {n_jobs} CPUs."
         )
-        Parallel(n_jobs=n_jobs)(
-            delayed(self._run_analysis)(param) for param in self._params
-        )
+        with parallel_backend("loky", n_jobs=n_jobs):
+            Parallel()(delayed(self._run_analysis)(param) for param in self._params)
 
     def run_main(self):
         self._build_parser()
