@@ -10,17 +10,21 @@ from tokenize import tokenize
 
 import numpy as np
 from code_transformer.env import DATA_PATH_STAGE_2
-from code_transformer.preprocessing.datamanager.preprocessed import \
-    CTPreprocessedDataManager
+from code_transformer.preprocessing.datamanager.preprocessed import (
+    CTPreprocessedDataManager,
+)
 from code_transformer.preprocessing.graph.binning import ExponentialBinning
 from code_transformer.preprocessing.graph.distances import (
-    AncestorShortestPaths, DistanceBinning, PersonalizedPageRank,
-    ShortestPaths, SiblingShortestPaths)
+    AncestorShortestPaths,
+    DistanceBinning,
+    PersonalizedPageRank,
+    ShortestPaths,
+    SiblingShortestPaths,
+)
 from code_transformer.preprocessing.graph.transform import DistancesTransformer
 from code_transformer.preprocessing.nlp.vocab import VocabularyTransformer
 from code_transformer.preprocessing.pipeline.stage1 import CTStage1Preprocessor
-from code_transformer.utils.inference import (get_model_manager,
-                                              make_batch_from_sample)
+from code_transformer.utils.inference import get_model_manager, make_batch_from_sample
 from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
@@ -119,10 +123,7 @@ class ZuegnerModel(Transformer):
         model_manager = get_model_manager(self._model_type)
         self._model_config = model_manager.load_config(self._run_id)
         data_manager = CTPreprocessedDataManager(
-            DATA_PATH_STAGE_2,
-            self._model_config["data_setup"]["language"],
-            partition="train",
-            shuffle=True,
+            DATA_PATH_STAGE_2, self._model_config["data_setup"]["language"]
         )
         self._data_config = data_manager.load_config()
         self._model = model_manager.load_model(self._run_id, "latest", gpu=False).eval()
