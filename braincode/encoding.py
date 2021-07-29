@@ -108,24 +108,27 @@ class TFIDF(CountVectorizer):
         return "tfidf"
 
 
-class ZuegnerModel(ABC):
+class Transformer(ABC):
+    @staticmethod
+    def _get_rep(forward_output):
+        return forward_output[1].detach().numpy().squeeze()
+
+
+class ZuegnerModel(Transformer):
     def __init__(self):
-        self._language = "python"
-        self._model_manager = get_model_manager(self._model_type)
-        self._model_config = self._model_manager.load_config(self._run_id)
-        self._model = self._model_manager.load_model(
-            self._run_id, "latest", gpu=False
-        ).eval()
-        self._data_manager = CTPreprocessedDataManager(
+        model_manager = get_model_manager(self._model_type)
+        self._model_config = model_manager.load_config(self._run_id)
+        data_manager = CTPreprocessedDataManager(
             DATA_PATH_STAGE_2,
             self._model_config["data_setup"]["language"],
             partition="train",
             shuffle=True,
         )
-        self._data_config = self._data_manager.load_config()
+        self._data_config = data_manager.load_config()
+        self._model = model_manager.load_model(self._run_id, "latest", gpu=False).eval()
         self._distances_transformer = self._build_distances_transformer()
         self._vocabulary_transformer = VocabularyTransformer(
-            *self._data_manager.load_vocabularies()
+            *data_manager.load_vocabularies()
         )
 
     @property
@@ -184,7 +187,7 @@ class ZuegnerModel(ABC):
     def fit_transform(self, programs):
         outputs = []
         for program in programs:
-            stage1_sample = CTStage1Preprocessor(self._language).process(
+            stage1_sample = CTStage1Preprocessor("python").process(
                 [("f", "", self._prep_program(program))],
                 JOB_ID,
             )
@@ -198,9 +201,7 @@ class ZuegnerModel(ABC):
                 self._model_config,
                 self._model_type,
             )
-            outputs.append(
-                self._forward(batch).all_emb[-1][1].detach().numpy().flatten()
-            )
+            outputs.append(self._get_rep(self._forward(batch).all_emb[-1]))
         return np.array(outputs)
 
 
@@ -238,7 +239,7 @@ class CodeTransformer(ZuegnerModel):
         return self._model.lm_encoder.forward_batch(batch, need_all_embeddings=True)
 
 
-class CodeBERTa:
+class CodeBERTa(Transformer):
     def __init__(self):
         spec = "huggingface/CodeBERTa-small-v1"
         cache_dir = Path(__file__).parent.joinpath(
@@ -253,11 +254,10 @@ class CodeBERTa:
         outputs = []
         for program in programs:
             outputs.append(
-                self._model.forward(
-                    self._tokenizer.encode(program, return_tensors="pt")
-                )[1]
-                .detach()
-                .numpy()
-                .flatten()
+                self._get_rep(
+                    self._model.forward(
+                        self._tokenizer.encode(program, return_tensors="pt")
+                    )
+                )
             )
         return np.array(outputs)
