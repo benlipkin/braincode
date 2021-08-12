@@ -10,21 +10,17 @@ from tokenize import tokenize
 
 import numpy as np
 from code_transformer.env import DATA_PATH_STAGE_2
-from code_transformer.preprocessing.datamanager.preprocessed import (
-    CTPreprocessedDataManager,
-)
+from code_transformer.preprocessing.datamanager.preprocessed import \
+    CTPreprocessedDataManager
 from code_transformer.preprocessing.graph.binning import ExponentialBinning
 from code_transformer.preprocessing.graph.distances import (
-    AncestorShortestPaths,
-    DistanceBinning,
-    PersonalizedPageRank,
-    ShortestPaths,
-    SiblingShortestPaths,
-)
+    AncestorShortestPaths, DistanceBinning, PersonalizedPageRank,
+    ShortestPaths, SiblingShortestPaths)
 from code_transformer.preprocessing.graph.transform import DistancesTransformer
 from code_transformer.preprocessing.nlp.vocab import VocabularyTransformer
 from code_transformer.preprocessing.pipeline.stage1 import CTStage1Preprocessor
-from code_transformer.utils.inference import get_model_manager, make_batch_from_sample
+from code_transformer.utils.inference import (get_model_manager,
+                                              make_batch_from_sample)
 from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
@@ -117,6 +113,16 @@ class Transformer(ABC):
     def _get_rep(forward_output):
         return forward_output[1].detach().numpy().squeeze()
 
+    @abstractmethod
+    def _forward_pipeline(program):
+        raise NotImplementedError()
+
+    def fit_transform(self, programs):
+        outputs = []
+        for program in programs:
+            outputs.append(self._get_rep(self._forward_pipeline(program)))
+        return np.array(outputs)
+
 
 class ZuegnerModel(Transformer):
     def __init__(self):
@@ -185,25 +191,20 @@ class ZuegnerModel(Transformer):
     def _forward(self, batch):
         raise NotImplementedError()
 
-    def fit_transform(self, programs):
-        outputs = []
-        for program in programs:
-            stage1_sample = CTStage1Preprocessor("python").process(
-                [("f", "", self._prep_program(program))],
-                JOB_ID,
-            )
-            stage2_sample = stage1_sample[0]
-            if self._data_config["preprocessing"]["remove_punctuation"]:
-                stage2_sample.remove_punctuation()
-            batch = make_batch_from_sample(
-                self._distances_transformer(
-                    self._vocabulary_transformer(stage2_sample)
-                ),
-                self._model_config,
-                self._model_type,
-            )
-            outputs.append(self._get_rep(self._forward(batch).all_emb[-1]))
-        return np.array(outputs)
+    def _forward_pipeline(self, program):
+        stage1_sample = CTStage1Preprocessor("python").process(
+            [("f", "", self._prep_program(program))],
+            JOB_ID,
+        )
+        stage2_sample = stage1_sample[0]
+        if self._data_config["preprocessing"]["remove_punctuation"]:
+            stage2_sample.remove_punctuation()
+        batch = make_batch_from_sample(
+            self._distances_transformer(self._vocabulary_transformer(stage2_sample)),
+            self._model_config,
+            self._model_type,
+        )
+        return self._forward(batch).all_emb[-1]
 
 
 class XLNet(ZuegnerModel):
@@ -251,14 +252,5 @@ class CodeBERTa(Transformer):
         self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
         self._model = RobertaModel.from_pretrained(spec, cache_dir=cache_dir)
 
-    def fit_transform(self, programs):
-        outputs = []
-        for program in programs:
-            outputs.append(
-                self._get_rep(
-                    self._model.forward(
-                        self._tokenizer.encode(program, return_tensors="pt")
-                    )
-                )
-            )
-        return np.array(outputs)
+    def _forward_pipeline(self, program):
+        return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
