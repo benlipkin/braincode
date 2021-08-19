@@ -29,8 +29,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 os.environ["DATASETS_VERBOSITY"] = "error"
 
-JOB_ID = multiprocessing.current_process().pid
-
 
 class ProgramEncoder:
     def __init__(self, encoder):
@@ -194,7 +192,7 @@ class ZuegnerModel(Transformer):
     def _forward_pipeline(self, program):
         stage1_sample = CTStage1Preprocessor("python").process(
             [("f", "", self._prep_program(program))],
-            JOB_ID,
+            multiprocessing.current_process().pid,
         )
         stage2_sample = stage1_sample[0]
         if self._data_config["preprocessing"]["remove_punctuation"]:

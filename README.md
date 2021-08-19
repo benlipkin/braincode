@@ -20,9 +20,9 @@ This pipeline supports three major functions.
 **Benchmark Tasks**
 
 -   Code (code vs. sentences)
--   Content (math vs. str)
+-   Content (math vs. str) <sup>\*referred to as 'datatype' in paper</sup>
 -   Language (english vs. japanese)
--   Structure (seq vs. for vs. if)
+-   Structure (seq vs. for vs. if) <sup>\*referred to as 'control flow' in paper</sup>
 
 **Program Embeddings**
 
