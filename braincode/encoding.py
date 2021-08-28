@@ -36,6 +36,8 @@ class ProgramEncoder:
             self._encoder = BagOfWords()
         elif encoder == "code-tfidf":
             self._encoder = TFIDF()
+        elif encoder == "code-seq2seq":
+            self._encoder = CodeSeq2seq()
         elif encoder == "code-xlnet":
             self._encoder = XLNet()
         elif encoder == "code-ct":
@@ -240,6 +242,23 @@ class CodeTransformer(ZuegnerModel):
 
 
 class CodeBERTa(Transformer):
+    def __init__(self):
+        spec = "huggingface/CodeBERTa-small-v1"
+        cache_dir = Path(__file__).parent.joinpath(
+            ".cache", "models", "huggingface", spec.split("/")[-1]
+        )
+        if not cache_dir.exists():
+            cache_dir.mkdir(parents=True, exist_ok=True)
+        self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
+        self._model = RobertaModel.from_pretrained(spec, cache_dir=cache_dir)
+
+    def _forward_pipeline(self, program):
+        return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
+
+class CodeSeq2seq(Transformer):
+    '''
+    copied over from codeberta. modify
+    '''
     def __init__(self):
         spec = "huggingface/CodeBERTa-small-v1"
         cache_dir = Path(__file__).parent.joinpath(
