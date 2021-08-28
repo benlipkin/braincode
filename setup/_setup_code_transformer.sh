@@ -6,7 +6,7 @@ conda install -yc anaconda wget
 conda install -yc conda-forge tar
 
 NAME=code_transformer
-CACHE_DIR=$(dirname $(pwd))/braincode/.cache
+CACHE_DIR=$1/braincode/.cache
 DATASET_DIR=$CACHE_DIR/datasets/$NAME
 MODEL_DIR=$CACHE_DIR/models/$NAME
 BINARY_DIR=$CACHE_DIR/bin/$NAME
