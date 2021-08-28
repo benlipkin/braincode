@@ -34,8 +34,8 @@ fi
 if [ "$3" == "True" ]; then
     TRAIN_FILES_NAME="train_files.txt"
     TEST_FILES_NAME="test_files.txt"
-    python -m seq2seq.split_data $DATASET_DIR/$TAR_NAME $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME .py 
-    python -m seq2seq.tokenize $DATASET_DIR/$TAR_NAME $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME
+    python -m code_seq2seq.split_data $DATASET_DIR/$TAR_NAME $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME .py 
+    python -m code_seq2seq.tokenize $DATASET_DIR/$TAR_NAME $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME
     #python -m seq2seq.train \
     #--train_path /data/seq2seq/input/tokenized/train.txt \
     #--dev_path /data/seq2seq/input/tokenized/test.txt \
