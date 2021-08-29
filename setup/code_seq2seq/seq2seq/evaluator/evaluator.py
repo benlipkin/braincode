@@ -3,8 +3,8 @@ from __future__ import print_function, division
 import torch
 import torchtext
 
-import src.seq2seq as seq2seq
-from src.seq2seq.loss import NLLLoss
+import code_seq2seq.seq2seq as seq2seq
+from code_seq2seq.seq2seq.loss import NLLLoss
 
 class Evaluator(object):
     """ Class to evaluate models with given datasets.

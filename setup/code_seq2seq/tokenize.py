@@ -33,14 +33,15 @@ def transform_data(src_path_train, dest_path):
   files = [fi[:-1] for fi in files][:3]
   print('Files loaded..\n {}'.format(json.dumps(files[:3], indent=2)))
   
-  all_src = []
+  all_src, all_src_names = [], []
   for f in files:
     with open(f, 'r') as fp:
       src = fp.read()
       all_src.append(src)
+      name = f.split("/")[-2]+"_"+f.split("/")[-1]
+      all_src_names.append(name)
 
   tokenized_programs = _tokenize_programs(all_src)
-  
   '''
   for p in all_src:
     print(len(p))
@@ -48,8 +49,9 @@ def transform_data(src_path_train, dest_path):
     print(len(t))
   '''
 
-  with open(dest_path, 'wb') as fp:
-    pkl.dump(tokenized_programs, fp)
+  with open(dest_path, 'w') as fp:
+    for n, p in zip(all_src_names, tokenized_programs):
+      fp.write("{}\t{}\t{}\n".format(n, p, p))
   
   print('Done dumping tokenized programs to {}'.format(dest_path))
 

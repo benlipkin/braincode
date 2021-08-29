@@ -3,8 +3,8 @@ from __future__ import print_function, division
 import torch
 import torchtext
 
-import src.seq2seq as seq2seq
-from src.seq2seq.util.concat import torch_concat
+import code_seq2seq.seq2seq as seq2seq
+from code_seq2seq.seq2seq.util.concat import torch_concat
 
 class Representation(object):
     """ Class to gather intermediate representation produced by the model for the given dataset.

@@ -7,15 +7,15 @@ import torch
 from torch.optim.lr_scheduler import StepLR
 import torchtext
 
-import src.seq2seq as seq2seq
-from src.seq2seq.trainer import SupervisedTrainer
-from src.seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq
-from src.seq2seq.loss import Perplexity
-from src.seq2seq.optim import Optimizer
-from src.seq2seq.dataset import SourceField, TargetField, FnameField
-from src.seq2seq.evaluator import Representation
-from src.seq2seq.util.checkpoint import Checkpoint
-from src.seq2seq.util.concat import torch_concat
+import code_seq2seq.seq2seq as seq2seq
+from code_seq2seq.seq2seq.trainer import SupervisedTrainer
+from code_seq2seq.seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq
+from code_seq2seq.seq2seq.loss import Perplexity
+from code_seq2seq.seq2seq.optim import Optimizer
+from code_seq2seq.seq2seq.dataset import SourceField, TargetField, FnameField
+from code_seq2seq.seq2seq.evaluator import Representation
+from code_seq2seq.seq2seq.util.checkpoint import Checkpoint
+from code_seq2seq.seq2seq.util.concat import torch_concat
 
 try:
     raw_input          # Python 2
@@ -32,9 +32,9 @@ except NameError:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_path', action='store', dest='train_path',
-                    help='Path to train data')
+                    help='Path to tokenized train data')
 parser.add_argument('--dev_path', action='store', dest='dev_path',
-                    help='Path to dev data')
+                    help='Path to tokenized dev data')
 parser.add_argument('--obf_path', action='store', dest='obf_path',
                     help='Path to obf data')
 parser.add_argument('--reps_store_path', action='store', dest='reps_path',
@@ -74,7 +74,7 @@ params = {
     'teacher_ratio':0.3,
 }
 
-def prepare_dataset(train_path, dev_path, obf_path, max_len):
+def prepare_dataset(train_path, dev_path, max_len):
     print('preparing dataset')
     src = SourceField()
     tgt = TargetField()
@@ -91,18 +91,13 @@ def prepare_dataset(train_path, dev_path, obf_path, max_len):
         fields=[('fname',fname),('src',src),('tgt',tgt)],
         filter_pred=len_filter
     )
-    obf = torchtext.data.TabularDataset(
-        path=obf_path, format='tsv',
-        fields=[('fname',fname),('src',src),('tgt',tgt)],
-        filter_pred=len_filter
-    )
 
-    return src, tgt, fname, train, dev, obf
+    return src, tgt, fname, train, dev
 
-def prepare_vocab(src, tgt, fname, train, dev, obf):
+def prepare_vocab(src, tgt, fname, train, dev):
     src.build_vocab(train, max_size=params['src_vocab_size'])
     tgt.build_vocab(train, max_size=params['tgt_vocab_size'])
-    fname.build_vocab(train, dev, obf)
+    fname.build_vocab(train, dev)
     input_vocab = src.vocab
     print(input_vocab)
     output_vocab = tgt.vocab
@@ -113,11 +108,12 @@ device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 torch.cuda.set_device(device)
 
 # Prepare dataset
-src, tgt, fname, train, dev, obf = prepare_dataset(opt.train_path, opt.dev_path, opt.obf_path, params['max_len'])
+src, tgt, fname, train, dev = prepare_dataset(opt.train_path, opt.dev_path, params['max_len'])
 
 # Prepare vocab
-src, tgt, fname, input_vocab, output_vocab, fname_vocab = prepare_vocab(src, tgt, fname, train, dev, obf)
+src, tgt, fname, input_vocab, output_vocab, fname_vocab = prepare_vocab(src, tgt, fname, train, dev)
 
+qwe
 if opt.load_checkpoint is not None:
     print('inside CHECKPOINT')
     logging.info("loading checkpoint from {}".format(os.path.join(opt.expt_dir, Checkpoint.CHECKPOINT_DIR_NAME, opt.load_checkpoint)))
@@ -208,11 +204,9 @@ rep = Representation(tgt_vocab=output_vocab)
 
 all_reps_dev, all_fnames_dev = rep.get_representation(seq2seq, dev)
 all_reps_train, all_fnames_train = rep.get_representation(seq2seq, train)
-all_reps_obf, all_fnames_obf = rep.get_representation(seq2seq, obf)
 
 all_fnames_train = denumericalize(all_fnames_train)
 all_fnames_dev = denumericalize(all_fnames_dev)
-all_fnames_obf = denumericalize(all_fnames_obf)
 
 print('train data shape {}'.format(all_reps_train.shape))
 print('train fn names shape {}'.format(len(all_fnames_train)))
@@ -226,7 +220,6 @@ def dump_data(pth, fname, ds):
 reps_pth = opt.reps_path
 dump_data(reps_pth, 'train', [all_reps_train, all_fnames_train])
 dump_data(reps_pth, 'dev', [all_reps_dev, all_fnames_dev])
-dump_data(reps_pth, 'obf', [all_reps_obf, all_fnames_obf])
 
 print('Done dumping to {}'.format(reps_pth))
 
