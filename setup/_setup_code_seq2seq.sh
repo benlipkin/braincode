@@ -34,16 +34,15 @@ fi
 if [ "$3" == "True" ]; then
     TRAIN_FILES_NAME="train_files.txt"
     TEST_FILES_NAME="test_files.txt"
-    TRAIN_FILES_TOK_NAME="train_files_tok.pkl"
-    TEST_FILES_TOK_NAME="test_files_tok.pkl"
+    TRAIN_FILES_TOK_NAME="train_files_tok.tsv"
+    TEST_FILES_TOK_NAME="test_files_tok.tsv"
     # python -m code_seq2seq.split_data $DATASET_DIR/$TAR_NAME $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME .py 
     python -m code_seq2seq.tokenize $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME $DATASET_DIR/$TRAIN_FILES_TOK_NAME $DATASET_DIR/$TEST_FILES_TOK_NAME
-    #python -m seq2seq.train \
-    #--train_path /data/seq2seq/input/tokenized/train.txt \
-    #--dev_path /data/seq2seq/input/tokenized/test.txt \
-    #--obf_path /data/seq2seq/input/tokenized/obf.txt\
-    #--expt_dir /data/seq2seq/experiments/\
-    #--reps_store_path /data/malware_project/processed/5k/reps_5k/
+    python -m code_seq2seq.train \
+    --train_path $DATASET_DIR/$TRAIN_FILES_TOK_NAME \
+    --dev_path $DATASET_DIR/$TEST_FILES_TOK_NAME \
+    --expt_dir $MODEL_DIR\
+    --reps_store_path $MODEL_DIR
 fi
 
 #cd $ENV_DIR
