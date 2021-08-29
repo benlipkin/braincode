@@ -15,8 +15,8 @@ requirements = [
     "joblib==0.14.1",
     "tqdm==4.43.0",
     "code-transformer @ git+https://github.com/danielzuegner/code-transformer.git",
-    "torchtext==0.5.0=py_1",
-    
+    "torchtext==0.10",
+    "dill",
 ]
 
 setup(
