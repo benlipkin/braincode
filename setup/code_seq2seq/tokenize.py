@@ -153,12 +153,10 @@ def _tokenize_programs(programs):
           )
           program = astor.to_source(result)
         except Exception as ex:
-          import traceback
-          traceback.print_exc()
-          zxc
-          sequences.append(token.STRING)
+          # import traceback
+          # traceback.print_exc()
+          sequences.append("CHARS")
           continue
-        print(program)
         for typ, text, _, _, _ in tokenize(io.BytesIO(program.encode('utf-8')).readline):
             # print("{}::{}".format(typ, text))
             if typ is token.STRING:
@@ -177,8 +175,6 @@ def _tokenize_programs(programs):
                 sequence.append("DEDENT")
             else:
                 sequence.append(text)
-        print(sequence)
-        qwe
         sequences.append(sequence)
     return sequences
 
