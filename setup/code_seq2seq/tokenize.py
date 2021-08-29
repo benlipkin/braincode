@@ -5,23 +5,180 @@ import io
 import keyword
 import token
 from tokenize import tokenize
+import ast
 import pickle as pkl
+import random
+import astor
 
+
+def t_rename_fields(the_ast, all_sites=False):
+	"""
+	all_sites=True: a single, randomly selected, referenced field 
+	(self.field in Python) has its name replaced by a hole
+	all_sites=False: all possible fields are selected
+	"""
+	changed = False
+
+	# Going to need parent info
+	for node in ast.walk(the_ast):
+		for child in ast.iter_child_nodes(node):
+			child.parent = node
+
+	candidates = []
+	for node in ast.walk(the_ast):
+		if isinstance(node, ast.Name) and node.id == 'self':
+			if isinstance(node.parent, ast.Attribute):
+				if isinstance(node.parent.parent, ast.Call) and node.parent.parent.func == node.parent:
+					continue
+				if node.parent.attr not in [ c.attr for c in candidates ]:
+					candidates.append(node.parent)
+
+	if len(candidates) == 0:
+		return False, the_ast
+
+	if not all_sites:
+		selected = [random.choice(candidates)]
+	else:
+		selected = candidates
+
+	to_rename = []
+	for cnt, selected_node in enumerate(selected, start=1):
+		for node in ast.walk(the_ast):
+			if isinstance(node, ast.Name) and node.id == 'self':
+				if isinstance(node.parent, ast.Attribute) and node.parent.attr == selected_node.attr:
+					if isinstance(node.parent.parent, ast.Call) and node.parent.parent.func == node.parent:
+						continue
+					to_rename.append((node.parent, cnt))
+
+	for node, idx in to_rename:
+		changed = True
+		node.attr = 'VAR' + str(idx)
+
+	return changed, the_ast
+
+
+def t_rename_parameters(the_ast, all_sites=False):
+	"""
+	Parameters get replaced by holes.
+	"""
+	changed = False
+	candidates = []
+	for node in ast.walk(the_ast):
+		if isinstance(node, ast.arg):
+			if node.arg != 'self' and node.arg not in [ c.arg for c in candidates ]:
+				# print(node.arg, node.lineno)
+				candidates.append(node)
+
+	if len(candidates) == 0:
+		return False, the_ast
+
+	if not all_sites:
+		selected = [random.choice(candidates)]
+	else:
+		selected = candidates
+
+	parameter_defs = {}
+	for cnt, s in enumerate(selected, start=1):
+		parameter_defs[s.arg] = cnt
+
+	to_rename = []
+	for node in ast.walk(the_ast):
+		if isinstance(node, ast.Name) and node.id in parameter_defs:
+			to_rename.append((node, parameter_defs[node.id]))
+		elif isinstance(node, ast.arg) and node.arg in parameter_defs:
+			to_rename.append((node, parameter_defs[node.arg]))
+
+	for node, idx in to_rename:
+		changed = True
+		if hasattr(node, 'arg'):
+			node.arg = 'VAR' + str(idx)
+		else:
+			node.id = 'VAR' + str(idx)
+
+	return changed, the_ast
+
+
+def t_rename_local_variables(the_ast, all_sites=False):
+	"""
+	Local variables get replaced by holes.
+	"""
+	changed = False
+	candidates = []
+	for node in ast.walk(the_ast):
+		if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+			if node.id not in [ c.id for c in candidates ]:
+				# print(node.id, node.lineno)
+				candidates.append(node)
+
+	if len(candidates) == 0:
+		return False, the_ast
+
+	if not all_sites:
+		selected = [random.choice(candidates)]
+	else:
+		selected = candidates
+
+	local_var_defs = {}
+	for cnt, s in enumerate(selected, start=1):
+		local_var_defs[s.id] = cnt
+
+	to_rename = []
+	for node in ast.walk(the_ast):
+		if isinstance(node, ast.Name) and node.id in local_var_defs:
+			to_rename.append((node, local_var_defs[node.id]))
+
+	for node, idx in to_rename:
+		changed = True
+		node.id = 'VAR' + str(idx)
+
+	return changed, the_ast
 
 def _tokenize_programs(programs):
     sequences = []
     tokens = keyword.kwlist + dir(builtins)
     for program in programs:
         sequence = []
-        for type, text, _, _, _ in tokenize(io.BytesIO(program.encode('utf-8')).readline):
-            if type is token.STRING:
-                sequence.append(1)
-            elif type is token.NUMBER:
-                sequence.append(2)
-            elif text in tokens:
-                sequence.append(3 + tokens.index(text))
+        try:
+          changed, result = t_rename_local_variables(
+            ast.parse(program),
+            all_sites=True
+          )
+          changed, result = t_rename_fields(
+            ast.parse(astor.to_source(result)),
+            all_sites=True
+          )
+          changed, result = t_rename_parameters(
+            ast.parse(astor.to_source(result)),
+            all_sites=True
+          )
+          program = astor.to_source(result)
+        except Exception as ex:
+          import traceback
+          traceback.print_exc()
+          zxc
+          sequences.append(token.STRING)
+          continue
+        print(program)
+        for typ, text, _, _, _ in tokenize(io.BytesIO(program.encode('utf-8')).readline):
+            # print("{}::{}".format(typ, text))
+            if typ is token.STRING:
+                sequence.append("CHARS")
+            elif typ is token.NUMBER:
+                sequence.append("NUM")
+            #elif text in tokens:
+            #    sequence.append(text)
+            #elif typ is token.NAME:
+            #
+            elif typ is token.NEWLINE:
+                sequence.append("NEWLINE")
+            elif typ is token.INDENT:
+                sequence.append("INDENT")
+            elif typ is token.DEDENT:
+                sequence.append("DEDENT")
             else:
-                continue
+                sequence.append(text)
+        print(sequence)
+        qwe
         sequences.append(sequence)
     return sequences
 
@@ -30,7 +187,7 @@ def transform_data(src_path_train, dest_path):
   with open(src_path_train, 'r') as fp:
     files = fp.readlines()
   
-  files = [fi[:-1] for fi in files][:3]
+  files = [fi[:-1] for fi in files]
   print('Files loaded..\n {}'.format(json.dumps(files[:3], indent=2)))
   
   all_src, all_src_names = [], []

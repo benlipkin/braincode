@@ -17,6 +17,7 @@ requirements = [
     "code-transformer @ git+https://github.com/danielzuegner/code-transformer.git",
     "torchtext==0.10",
     "dill",
+    "astor",
 ]
 
 setup(
