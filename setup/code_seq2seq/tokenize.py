@@ -1,26 +1,64 @@
 import sys
-sys.path.append('..')
-from braincode.encoding import CountVectorizer
+import json
+import builtins
+import io
+import keyword
+import token
+from tokenize import tokenize
+import pickle as pkl
 
 
-class TokenizePrograms(CountVectorizer):
-  @property
-  def _mode(self):
-      return None
+def _tokenize_programs(programs):
+    sequences = []
+    tokens = keyword.kwlist + dir(builtins)
+    for program in programs:
+        sequence = []
+        for type, text, _, _, _ in tokenize(io.BytesIO(program.encode('utf-8')).readline):
+            if type is token.STRING:
+                sequence.append(1)
+            elif type is token.NUMBER:
+                sequence.append(2)
+            elif text in tokens:
+                sequence.append(3 + tokens.index(text))
+            else:
+                continue
+        sequences.append(sequence)
+    return sequences
 
-  def transform_data(self, src_path, dest_path):
-    with open(src_path, 'r') as fp:
-      files = fp.readlines()
-      files = [fi[:-1] for fi in files]
+
+def transform_data(src_path_train, dest_path):
+  with open(src_path_train, 'r') as fp:
+    files = fp.readlines()
+  
+  files = [fi[:-1] for fi in files][:3]
+  print('Files loaded..\n {}'.format(json.dumps(files[:3], indent=2)))
+  
+  all_src = []
+  for f in files:
+    with open(f, 'r') as fp:
+      src = fp.read()
+      all_src.append(src)
+
+  tokenized_programs = _tokenize_programs(all_src)
+  
+  '''
+  for p in all_src:
+    print(len(p))
+  for t in tokenized_programs:
+    print(len(t))
+  '''
+
+  with open(dest_path, 'wb') as fp:
+    pkl.dump(tokenized_programs, fp)
+  
+  print('Done dumping tokenized programs to {}'.format(dest_path))
 
 
 if __name__ == '__main__':
   train_file_path = sys.argv[1]
-  test_file_path = sys.argv[2]
-  dest_dir_train = sys.argv[3]
-  dest_dir_test = sys.argv[4]
+  test_file_path  = sys.argv[2]
+  train_dest_path = sys.argv[3]
+  test_dest_path  = sys.argv[4]
 
-  tp = TokenizePrograms()
-  train_set = tp.transform_data(train_file_path, dest_dir_train)
-  test_set  = tp.transform_data(test_file_path, dest_dir_test)
-
+  dataset = transform_data(train_file_path, train_dest_path)
+  dataset = transform_data(test_file_path, test_dest_path)
