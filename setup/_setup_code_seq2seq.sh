@@ -41,8 +41,7 @@ if [ "$3" == "True" ]; then
     python -m code_seq2seq.train \
     --train_path $DATASET_DIR/$TRAIN_FILES_TOK_NAME \
     --dev_path $DATASET_DIR/$TEST_FILES_TOK_NAME \
-    --expt_dir $MODEL_DIR\
-    --reps_store_path $MODEL_DIR
+    --expt_dir $MODEL_DIR
 fi
 
 #cd $ENV_DIR

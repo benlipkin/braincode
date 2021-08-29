@@ -27,10 +27,6 @@ parser.add_argument('--train_path', action='store', dest='train_path',
                     help='Path to tokenized train data')
 parser.add_argument('--dev_path', action='store', dest='dev_path',
                     help='Path to tokenized dev data')
-parser.add_argument('--obf_path', action='store', dest='obf_path',
-                    help='Path to obf data')
-parser.add_argument('--reps_store_path', action='store', dest='reps_path',
-                    help='Path to store generated reps')
 parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='./experiment',
                     help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
 parser.add_argument('--load_checkpoint', action='store', dest='load_checkpoint',
@@ -73,12 +69,12 @@ def prepare_dataset(train_path, dev_path, max_len):
     fname = FnameField()
     def len_filter(example):
         return len(example.src) <= max_len and len(example.tgt) <= max_len
-    train = torchtext.data.TabularDataset(
+    train = torchtext.legacy.data.TabularDataset(
         path=train_path, format='tsv',
         fields=[('fname',fname),('src',src),('tgt',tgt)],
         filter_pred=len_filter
     )
-    dev = torchtext.data.TabularDataset(
+    dev = torchtext.legacy.data.TabularDataset(
         path=dev_path, format='tsv',
         fields=[('fname',fname),('src',src),('tgt',tgt)],
         filter_pred=len_filter
@@ -184,3 +180,12 @@ else:
                       optimizer=optimizer, 
                       teacher_forcing_ratio=params['teacher_ratio'])
 
+    saved = {}
+    saved['model'] = seq2seq_model
+    saved['vocab'] = output_vocab
+    saved['fname_vocab'] = fname_vocab
+
+    with open(os.path.join(opt.expt_dir, "saved_model_dataset.pkl"), 'wb') as fp:
+        pkl.dump(saved, fp)
+
+    print('saved model and dataset to {}'.format(opt.expt_dir))
