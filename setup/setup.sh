@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
-
-bash _setup_inputs.sh
-bash _setup_code_transformer.sh
+##################################
+# $1 can be  "$(dirname $(pwd))"
+##################################
+bash _setup_inputs.sh $1 
+bash _setup_code_seq2seq.sh $1 False True True True True
+bash _setup_code_transformer.sh $1
