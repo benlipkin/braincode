@@ -163,10 +163,6 @@ def _tokenize_programs(programs):
                 sequence.append("CHARS")
             elif typ is token.NUMBER:
                 sequence.append("NUM")
-            #elif text in tokens:
-            #    sequence.append(text)
-            #elif typ is token.NAME:
-            #
             elif typ is token.NEWLINE:
                 sequence.append("NEWLINE")
             elif typ is token.INDENT:
