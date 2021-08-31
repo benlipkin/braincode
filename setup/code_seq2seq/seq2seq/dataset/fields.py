@@ -2,7 +2,7 @@ import logging
 
 import torchtext
 
-class SourceField(torchtext.legacy.data.Field):
+class SourceField(torchtext.data.Field):
     """ Wrapper class of torchtext.data.Field that forces batch_first and include_lengths to be True. """
 
     def __init__(self, **kwargs):
@@ -17,7 +17,7 @@ class SourceField(torchtext.legacy.data.Field):
 
         super(SourceField, self).__init__(**kwargs)
 
-class TargetField(torchtext.legacy.data.Field):
+class TargetField(torchtext.data.Field):
     """ Wrapper class of torchtext.data.Field that forces batch_first to be True and prepend <sos> and append <eos> to sequences in preprocessing step.
 
     Attributes:
@@ -49,7 +49,7 @@ class TargetField(torchtext.legacy.data.Field):
         self.sos_id = self.vocab.stoi[self.SYM_SOS]
         self.eos_id = self.vocab.stoi[self.SYM_EOS]
 
-class FnameField(torchtext.legacy.data.Field):
+class FnameField(torchtext.data.Field):
     """ Wrapper class of torchtext.data.Field that forces batch_first to be True
     """
 

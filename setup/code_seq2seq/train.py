@@ -40,12 +40,12 @@ def prepare_dataset(train_path, dev_path, max_len):
     fname = FnameField()
     def len_filter(example):
         return len(example.src) <= max_len and len(example.tgt) <= max_len
-    train = torchtext.legacy.data.TabularDataset(
+    train = torchtext.data.TabularDataset(
         path=train_path, format='tsv',
         fields=[('fname',fname),('src',src),('tgt',tgt)],
         filter_pred=len_filter
     )
-    dev = torchtext.legacy.data.TabularDataset(
+    dev = torchtext.data.TabularDataset(
         path=dev_path, format='tsv',
         fields=[('fname',fname),('src',src),('tgt',tgt)],
         filter_pred=len_filter
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
     logging.info(opt)
-    
+
     device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
     torch.cuda.set_device(device)
 
