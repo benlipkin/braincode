@@ -16,12 +16,11 @@ from code_seq2seq.seq2seq.util.concat import torch_concat
 
 # Hyperparams
 params = {
-    'max_len': 150,
+    'max_len': 500,
     'n_layers': 1,
     'hidden_size': 128, 
     'src_vocab_size': 15000, 
-    'tgt_vocab_size': 5000, 
-    'max_len': 50, 
+    'tgt_vocab_size': 5000,
     'rnn_cell':'gru',
     'batch_sz': 16, 
     'epochs': 30,
@@ -91,7 +90,7 @@ if __name__ == '__main__':
 
     # Prepare dataset
     src, tgt, fname, train, dev = prepare_dataset(opt.train_path, opt.dev_path, params['max_len'])
-
+    
     # Prepare vocab
     src, tgt, fname, input_vocab, output_vocab, fname_vocab = prepare_vocab(src, tgt, fname, train, dev)
 

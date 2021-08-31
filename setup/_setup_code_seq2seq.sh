@@ -57,7 +57,7 @@ else
         python -m code_seq2seq.train \
         --train_path $DATASET_DIR/$TRAIN_FILES_TOK_NAME \
         --dev_path $DATASET_DIR/$TEST_FILES_TOK_NAME \
-        --expt_dir $MODEL_DIR
+        --expt_dir $MODEL_DIR \
         --save_model_as $SAVED_MODEL_NAME
     fi
 

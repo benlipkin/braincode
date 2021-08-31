@@ -134,7 +134,7 @@ def t_rename_local_variables(the_ast, all_sites=False):
 
     return changed, the_ast
 
-def _tokenize_programs(programs):
+def _tokenize_programs(programs, max_tokens=500):
     sequences = []
     tokens = keyword.kwlist + dir(builtins)
     for program in programs:
@@ -177,7 +177,7 @@ def _tokenize_programs(programs):
                     sequence.append(text)
         
         sequence_str = " ".join(sequence)
-        sequences.append(sequence_str)
+        sequences.append(sequence_str[:max_tokens])
     return sequences
 
 
