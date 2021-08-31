@@ -4,13 +4,13 @@ set -e
 
 # conda install -yc anaconda wget
 # conda install -yc conda-forge tar
-
 ROOT_PATH=$1
 DOWNLOAD_MODEL=$2
 DOWNLOAD_DATA=$3
 SPLIT_DATA=$4
 TOKENIZE_DATA=$5
 RUN_MODEL=$6
+DEBUG_TRAINING=$7
 
 TRAIN_FILES_NAME="train_files.txt"
 TEST_FILES_NAME="test_files.txt"
@@ -50,7 +50,7 @@ else
     fi
 
     if [ $TOKENIZE_DATA == "True" ]; then
-        python -m code_seq2seq.tokenize $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME $DATASET_DIR/$TRAIN_FILES_TOK_NAME $DATASET_DIR/$TEST_FILES_TOK_NAME
+        python -m code_seq2seq.tokenize $DEBUG_TRAINING $DATASET_DIR/$TRAIN_FILES_NAME $DATASET_DIR/$TEST_FILES_NAME $DATASET_DIR/$TRAIN_FILES_TOK_NAME $DATASET_DIR/$TEST_FILES_TOK_NAME
     fi
 
     if [ $RUN_MODEL == "True" ]; then

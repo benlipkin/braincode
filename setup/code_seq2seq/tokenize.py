@@ -175,11 +175,15 @@ def _tokenize_programs(programs):
     return sequences
 
 
-def transform_data(src_path_train, dest_path):
+def transform_data(src_path_train, dest_path, debug=False):
   with open(src_path_train, 'r') as fp:
     files = fp.readlines()
   
   files = [fi[:-1] for fi in files]
+
+  if debug:
+    files = files[:10]
+  
   print('Files loaded..\n {}'.format(json.dumps(files[:3], indent=2)))
   
   all_src, all_src_names = [], []
@@ -206,10 +210,11 @@ def transform_data(src_path_train, dest_path):
 
 
 if __name__ == '__main__':
-  train_file_path = sys.argv[1]
-  test_file_path  = sys.argv[2]
-  train_dest_path = sys.argv[3]
-  test_dest_path  = sys.argv[4]
+  debug           = sys.argv[1]
+  train_file_path = sys.argv[2]
+  test_file_path  = sys.argv[3]
+  train_dest_path = sys.argv[4]
+  test_dest_path  = sys.argv[5]
 
-  dataset = transform_data(train_file_path, train_dest_path)
-  dataset = transform_data(test_file_path, test_dest_path)
+  dataset = transform_data(train_file_path, train_dest_path, debug)
+  dataset = transform_data(test_file_path, test_dest_path, debug)
