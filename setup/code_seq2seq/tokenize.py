@@ -1,4 +1,5 @@
 import sys
+import os
 import json
 import builtins
 import io
@@ -12,126 +13,126 @@ import astor
 
 
 def t_rename_fields(the_ast, all_sites=False):
-	"""
-	all_sites=True: a single, randomly selected, referenced field 
-	(self.field in Python) has its name replaced by a hole
-	all_sites=False: all possible fields are selected
-	"""
-	changed = False
+    """
+    all_sites=True: a single, randomly selected, referenced field 
+    (self.field in Python) has its name replaced by a hole
+    all_sites=False: all possible fields are selected
+    """
+    changed = False
 
-	# Going to need parent info
-	for node in ast.walk(the_ast):
-		for child in ast.iter_child_nodes(node):
-			child.parent = node
+    # Going to need parent info
+    for node in ast.walk(the_ast):
+        for child in ast.iter_child_nodes(node):
+            child.parent = node
 
-	candidates = []
-	for node in ast.walk(the_ast):
-		if isinstance(node, ast.Name) and node.id == 'self':
-			if isinstance(node.parent, ast.Attribute):
-				if isinstance(node.parent.parent, ast.Call) and node.parent.parent.func == node.parent:
-					continue
-				if node.parent.attr not in [ c.attr for c in candidates ]:
-					candidates.append(node.parent)
+    candidates = []
+    for node in ast.walk(the_ast):
+        if isinstance(node, ast.Name) and node.id == 'self':
+            if isinstance(node.parent, ast.Attribute):
+                if isinstance(node.parent.parent, ast.Call) and node.parent.parent.func == node.parent:
+                    continue
+                if node.parent.attr not in [ c.attr for c in candidates ]:
+                    candidates.append(node.parent)
 
-	if len(candidates) == 0:
-		return False, the_ast
+    if len(candidates) == 0:
+        return False, the_ast
 
-	if not all_sites:
-		selected = [random.choice(candidates)]
-	else:
-		selected = candidates
+    if not all_sites:
+        selected = [random.choice(candidates)]
+    else:
+        selected = candidates
 
-	to_rename = []
-	for cnt, selected_node in enumerate(selected, start=1):
-		for node in ast.walk(the_ast):
-			if isinstance(node, ast.Name) and node.id == 'self':
-				if isinstance(node.parent, ast.Attribute) and node.parent.attr == selected_node.attr:
-					if isinstance(node.parent.parent, ast.Call) and node.parent.parent.func == node.parent:
-						continue
-					to_rename.append((node.parent, cnt))
+    to_rename = []
+    for cnt, selected_node in enumerate(selected, start=1):
+        for node in ast.walk(the_ast):
+            if isinstance(node, ast.Name) and node.id == 'self':
+                if isinstance(node.parent, ast.Attribute) and node.parent.attr == selected_node.attr:
+                    if isinstance(node.parent.parent, ast.Call) and node.parent.parent.func == node.parent:
+                        continue
+                    to_rename.append((node.parent, cnt))
 
-	for node, idx in to_rename:
-		changed = True
-		node.attr = 'VAR' + str(idx)
+    for node, idx in to_rename:
+        changed = True
+        node.attr = 'VAR' + str(idx)
 
-	return changed, the_ast
+    return changed, the_ast
 
 
 def t_rename_parameters(the_ast, all_sites=False):
-	"""
-	Parameters get replaced by holes.
-	"""
-	changed = False
-	candidates = []
-	for node in ast.walk(the_ast):
-		if isinstance(node, ast.arg):
-			if node.arg != 'self' and node.arg not in [ c.arg for c in candidates ]:
-				# print(node.arg, node.lineno)
-				candidates.append(node)
+    """
+    Parameters get replaced by holes.
+    """
+    changed = False
+    candidates = []
+    for node in ast.walk(the_ast):
+        if isinstance(node, ast.arg):
+            if node.arg != 'self' and node.arg not in [ c.arg for c in candidates ]:
+                # print(node.arg, node.lineno)
+                candidates.append(node)
 
-	if len(candidates) == 0:
-		return False, the_ast
+    if len(candidates) == 0:
+        return False, the_ast
 
-	if not all_sites:
-		selected = [random.choice(candidates)]
-	else:
-		selected = candidates
+    if not all_sites:
+        selected = [random.choice(candidates)]
+    else:
+        selected = candidates
 
-	parameter_defs = {}
-	for cnt, s in enumerate(selected, start=1):
-		parameter_defs[s.arg] = cnt
+    parameter_defs = {}
+    for cnt, s in enumerate(selected, start=1):
+        parameter_defs[s.arg] = cnt
 
-	to_rename = []
-	for node in ast.walk(the_ast):
-		if isinstance(node, ast.Name) and node.id in parameter_defs:
-			to_rename.append((node, parameter_defs[node.id]))
-		elif isinstance(node, ast.arg) and node.arg in parameter_defs:
-			to_rename.append((node, parameter_defs[node.arg]))
+    to_rename = []
+    for node in ast.walk(the_ast):
+        if isinstance(node, ast.Name) and node.id in parameter_defs:
+            to_rename.append((node, parameter_defs[node.id]))
+        elif isinstance(node, ast.arg) and node.arg in parameter_defs:
+            to_rename.append((node, parameter_defs[node.arg]))
 
-	for node, idx in to_rename:
-		changed = True
-		if hasattr(node, 'arg'):
-			node.arg = 'VAR' + str(idx)
-		else:
-			node.id = 'VAR' + str(idx)
+    for node, idx in to_rename:
+        changed = True
+        if hasattr(node, 'arg'):
+            node.arg = 'VAR' + str(idx)
+        else:
+            node.id = 'VAR' + str(idx)
 
-	return changed, the_ast
+    return changed, the_ast
 
 
 def t_rename_local_variables(the_ast, all_sites=False):
-	"""
-	Local variables get replaced by holes.
-	"""
-	changed = False
-	candidates = []
-	for node in ast.walk(the_ast):
-		if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
-			if node.id not in [ c.id for c in candidates ]:
-				# print(node.id, node.lineno)
-				candidates.append(node)
+    """
+    Local variables get replaced by holes.
+    """
+    changed = False
+    candidates = []
+    for node in ast.walk(the_ast):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            if node.id not in [ c.id for c in candidates ]:
+                # print(node.id, node.lineno)
+                candidates.append(node)
 
-	if len(candidates) == 0:
-		return False, the_ast
+    if len(candidates) == 0:
+        return False, the_ast
 
-	if not all_sites:
-		selected = [random.choice(candidates)]
-	else:
-		selected = candidates
+    if not all_sites:
+        selected = [random.choice(candidates)]
+    else:
+        selected = candidates
 
-	local_var_defs = {}
-	for cnt, s in enumerate(selected, start=1):
-		local_var_defs[s.id] = cnt
+    local_var_defs = {}
+    for cnt, s in enumerate(selected, start=1):
+        local_var_defs[s.id] = cnt
 
-	to_rename = []
-	for node in ast.walk(the_ast):
-		if isinstance(node, ast.Name) and node.id in local_var_defs:
-			to_rename.append((node, local_var_defs[node.id]))
+    to_rename = []
+    for node in ast.walk(the_ast):
+        if isinstance(node, ast.Name) and node.id in local_var_defs:
+            to_rename.append((node, local_var_defs[node.id]))
 
-	for node, idx in to_rename:
-		changed = True
-		node.id = 'VAR' + str(idx)
+    for node, idx in to_rename:
+        changed = True
+        node.id = 'VAR' + str(idx)
 
-	return changed, the_ast
+    return changed, the_ast
 
 def _tokenize_programs(programs):
     sequences = []
@@ -163,15 +164,20 @@ def _tokenize_programs(programs):
                 sequence.append("CHARS")
             elif typ is token.NUMBER:
                 sequence.append("NUM")
-            elif typ is token.NEWLINE:
+            elif typ is token.NEWLINE or typ is token.NL:
                 sequence.append("NEWLINE")
             elif typ is token.INDENT:
                 sequence.append("INDENT")
             elif typ is token.DEDENT:
                 sequence.append("DEDENT")
             else:
-                sequence.append(text)
-        sequences.append(sequence)
+                # Uncontrolled number of newlines and tabs 
+                # will cause dataloader to crash
+                if text != '\n' and text != '\t':
+                    sequence.append(text)
+        
+        sequence_str = " ".join(sequence)
+        sequences.append(sequence_str)
     return sequences
 
 
@@ -204,13 +210,14 @@ def transform_data(src_path_train, dest_path, debug=False):
 
   with open(dest_path, 'w') as fp:
     for n, p in zip(all_src_names, tokenized_programs):
-      fp.write("{}\t{}\t{}\n".format(n, p, p))
+        fp.write("{}\t{}\t{}\n".format(n, p, p))
+    fp.truncate(fp.tell() - len(os.linesep))
   
   print('Done dumping tokenized programs to {}'.format(dest_path))
 
 
 if __name__ == '__main__':
-  debug           = sys.argv[1]
+  debug           = (sys.argv[1] == 'True')
   train_file_path = sys.argv[2]
   test_file_path  = sys.argv[3]
   train_dest_path = sys.argv[4]
