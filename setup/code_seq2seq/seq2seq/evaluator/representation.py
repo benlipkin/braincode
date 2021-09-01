@@ -13,7 +13,8 @@ class Representation(object):
         batch_size (int, optional): batch size for evaluator (default: 64)
     """
 
-    def __init__(self, batch_size=64):
+    def __init__(self, device, batch_size=64):
+        self.device = device
         self.batch_size = batch_size
 
     def get_representation(self, model, data):
@@ -26,11 +27,9 @@ class Representation(object):
         Returns:
             loss (float): loss of the given model on the given dataset
         """
-            
         model.eval()
-
-        device = 'cuda:1' if torch.cuda.is_available() else -1
-        # device = -1
+        
+        device =  self.device
         batch_iterator = torchtext.data.BucketIterator(
             dataset=data, batch_size=self.batch_size,
             sort=True, sort_key=lambda x: len(x.src),

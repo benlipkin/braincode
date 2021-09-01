@@ -82,7 +82,7 @@ if __name__ == '__main__':
     LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
     logging.info(opt)
-
+    
     if torch.cuda.is_available():
         device_count = torch.torch.cuda.device_count()
         if device_count > 0:
@@ -168,7 +168,8 @@ if __name__ == '__main__':
             '''
         # train
         print('start training')
-        t = SupervisedTrainer(expt_dir=opt.expt_dir,
+        t = SupervisedTrainer(device=device,
+                            expt_dir=opt.expt_dir,
                             loss=loss, 
                             batch_size=params['batch_sz'],
                             checkpoint_every=params['checkpoint_every'],

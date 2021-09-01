@@ -1,5 +1,6 @@
 import sys
 import os
+import random
 import torch
 from torchtext.data import Dataset, Example
 import pickle as pkl
@@ -25,8 +26,15 @@ class TabularDataset_From_List(Dataset):
 
 
 def get_representation(model, tokenized_program, max_len, input_vocab):
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
-    torch.cuda.set_device(device)
+    if torch.cuda.is_available():
+        device_count = torch.torch.cuda.device_count()
+        if device_count > 0:
+            device_id = random.randrange(device_count)
+            device = torch.device('cuda:'+str(device_id))
+            print('Setting device {}'.format(device_id))
+            torch.cuda.set_device(device)
+    else:
+        device = 'cpu'
 
     tokenized_program = tokenized_program[:max_len]
     src = SourceField()
