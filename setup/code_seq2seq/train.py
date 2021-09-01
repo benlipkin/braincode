@@ -93,6 +93,7 @@ if __name__ == '__main__':
     else:
         device = 'cpu'
 
+    device = 'cpu'
     # Prepare dataset
     src, tgt, fname, train, dev = prepare_dataset(opt.train_path, opt.dev_path, params['max_len'])
     
@@ -118,7 +119,7 @@ if __name__ == '__main__':
         weight = torch.ones(len(tgt.vocab))
         pad = tgt.vocab.stoi[tgt.pad_token]
         loss = Perplexity(weight, pad)
-        if torch.cuda.is_available():
+        if device != 'cpu':
             loss.cuda()
 
         seq2seq_model= None
@@ -152,7 +153,7 @@ if __name__ == '__main__':
                 sum(p.numel() for p in seq2seq_model.decoder.parameters() if p.requires_grad)
                 )
             )
-            if torch.cuda.is_available():
+            if device != 'cpu':
                 seq2seq_model.cuda()
 
             for param in seq2seq_model.parameters():
