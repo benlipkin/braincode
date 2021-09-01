@@ -1,18 +1,15 @@
 import os
 import argparse
 import logging
-import pickle as pkl
-
 import torch
-from torch.optim.lr_scheduler import StepLR
 import torchtext
 
+import pickle as pkl
 from code_seq2seq.seq2seq.trainer import SupervisedTrainer
 from code_seq2seq.seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq
 from code_seq2seq.seq2seq.loss import Perplexity
 from code_seq2seq.seq2seq.dataset import SourceField, TargetField, FnameField
 from code_seq2seq.seq2seq.util.checkpoint import Checkpoint
-from code_seq2seq.seq2seq.util.concat import torch_concat
 
 # Hyperparams
 params = {
