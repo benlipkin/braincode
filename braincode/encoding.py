@@ -1,6 +1,3 @@
-import builtins
-import io
-import keyword
 import multiprocessing
 import os
 import token
@@ -8,7 +5,12 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from tokenize import tokenize
 
+import pickle as pkl
 import numpy as np
+
+from ..setup.code_seq2seq.tokenize import _tokenize_programs
+from ..setup.code_seq2seq.representations import get_representation
+from ..setup.code_seq2seq.train import params
 from code_transformer.env import DATA_PATH_STAGE_2
 from code_transformer.preprocessing.datamanager.preprocessed import \
     CTPreprocessedDataManager
@@ -24,6 +26,7 @@ from code_transformer.utils.inference import (get_model_manager,
 from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
+from code_seq2seq.env import CODE_SEQ2SEQ_MODELS_PATH, CODE_SEQ2SEQ_SAVED_MODEL_NAME
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
@@ -70,28 +73,10 @@ class CountVectorizer(ABC):
     def _mode(self):
         raise NotImplementedError("Handled by subclass.")
 
-    @staticmethod
-    def _tokenize_programs(programs):
-        sequences = []
-        tokens = keyword.kwlist + dir(builtins)
-        for program in programs:
-            sequence = []
-            for type, text, _, _, _ in tokenize(io.BytesIO(program.encode()).readline):
-                if type is token.STRING:
-                    sequence.append(1)
-                elif type is token.NUMBER:
-                    sequence.append(2)
-                elif text in tokens:
-                    sequence.append(3 + tokens.index(text))
-                else:
-                    continue
-            sequences.append(sequence)
-        return sequences
-
     def fit_transform(self, programs):
-        self._model.fit_on_sequences(self._tokenize_programs(self._dataset))
+        self._model.fit_on_sequences(_tokenize_programs(self._dataset))
         outputs = self._model.sequences_to_matrix(
-            self._tokenize_programs(programs), mode=self._mode
+            _tokenize_programs(programs), mode=self._mode
         )
         return outputs[:, np.any(outputs, axis=0)]
 
@@ -255,19 +240,22 @@ class CodeBERTa(Transformer):
     def _forward_pipeline(self, program):
         return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
 
+
 class CodeSeq2seq(Transformer):
-    '''
-    copied over from codeberta. modify
-    '''
-    def __init__(self):
-        spec = "huggingface/CodeBERTa-small-v1"
+    def __init__(self):        
         cache_dir = Path(__file__).parent.joinpath(
-            ".cache", "models", "huggingface", spec.split("/")[-1]
+            ".cache", "models", "code_seq2seq"
         )
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
-        self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
-        self._model = RobertaModel.from_pretrained(spec, cache_dir=cache_dir)
+        
+        with open(os.path.join(CODE_SEQ2SEQ_MODELS_PATH, CODE_SEQ2SEQ_SAVED_MODEL_NAME), 'rb') as fp:
+            saved = pkl.load(fp)
+        
+        self._model, self._vocab = saved['model'], saved['vocab']
+        self._max_seq_len = params['max_len']
 
     def _forward_pipeline(self, program):
-        return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
+        # assumes a single program is input to this method
+        # Outputs a (1xdim) dim tensor
+        return get_representation(self._model, _tokenize_programs([program])[0], self._max_seq_len, self._vocab)
