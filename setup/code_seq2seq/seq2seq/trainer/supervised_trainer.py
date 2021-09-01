@@ -52,7 +52,7 @@ class SupervisedTrainer(object):
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio):
         loss = self.loss
         # Forward propagation
-        (decoder_outputs, decoder_hidden, other), _ = model(input_variable, input_lengths, target_variable,
+        (decoder_outputs, decoder_hidden, other), _ = model(self.device, input_variable, input_lengths, target_variable,
                                                        teacher_forcing_ratio=teacher_forcing_ratio)
         # Get loss
         loss.reset()
@@ -66,7 +66,7 @@ class SupervisedTrainer(object):
 
         return loss.get_loss()
 
-    def _train_epoches(self, device, data, model, n_epochs, start_epoch, start_step,
+    def _train_epoches(self, data, model, n_epochs, start_epoch, start_step,
                        dev_data=None, teacher_forcing_ratio=0):
         log = self.logger
 
@@ -77,7 +77,7 @@ class SupervisedTrainer(object):
             dataset=data, batch_size=self.batch_size,
             sort=False, sort_within_batch=True,
             sort_key=lambda x: len(x.src),
-            device=device, repeat=False)
+            device=self.device, repeat=False)
 
         steps_per_epoch = len(batch_iterator)
         total_steps = steps_per_epoch * n_epochs
@@ -182,7 +182,7 @@ class SupervisedTrainer(object):
 
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
 
-        self._train_epoches(self.device, data, model, num_epochs,
+        self._train_epoches(data, model, num_epochs,
                             start_epoch, step, dev_data=dev_data,
                             teacher_forcing_ratio=teacher_forcing_ratio)
         return model

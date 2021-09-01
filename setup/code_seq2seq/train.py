@@ -93,7 +93,6 @@ if __name__ == '__main__':
     else:
         device = 'cpu'
 
-    device = 'cpu'
     # Prepare dataset
     src, tgt, fname, train, dev = prepare_dataset(opt.train_path, opt.dev_path, params['max_len'])
     
