@@ -3,6 +3,7 @@ import argparse
 import logging
 import torch
 import torchtext
+import random
 
 import pickle as pkl
 from code_seq2seq.seq2seq.trainer import SupervisedTrainer
@@ -81,9 +82,16 @@ if __name__ == '__main__':
     LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
     logging.info(opt)
-
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
-    torch.cuda.set_device(device)
+    
+    if torch.cuda.is_available():
+        device_count = torch.torch.cuda.device_count()
+        if device_count > 0:
+            device_id = random.randrange(device_count)
+            device = torch.device('cuda:'+str(device_id))
+            print('Setting device {}'.format(device_id))
+            torch.cuda.set_device(device)
+    else:
+        device = 'cpu'
 
     # Prepare dataset
     src, tgt, fname, train, dev = prepare_dataset(opt.train_path, opt.dev_path, params['max_len'])
@@ -160,7 +168,8 @@ if __name__ == '__main__':
             '''
         # train
         print('start training')
-        t = SupervisedTrainer(expt_dir=opt.expt_dir,
+        t = SupervisedTrainer(device=device,
+                            expt_dir=opt.expt_dir,
                             loss=loss, 
                             batch_size=params['batch_sz'],
                             checkpoint_every=params['checkpoint_every'],
