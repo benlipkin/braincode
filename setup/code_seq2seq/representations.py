@@ -35,19 +35,22 @@ def get_representation(model, tokenized_program, max_len, input_vocab):
             torch.cuda.set_device(device)
     else:
         device = 'cpu'
-
+    
+    model.to(device)
     tokenized_program = tokenized_program[:max_len]
     src = SourceField()
     dataset = TabularDataset_From_List(
         [{'src': p}],
         [('src', src)]
     )
-    src.build_vocab(dataset)
+    src.build_vocab(dataset)    
     src.vocab = input_vocab # Overwrite vocab once `vocab` attribute has been set.
-    rep = Representation()
+    # print('vocab size:{}'.format(len(src.vocab)))
+    rep = Representation(device)
     all_reps = rep.get_representation(model, dataset)
     # print(all_reps)
     # print(all_reps.shape)
+    # print(all_reps.device)
     return all_reps
 
 

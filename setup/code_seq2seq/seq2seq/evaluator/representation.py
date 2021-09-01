@@ -27,19 +27,21 @@ class Representation(object):
         Returns:
             loss (float): loss of the given model on the given dataset
         """
+        if self.device != 'cpu':
+            model.cuda()
+        
         model.eval()
         
-        device =  self.device
         batch_iterator = torchtext.data.BucketIterator(
             dataset=data, batch_size=self.batch_size,
             sort=True, sort_key=lambda x: len(x.src),
-            device=device, train=False)
+            device=self.device, train=False)
         
         with torch.no_grad():
             all_hidden = None
             for batch in batch_iterator:
-                input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)                                
-                _, (encoder_output, encoder_hidden) = model(input_variable=input_variables, 
+                input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)
+                _, (encoder_output, encoder_hidden) = model(device=self.device, input_variable=input_variables, 
                                                             input_lengths=input_lengths.tolist(), 
                                                             target_variable=None)
                 encoder_hidden = torch.sum(encoder_hidden, 0)

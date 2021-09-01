@@ -49,7 +49,7 @@ class Evaluator(object):
                 input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)
                 target_variables = getattr(batch, seq2seq.tgt_field_name)
 
-                (decoder_outputs, decoder_hidden, other), _ = model(input_variables, input_lengths.tolist(), target_variables)
+                (decoder_outputs, decoder_hidden, other), _ = model(self.device, input_variables, input_lengths.tolist(), target_variables)
 
                 # Evaluation
                 seqlist = other['sequence']
