@@ -1,16 +1,15 @@
 import multiprocessing
 import os
+import pickle as pkl
 import token
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tokenize import tokenize
 
-import pickle as pkl
 import numpy as np
-
-from ..setup.code_seq2seq.tokenize import _tokenize_programs
-from ..setup.code_seq2seq.representations import get_representation
-from ..setup.code_seq2seq.train import params
+from code_seq2seq.representations import get_representation
+from code_seq2seq.tokenize import _tokenize_programs as tokenize_programs
+from code_seq2seq.train import params
 from code_transformer.env import DATA_PATH_STAGE_2
 from code_transformer.preprocessing.datamanager.preprocessed import \
     CTPreprocessedDataManager
@@ -26,7 +25,6 @@ from code_transformer.utils.inference import (get_model_manager,
 from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
-from code_seq2seq.env import CODE_SEQ2SEQ_MODELS_PATH, CODE_SEQ2SEQ_SAVED_MODEL_NAME
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
@@ -74,9 +72,9 @@ class CountVectorizer(ABC):
         raise NotImplementedError("Handled by subclass.")
 
     def fit_transform(self, programs):
-        self._model.fit_on_sequences(_tokenize_programs(self._dataset))
-        outputs = self._model.sequences_to_matrix(
-            _tokenize_programs(programs), mode=self._mode
+        self._model.fit_on_texts(tokenize_programs(self._dataset))
+        outputs = self._model.texts_to_matrix(
+            tokenize_programs(programs), mode=self._mode
         )
         return outputs[:, np.any(outputs, axis=0)]
 
@@ -242,20 +240,20 @@ class CodeBERTa(Transformer):
 
 
 class CodeSeq2seq(Transformer):
-    def __init__(self):        
-        cache_dir = Path(__file__).parent.joinpath(
-            ".cache", "models", "code_seq2seq"
-        )
-        if not cache_dir.exists():
-            cache_dir.mkdir(parents=True, exist_ok=True)
-        
-        with open(os.path.join(CODE_SEQ2SEQ_MODELS_PATH, CODE_SEQ2SEQ_SAVED_MODEL_NAME), 'rb') as fp:
+    def __init__(self):
+        cache_dir = Path(__file__).parent.joinpath(".cache", "models", "code_seq2seq")
+        with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
             saved = pkl.load(fp)
-        
-        self._model, self._vocab = saved['model'], saved['vocab']
-        self._max_seq_len = params['max_len']
+        self._model, self._vocab = saved["model"], saved["vocab"]
+        self._max_seq_len = params["max_len"]
+
+    def _get_rep(forward_output):
+        return forward_output
 
     def _forward_pipeline(self, program):
-        # assumes a single program is input to this method
-        # Outputs a (1xdim) dim tensor
-        return get_representation(self._model, _tokenize_programs([program])[0], self._max_seq_len, self._vocab)
+        return get_representation(
+            self._model,
+            tokenize_programs([program])[0],
+            self._max_seq_len,
+            self._vocab,
+        )

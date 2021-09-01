@@ -2,6 +2,9 @@
 
 set -e
 
+# install code_seq2seq package
+pip install -e .
+
 # conda install -yc anaconda wget
 # conda install -yc conda-forge tar
 ROOT_PATH=$1

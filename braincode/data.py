@@ -80,6 +80,7 @@ class DataLoader:
             elif self._target in [
                 "code-bow",
                 "code-tfidf",
+                "code-seq2seq",
                 "code-xlnet",
                 "code-ct",
                 "code-codeberta",
