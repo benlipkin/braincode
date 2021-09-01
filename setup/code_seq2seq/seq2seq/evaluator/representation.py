@@ -36,18 +36,15 @@ class Representation(object):
             dataset=data, batch_size=self.batch_size,
             sort=True, sort_key=lambda x: len(x.src),
             device=device, train=False)
-        tgt_vocab = self.tgt_vocab 
-        pad = tgt_vocab.stoi[data.fields[seq2seq.tgt_field_name].pad_token]
-        hidden_rep = []
+        
         with torch.no_grad():
-            all_hidden, all_fnames = None, None
+            all_hidden = None
             for batch in batch_iterator:
-                input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)
-                target_variables = getattr(batch, seq2seq.tgt_field_name)
-                fnames = getattr(batch, seq2seq.fname_field_name)
-                _, (encoder_output, encoder_hidden) = model(input_variables, input_lengths.tolist(), target_variables)
+                input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)                                
+                _, (encoder_output, encoder_hidden) = model(input_variable=input_variables, 
+                                                            input_lengths=input_lengths.tolist(), 
+                                                            target_variable=None)
                 encoder_hidden = torch.sum(encoder_hidden, 0)
                 all_hidden = torch_concat(all_hidden, encoder_hidden)
-                all_fnames = torch_concat(all_fnames, fnames)
 
-        return all_hidden, all_fnames
+        return all_hidden

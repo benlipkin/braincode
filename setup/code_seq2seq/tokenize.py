@@ -181,8 +181,8 @@ def _tokenize_programs(programs, max_tokens=500):
     return sequences
 
 
-def transform_data(src_path_train, dest_path, debug=False):
-  with open(src_path_train, 'r') as fp:
+def transform_data(src_path, dest_path=None, debug=False):
+  with open(src_path, 'r') as fp:
     files = fp.readlines()
   
   files = [fi[:-1] for fi in files]
@@ -207,13 +207,15 @@ def transform_data(src_path_train, dest_path, debug=False):
   for t in tokenized_programs:
     print(len(t))
   '''
-
-  with open(dest_path, 'w') as fp:
-    for n, p in zip(all_src_names, tokenized_programs):
-        fp.write("{}\t{}\t{}\n".format(n, p, p))
-    fp.truncate(fp.tell() - len(os.linesep))
-  
-  print('Done dumping tokenized programs to {}'.format(dest_path))
+  if dest_path is not None:
+    with open(dest_path, 'w') as fp:
+        for n, p in zip(all_src_names, tokenized_programs):
+            fp.write("{}\t{}\t{}\n".format(n, p, p))
+        fp.truncate(fp.tell() - len(os.linesep))
+    
+    print('Done dumping tokenized programs to {}'.format(dest_path))
+  else:
+      return tokenized_programs
 
 
 if __name__ == '__main__':
