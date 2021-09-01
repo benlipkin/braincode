@@ -13,9 +13,8 @@ class Representation(object):
         batch_size (int, optional): batch size for evaluator (default: 64)
     """
 
-    def __init__(self, batch_size=64, tgt_vocab=None):
+    def __init__(self, batch_size=64):
         self.batch_size = batch_size
-        self.tgt_vocab = tgt_vocab
 
     def get_representation(self, model, data):
         """ Evaluate a model on given dataset and return performance.

@@ -23,7 +23,7 @@ params = {
     'tgt_vocab_size': 5000,
     'rnn_cell':'gru',
     'batch_sz': 16, 
-    'epochs': 30,
+    'epochs': 15,
     'use_attention': True,
     'bidirectional': True,
     'dropout_p': 0.2,
@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
         saved = {}
         saved['model'] = seq2seq_model
-        saved['vocab'] = output_vocab
+        saved['vocab'] = input_vocab
         saved['fname_vocab'] = fname_vocab
 
         with open(os.path.join(opt.expt_dir, opt.save_model_as), 'wb') as fp:
