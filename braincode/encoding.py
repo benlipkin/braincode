@@ -1,10 +1,8 @@
 import multiprocessing
 import os
 import pickle as pkl
-import token
 from abc import ABC, abstractmethod
 from pathlib import Path
-from tokenize import tokenize
 
 import numpy as np
 from code_seq2seq.representations import get_representation
