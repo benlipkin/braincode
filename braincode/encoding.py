@@ -32,19 +32,19 @@ os.environ["DATASETS_VERBOSITY"] = "error"
 
 
 class ProgramEncoder:
-    def __init__(self, encoder):
+    def __init__(self, encoder, base_path):
         if encoder == "code-bow":
-            self._encoder = BagOfWords()
+            self._encoder = BagOfWords(base_path)
         elif encoder == "code-tfidf":
-            self._encoder = TFIDF()
+            self._encoder = TFIDF(base_path)
         elif encoder == "code-seq2seq":
-            self._encoder = CodeSeq2seq()
+            self._encoder = CodeSeq2seq(base_path)
         elif encoder == "code-xlnet":
-            self._encoder = XLNet()
+            self._encoder = XLNet(base_path)
         elif encoder == "code-ct":
-            self._encoder = CodeTransformer()
+            self._encoder = CodeTransformer(base_path)
         elif encoder == "code-codeberta":
-            self._encoder = CodeBERTa()
+            self._encoder = CodeBERTa(base_path)
         else:
             raise ValueError("Encoder not recognized. Select valid encoder.")
 
@@ -57,8 +57,8 @@ class ProgramEncoder:
 
 
 class CountVectorizer(ABC):
-    def __init__(self):
-        cache_dir = Path(__file__).parent.joinpath(".cache", "datasets", "huggingface")
+    def __init__(self, base_path):
+        cache_dir = Path(os.path.join(base_path, ".cache", "datasets", "huggingface"))
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
         self._dataset = load_dataset(
@@ -80,18 +80,28 @@ class CountVectorizer(ABC):
 
 
 class BagOfWords(CountVectorizer):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+    
     @property
     def _mode(self):
         return "count"
 
 
 class TFIDF(CountVectorizer):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+    
     @property
     def _mode(self):
         return "tfidf"
 
 
 class Transformer(ABC):
+    def __init__(self, base_path):
+        self._base_path = base_path
+        super().__init__()
+
     @staticmethod
     def _get_rep(forward_output):
         return forward_output.detach().numpy().squeeze()
@@ -108,7 +118,8 @@ class Transformer(ABC):
 
 
 class ZuegnerModel(Transformer):
-    def __init__(self):
+    def __init__(self, base_path):
+        super().__init__(base_path)
         model_manager = get_model_manager(self._model_type)
         self._model_config = model_manager.load_config(self._run_id)
         data_manager = CTPreprocessedDataManager(
@@ -191,6 +202,10 @@ class ZuegnerModel(Transformer):
 
 
 class XLNet(ZuegnerModel):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+    
+
     @property
     def _model_type(self):
         return "xl_net"
@@ -212,6 +227,9 @@ class XLNet(ZuegnerModel):
 
 
 class CodeTransformer(ZuegnerModel):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+
     @property
     def _model_type(self):
         return "code_transformer"
@@ -225,11 +243,12 @@ class CodeTransformer(ZuegnerModel):
 
 
 class CodeBERTa(Transformer):
-    def __init__(self):
+    def __init__(self, base_path):
+        super().__init__(base_path)
         spec = "huggingface/CodeBERTa-small-v1"
-        cache_dir = Path(__file__).parent.joinpath(
-            ".cache", "models", "huggingface", spec.split("/")[-1]
-        )
+        cache_dir = Path(os.path.join(
+            self._base_path, ".cache", "models", "huggingface", spec.split(os.sep)[-1]
+        ))
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
         self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
@@ -242,8 +261,9 @@ class CodeBERTa(Transformer):
 
 
 class CodeSeq2seq(Transformer):
-    def __init__(self):
-        cache_dir = Path(__file__).parent.joinpath(".cache", "models", "code_seq2seq")
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        cache_dir = Path(os.path.join(self._base_path, ".cache", "models", "code_seq2seq"))
         with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
             saved = pkl.load(fp)
         self._model, self._vocab = saved["model"], saved["vocab"]

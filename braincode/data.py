@@ -1,6 +1,6 @@
 from functools import lru_cache
+import os
 from pathlib import Path
-
 import numpy as np
 from encoding import ProgramEncoder
 from scipy.io import loadmat
@@ -8,11 +8,12 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 class DataLoader:
-    def __init__(self, feature, target=None):
-        self._datadir = Path(__file__).parent.joinpath("inputs")
+    def __init__(self, base_path, feature, target=None):
+        self._datadir = Path(os.path.join(base_path, "inputs"))
         self._events = (12, 6)  # nruns, nblocks
         self._feature = feature
         self._target = target
+        self._base_path = base_path
 
     @property
     def datadir(self):
@@ -110,9 +111,9 @@ class DataLoader:
             fname = file.as_posix()
             with open(fname, "r") as f:
                 programs.append(f.read())
-            info = fname.split("/")[4].split(" ")[1].split("_")
+            info = fname.split(os.sep)[-1].split(" ")[1].split("_")
             content.append(info[0])
-            lang.append(fname.split("/")[3])
+            lang.append(fname.split(os.sep)[-2])
             structure.append(info[1])
         return (
             np.array(programs),
@@ -139,6 +140,6 @@ class DataLoader:
     def get_data_prda(self, k=5):
         programs, content, lang, structure = self._load_all_programs()
         y = locals()[self._target.split("-")[1]]
-        X = ProgramEncoder(self._feature).fit_transform(programs)
+        X = ProgramEncoder(self._feature, self._base_path).fit_transform(programs)
         runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
         return X, y, runs

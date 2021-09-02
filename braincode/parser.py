@@ -4,6 +4,7 @@ import multiprocessing
 import sys
 import warnings
 from argparse import ArgumentParser
+from pathlib import Path
 
 from decoding import MVPA, PRDA
 from joblib import Parallel, delayed, parallel_backend
@@ -12,6 +13,7 @@ from rsa import RSA
 
 class CLI:
     def __init__(self):
+        self._base_path = Path(__file__).parent
         self._default = "all"
         self._analyses = [
             "rsa",
@@ -59,6 +61,11 @@ class CLI:
             choices=[self._default] + self._targets,
             default=self._default,
         )
+        self._parser.add_argument(
+            "-p",
+            "--base_path",
+            default=self._base_path
+        )
 
     def _parse_args(self):
         if not hasattr(self, "_parser"):
@@ -77,6 +84,7 @@ class CLI:
     def _prep_analyses(self):
         if not hasattr(self, "_args"):
             raise RuntimeError("CLI args not set. Need to parse first.")
+        self._base_path = self._args.base_path
         if self._args.feature != self._default:
             self._features = [self._args.feature]
         if self._args.target != self._default:
@@ -95,6 +103,7 @@ class CLI:
             else:
                 raise ValueError("Invalid argument for analysis.")
             self._params = list(itertools.product(self._features, self._targets))
+        self._params = [(f, t, self._base_path) for f, t in self._params]
         self._analysis = globals()[self._args.analysis.upper()]
 
     def _run_analysis(self, param):
