@@ -94,7 +94,7 @@ class TFIDF(CountVectorizer):
 class Transformer(ABC):
     @staticmethod
     def _get_rep(forward_output):
-        return forward_output[1].detach().numpy().squeeze()
+        return forward_output.detach().numpy().squeeze()
 
     @abstractmethod
     def _forward_pipeline(program):
@@ -187,7 +187,7 @@ class ZuegnerModel(Transformer):
             self._model_config,
             self._model_type,
         )
-        return self._forward(batch).all_emb[-1]
+        return self._forward(batch).all_emb[-1][1]
 
 
 class XLNet(ZuegnerModel):
@@ -236,7 +236,9 @@ class CodeBERTa(Transformer):
         self._model = RobertaModel.from_pretrained(spec, cache_dir=cache_dir)
 
     def _forward_pipeline(self, program):
-        return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
+        return self._model.forward(
+            self._tokenizer.encode(program, return_tensors="pt")
+        )[1]
 
 
 class CodeSeq2seq(Transformer):
@@ -246,9 +248,6 @@ class CodeSeq2seq(Transformer):
             saved = pkl.load(fp)
         self._model, self._vocab = saved["model"], saved["vocab"]
         self._max_seq_len = params["max_len"]
-
-    def _get_rep(forward_output):
-        return forward_output
 
     def _forward_pipeline(self, program):
         return get_representation(
