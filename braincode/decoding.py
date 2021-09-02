@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
+import os
 from pathlib import Path
-
 import numpy as np
 from data import DataLoader
 from plots import Plotter
@@ -12,8 +12,9 @@ from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, feature):
+    def __init__(self, feature, base_path):
         self._feature = feature
+        self._base_path = base_path
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @property
@@ -29,10 +30,11 @@ class Analysis(ABC):
 
 
 class Decoder(Analysis):
-    def __init__(self, feature, target):
-        super().__init__(feature)
+    def __init__(self, feature, target, base_path):
+        super().__init__(feature, base_path)
         self._target = target
-        self._loader = DataLoader(self.feature, self.target)
+        self._base_path = base_path
+        self._loader = DataLoader(self._base_path, self.feature, self.target)
 
     @property
     def target(self):
@@ -92,11 +94,11 @@ class Decoder(Analysis):
     def _run_pipeline(self, mode, iters=1):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
-        fname = Path(__file__).parent.joinpath(
+        fname = Path(os.path.join(self._base_path,
             ".cache",
             "scores",
             f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
-        )
+        ))
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
