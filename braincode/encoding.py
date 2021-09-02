@@ -104,6 +104,8 @@ class Transformer(ABC):
 
     @staticmethod
     def _get_rep(forward_output):
+        if forward_output.device != 'cpu':
+            forward_output = forward_output.cpu()
         return forward_output.detach().numpy().squeeze()
 
     @abstractmethod
