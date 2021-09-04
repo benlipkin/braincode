@@ -4,6 +4,18 @@ import pickle as pkl
 import json
 import numpy as np
 
+
+def clean_cache(pth):
+    files = os.listdir(pth)
+    print('Clear path? {}'.format(pth))
+    inp = input()
+    if 'y' in inp.lower() or '1' in inp.lower():
+        for f in files:
+            if "score" in f and ".npy" in f:
+                print('Clearing {}'.format(os.path.join(pth, f)))
+                os.remove(os.path.join(pth, f))
+
+
 def print_scores(pth):
     scores = {}
     files = os.listdir(pth)
@@ -23,4 +35,9 @@ def print_scores(pth):
 
 if __name__ == "__main__":
     pth = sys.argv[1]
-    print_scores(pth)
+    choice = int(sys.argv[2])
+    
+    if choice == 1:
+        clean_cache(pth)
+    elif choice == 2:
+        print_scores(pth)
