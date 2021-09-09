@@ -25,6 +25,7 @@ class CLI:
             "brain-MD",
             "brain-aud",
             "brain-vis",
+            "code-random",
             "code-bow",
             "code-tfidf",
             "code-seq2seq",
@@ -37,6 +38,7 @@ class CLI:
             "task-content",
             "task-lang",
             "task-structure",
+            "code-random",
             "code-bow",
             "code-tfidf",
             "code-seq2seq",
@@ -61,11 +63,7 @@ class CLI:
             choices=[self._default] + self._targets,
             default=self._default,
         )
-        self._parser.add_argument(
-            "-p",
-            "--base_path",
-            default=self._base_path
-        )
+        self._parser.add_argument("-p", "--base_path", default=self._base_path)
 
     def _parse_args(self):
         if not hasattr(self, "_parser"):

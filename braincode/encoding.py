@@ -9,17 +9,21 @@ from code_seq2seq.representations import get_representation
 from code_seq2seq.tokenize import _tokenize_programs as tokenize_programs
 from code_seq2seq.train import params
 from code_transformer.env import DATA_PATH_STAGE_2
-from code_transformer.preprocessing.datamanager.preprocessed import \
-    CTPreprocessedDataManager
+from code_transformer.preprocessing.datamanager.preprocessed import (
+    CTPreprocessedDataManager,
+)
 from code_transformer.preprocessing.graph.binning import ExponentialBinning
 from code_transformer.preprocessing.graph.distances import (
-    AncestorShortestPaths, DistanceBinning, PersonalizedPageRank,
-    ShortestPaths, SiblingShortestPaths)
+    AncestorShortestPaths,
+    DistanceBinning,
+    PersonalizedPageRank,
+    ShortestPaths,
+    SiblingShortestPaths,
+)
 from code_transformer.preprocessing.graph.transform import DistancesTransformer
 from code_transformer.preprocessing.nlp.vocab import VocabularyTransformer
 from code_transformer.preprocessing.pipeline.stage1 import CTStage1Preprocessor
-from code_transformer.utils.inference import (get_model_manager,
-                                              make_batch_from_sample)
+from code_transformer.utils.inference import get_model_manager, make_batch_from_sample
 from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
@@ -31,7 +35,9 @@ os.environ["DATASETS_VERBOSITY"] = "error"
 
 class ProgramEncoder:
     def __init__(self, encoder, base_path):
-        if encoder == "code-bow":
+        if encoder == "code-random":
+            self._encoder = RandomEmbedding(base_path)
+        elif encoder == "code-bow":
             self._encoder = BagOfWords(base_path)
         elif encoder == "code-tfidf":
             self._encoder = TFIDF(base_path)
@@ -54,6 +60,30 @@ class ProgramEncoder:
         return self._encoder.fit_transform(programs)
 
 
+class RandomEmbedding:
+    def __init__(self, base_path):
+        self._base_path = base_path
+        seq2seq_cfg = CodeSeq2seq(base_path)
+        self._vocab = seq2seq_cfg._vocab
+        self._vocab_size = len(self._vocab)
+        self._embedding_size = seq2seq_cfg._model.encoder.hidden_size
+        self._random_matrix = np.random.default_rng(0).standard_normal(
+            (self._vocab_size, self._embedding_size)
+        )
+
+    def _get_rep(self, program):
+        rep = np.zeros(self._embedding_size)
+        for token in (tokenize_programs([program])[0]).split():
+            rep += self._random_matrix[self._vocab[token], :]
+        return rep
+
+    def fit_transform(self, programs):
+        outputs = []
+        for program in programs:
+            outputs.append(self._get_rep(program))
+        return np.array(outputs)
+
+
 class CountVectorizer(ABC):
     def __init__(self, base_path):
         cache_dir = Path(os.path.join(base_path, ".cache", "datasets", "huggingface"))
@@ -62,7 +92,7 @@ class CountVectorizer(ABC):
         self._dataset = load_dataset(
             "code_search_net", "python", split="validation", cache_dir=cache_dir
         )["func_code_string"]
-        self._model = Tokenizer(num_words=200)  # arbitrary N > vocab size
+        self._model = Tokenizer(num_words=RandomEmbedding(base_path)._vocab_size)
 
     @property
     @abstractmethod
@@ -80,7 +110,7 @@ class CountVectorizer(ABC):
 class BagOfWords(CountVectorizer):
     def __init__(self, base_path):
         super().__init__(base_path)
-    
+
     @property
     def _mode(self):
         return "count"
@@ -89,7 +119,7 @@ class BagOfWords(CountVectorizer):
 class TFIDF(CountVectorizer):
     def __init__(self, base_path):
         super().__init__(base_path)
-    
+
     @property
     def _mode(self):
         return "tfidf"
@@ -102,7 +132,7 @@ class Transformer(ABC):
 
     @staticmethod
     def _get_rep(forward_output):
-        if forward_output.device != 'cpu':
+        if forward_output.device != "cpu":
             forward_output = forward_output.cpu()
         return forward_output.detach().numpy().squeeze()
 
@@ -204,7 +234,6 @@ class ZuegnerModel(Transformer):
 class XLNet(ZuegnerModel):
     def __init__(self, base_path):
         super().__init__(base_path)
-    
 
     @property
     def _model_type(self):
@@ -246,9 +275,15 @@ class CodeBERTa(Transformer):
     def __init__(self, base_path):
         super().__init__(base_path)
         spec = "huggingface/CodeBERTa-small-v1"
-        cache_dir = Path(os.path.join(
-            self._base_path, ".cache", "models", "huggingface", spec.split(os.sep)[-1]
-        ))
+        cache_dir = Path(
+            os.path.join(
+                self._base_path,
+                ".cache",
+                "models",
+                "huggingface",
+                spec.split(os.sep)[-1],
+            )
+        )
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
         self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
@@ -263,7 +298,9 @@ class CodeBERTa(Transformer):
 class CodeSeq2seq(Transformer):
     def __init__(self, base_path):
         super().__init__(base_path)
-        cache_dir = Path(os.path.join(self._base_path, ".cache", "models", "code_seq2seq"))
+        cache_dir = Path(
+            os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
+        )
         with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
             saved = pkl.load(fp)
         self._model, self._vocab = saved["model"], saved["vocab"]

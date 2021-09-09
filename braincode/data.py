@@ -1,6 +1,7 @@
-from functools import lru_cache
 import os
+from functools import lru_cache
 from pathlib import Path
+
 import numpy as np
 from encoding import ProgramEncoder
 from scipy.io import loadmat
@@ -79,6 +80,7 @@ class DataLoader:
             if self._target in ["task-content", "task-lang", "task-structure"]:
                 y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             elif self._target in [
+                "code-random",
                 "code-bow",
                 "code-tfidf",
                 "code-seq2seq",
@@ -89,7 +91,7 @@ class DataLoader:
                 y = self._load_select_programs(
                     self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )
-                encoder = ProgramEncoder(self._target)
+                encoder = ProgramEncoder(self._target, self._base_path)
             else:
                 raise ValueError("Target not recognized. Select valid target.")
         return encoder.fit_transform(y), mask
