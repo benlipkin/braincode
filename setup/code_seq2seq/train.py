@@ -16,7 +16,7 @@ from code_seq2seq.seq2seq.util.checkpoint import Checkpoint
 params = {
     'max_len': 500,
     'n_layers': 1,
-    'hidden_size': 128, 
+    'hidden_size': 64, 
     'src_vocab_size': 15000, 
     'tgt_vocab_size': 5000,
     'rnn_cell':'gru',

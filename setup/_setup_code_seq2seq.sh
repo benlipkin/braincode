@@ -39,11 +39,12 @@ TAR_NAME=codenet-python
 
 if [ $DOWNLOAD_MODEL == "True" ]; then
     echo "dowload saved model"
-    # wget trained model into the .cache/models dir
+    # Download a trained seq2seq model into the .cache/models dir
+    wget -O $SAVED_MODEL_NAME https://www.dropbox.com/s/g0g6j0e0czts4yz/code_seq2seq_py8kcodenet.pkl?dl=0
 else
     if [ $DOWNLOAD_DATA == "True" ]; then
         cd $DATASET_DIR
-        wget -O $TAR_NAME.tar.gz https://dax-cdn.cdn.appdomain.cloud/dax-project-codenet/1.0.0/Project_CodeNet_Python800.tar.gz?_ga=2.140558578.1761838737.1630155855-230520885.1625251724
+        wget -O $TAR_NAME.tar.gz https://www.dropbox.com/s/zi9i8ictstsh9bx/codenet-python.tar.gz?dl=0
         mkdir $TAR_NAME
         tar -xvzf $TAR_NAME.tar.gz -C $TAR_NAME --strip-components 1
     fi
