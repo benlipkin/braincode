@@ -20,7 +20,7 @@ mkdir -p $LOG_DIR
 mkdir -p $ENV_DIR
 
 cd $DATASET_DIR
-wget -O python.tar.gz https://syncandshare.lrz.de/dl/fi5NDSSUYPnEQ2D6zga4XtN5/python.tar.gz
+wget -O python.tar.gz https://www.dropbox.com/s/ukve7lu6t9d6kfu/python.tar.gz?dl=0
 tar -xvzf python.tar.gz
 
 cd $MODEL_DIR
@@ -28,7 +28,7 @@ wget -O csn-single-language-models.tar.gz https://syncandshare.lrz.de/dl/fiKKgjv
 tar -xvzf csn-single-language-models.tar.gz
 
 cd $BINARY_DIR
-wget -O semantic.tar.gz https://syncandshare.lrz.de/dl/fiK3DkYhvPaS1sENaGuABvi8/semantic.tar.gz
+wget -O semantic.tar.gz https://www.dropbox.com/s/vxpcjs2myi8yych/semantic.tar.gz?dl=0
 tar -xvzf semantic.tar.gz
 
 cd $ENV_DIR
