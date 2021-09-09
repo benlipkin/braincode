@@ -26,8 +26,10 @@ This pipeline supports three major functions.
 
 **Program Embeddings**
 
--   Bag Of Words
+-   RandomEmbedding
+-   BagOfWords
 -   TF-IDF
+-   seq2seq
 -   XLNet<sup> [1](https://arxiv.org/pdf/1906.08237.pdf)</sup>
 -   CodeTransformer<sup> [2](https://arxiv.org/pdf/2103.11318.pdf)</sup>
 -   CodeBERTa<sup> [3](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
@@ -50,8 +52,9 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 
 ```bash
 usage:  [-h]
-        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}]
-        [-t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}]
+        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+        [-t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+        [-p BASE_PATH]
         {rsa,mvpa,prda}
 
 run specified analysis type
@@ -61,8 +64,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}
-  -t {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-bow,code-tfidf,code-xlnet,code-ct,code-codeberta}
+  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -p BASE_PATH, --base_path BASE_PATH
 ```
 
 ### RSA
@@ -97,8 +101,10 @@ python braincode rsa -f brain-lang
 -   task-content
 -   task-lang
 -   task-structure
+-   code-random
 -   code-bow
 -   code-tfidf
+-   code-seq2seq
 -   code-xlnet
 -   code-ct
 -   code-codeberta
@@ -115,8 +121,10 @@ python braincode mvpa -f brain-MD -t code-tfidf
 
 **Supported features**
 
+-   code-random
 -   code-bow
 -   code-tfidf
+-   code-seq2seq
 -   code-xlnet
 -   code-ct
 -   code-codeberta
