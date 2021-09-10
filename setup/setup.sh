@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 ##################################
-# $1 can be  "$(dirname $(pwd))"
+# $1 is base_dir
 ##################################
-bash _setup_inputs.sh $1 
-bash _setup_code_seq2seq.sh $1 False True True True True False
-bash _setup_code_transformer.sh $1
+base_dir=${1:-$(dirname $(pwd))}
+bash _setup_inputs.sh $base_dir
+bash _setup_code_seq2seq.sh $base_dir True False False False False False
+bash _setup_code_transformer.sh $base_dir

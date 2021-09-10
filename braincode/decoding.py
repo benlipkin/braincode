@@ -127,6 +127,9 @@ class Decoder(Analysis):
 
 
 class MVPA(Decoder):
+    def __init__(self, feature, target, base_path):
+        super().__init__(feature, target, base_path)
+
     def _run_decoding(self, mode):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         scores = np.zeros(len(subjects))
@@ -138,7 +141,10 @@ class MVPA(Decoder):
         return scores.mean()
 
 
-class PRDA(Decoder):  # progam representation decoding analysis
+class PRDA(Decoder):
+    def __init__(self, feature, target, base_path):
+        super().__init__(feature, target, base_path)
+
     def _run_decoding(self, mode):
         X, y, runs = self._loader.get_data_prda()
         if mode == "null":
