@@ -42,7 +42,8 @@ TAR_NAME=codenet-python
 if [ $DOWNLOAD_MODEL == "True" ]; then
     echo "dowload saved model"
     # Download a trained seq2seq model into the .cache/models dir
-    wget -O $SAVED_MODEL_NAME https://www.dropbox.com/s/g0g6j0e0czts4yz/code_seq2seq_py8kcodenet.pkl?dl=0
+    wget -O $SAVED_MODEL_NAME https://www.dropbox.com/s/qoowlupveda6xgj/code_seq2seq_py8kcodenet.torch?dl=0
+    wget -O $SAVED_VOCAB_NAME https://www.dropbox.com/s/2hsiivxwxo6c3em/vocab_code_seq2seq_py8kcodenet.pkl?dl=0
 else
     if [ $DOWNLOAD_DATA == "True" ]; then
         cd $DATASET_DIR
