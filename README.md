@@ -29,10 +29,10 @@ This pipeline supports three major functions.
 -   RandomEmbedding
 -   BagOfWords
 -   TF-IDF
--   seq2seq
--   XLNet<sup> [1](https://arxiv.org/pdf/1906.08237.pdf)</sup>
--   CodeTransformer<sup> [2](https://arxiv.org/pdf/2103.11318.pdf)</sup>
--   CodeBERTa<sup> [3](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
+-   seq2seq<sup> [1](https://github.com/IBM/pytorch-seq2seq)</sup>
+-   XLNet<sup> [2](https://arxiv.org/pdf/1906.08237.pdf)</sup>
+-   CodeTransformer<sup> [3](https://arxiv.org/pdf/2103.11318.pdf)</sup>
+-   CodeBERTa<sup> [4](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
 
 ## Installation
 
@@ -68,6 +68,8 @@ optional arguments:
   -t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -p BASE_PATH, --base_path BASE_PATH
 ```
+
+note: BASE_PATH must be specified to match setup.sh if changed from default.
 
 ### RSA
 

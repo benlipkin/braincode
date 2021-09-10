@@ -9,21 +9,17 @@ from code_seq2seq.representations import get_representation
 from code_seq2seq.tokenize import _tokenize_programs as tokenize_programs
 from code_seq2seq.train import params
 from code_transformer.env import DATA_PATH_STAGE_2
-from code_transformer.preprocessing.datamanager.preprocessed import (
-    CTPreprocessedDataManager,
-)
+from code_transformer.preprocessing.datamanager.preprocessed import \
+    CTPreprocessedDataManager
 from code_transformer.preprocessing.graph.binning import ExponentialBinning
 from code_transformer.preprocessing.graph.distances import (
-    AncestorShortestPaths,
-    DistanceBinning,
-    PersonalizedPageRank,
-    ShortestPaths,
-    SiblingShortestPaths,
-)
+    AncestorShortestPaths, DistanceBinning, PersonalizedPageRank,
+    ShortestPaths, SiblingShortestPaths)
 from code_transformer.preprocessing.graph.transform import DistancesTransformer
 from code_transformer.preprocessing.nlp.vocab import VocabularyTransformer
 from code_transformer.preprocessing.pipeline.stage1 import CTStage1Preprocessor
-from code_transformer.utils.inference import get_model_manager, make_batch_from_sample
+from code_transformer.utils.inference import (get_model_manager,
+                                              make_batch_from_sample)
 from datasets import load_dataset
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
@@ -128,7 +124,6 @@ class TFIDF(CountVectorizer):
 class Transformer(ABC):
     def __init__(self, base_path):
         self._base_path = base_path
-        super().__init__()
 
     @staticmethod
     def _get_rep(forward_output):

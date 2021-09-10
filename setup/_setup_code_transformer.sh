@@ -2,7 +2,7 @@
 
 set -e
 
-conda install -yc anaconda wget
+#conda install -yc anaconda wget
 conda install -yc conda-forge tar
 
 NAME=code_transformer
