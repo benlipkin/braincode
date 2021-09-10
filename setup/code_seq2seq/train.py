@@ -74,8 +74,10 @@ if __name__ == '__main__':
                         help='Indicates if training has to be resumed from the latest checkpoint')
     parser.add_argument('--log-level', dest='log_level', default='info',
                         help='Logging level.')
-    parser.add_argument('--save_model_as', dest='save_model_as', default='code_seq2seq_py8kcodenet.pkl',
-                        help='Name of saved model pickle file.')
+    parser.add_argument('--save_model_as', dest='save_model_as', default='code_seq2seq_py8kcodenet.torch',
+                        help='Name of saved model torch pickle file.')
+    parser.add_argument('--save_vocab_as', dest='save_vocab_as', default='vocab_code_seq2seq_py8kcodenet.pkl',
+                        help='Name of saved vocab pickle file.')
 
     opt = parser.parse_args()
 
@@ -180,12 +182,10 @@ if __name__ == '__main__':
                         optimizer=optimizer, 
                         teacher_forcing_ratio=params['teacher_ratio'])
 
-        saved = {}
-        saved['model'] = seq2seq_model
-        saved['vocab'] = input_vocab
-        saved['fname_vocab'] = fname_vocab
-
         with open(os.path.join(opt.expt_dir, opt.save_model_as), 'wb') as fp:
-            pkl.dump(saved, fp)
+            torch.save(seq2seq_model, fp)
+
+        with open(os.path.join(opt.expt_dir, opt.save_vocab_as), 'wb') as fp:
+            pkl.dump(input_vocab, fp)
 
         print('saved model and dataset to {}'.format(opt.expt_dir))

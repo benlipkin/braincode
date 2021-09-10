@@ -1,4 +1,6 @@
 import multiprocessing
+import torch
+import random
 import os
 import pickle as pkl
 from abc import ABC, abstractmethod
@@ -293,12 +295,23 @@ class CodeBERTa(Transformer):
 class CodeSeq2seq(Transformer):
     def __init__(self, base_path):
         super().__init__(base_path)
-        cache_dir = Path(
-            os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
-        )
-        with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
-            saved = pkl.load(fp)
-        self._model, self._vocab = saved["model"], saved["vocab"]
+        cache_dir = Path(os.path.join(self._base_path, ".cache", "models", "code_seq2seq"))
+        
+        if torch.cuda.is_available():
+            device_count = torch.torch.cuda.device_count()
+            if device_count > 0:
+                device_id = random.randrange(device_count)
+                self._device = torch.device('cuda:'+str(device_id))
+                torch.cuda.set_device(self._device)
+        else:
+            self._device = 'cpu'
+        
+        with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
+            self._model = torch.load(fp, map_location=self._device)
+        
+        with open(cache_dir.joinpath("vocab_code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
+            self._vocab = pkl.load(fp)
+        
         self._max_seq_len = params["max_len"]
 
     def _forward_pipeline(self, program):
@@ -307,4 +320,5 @@ class CodeSeq2seq(Transformer):
             tokenize_programs([program])[0],
             self._max_seq_len,
             self._vocab,
+            self._device
         )
