@@ -91,7 +91,7 @@ class CLI:
             if self._args.target != self._default:
                 warnings.warn("rsa does not use target; ignoring argument")
             self._features = self._clean_arg(self._features, "brain", "-f")
-            self._params = [[feature] for feature in self._features]
+            self._params = [(feature, self._base_path) for feature in self._features]
         else:
             if self._args.analysis == "mvpa":
                 self._features = self._clean_arg(self._features, "brain", "-f")
@@ -100,8 +100,9 @@ class CLI:
                 self._targets = self._clean_arg(self._targets, "task", "-t")
             else:
                 raise ValueError("Invalid argument for analysis.")
-            self._params = list(itertools.product(self._features, self._targets))
-        self._params = [(f, t, self._base_path) for f, t in self._params]
+            self._params = list(
+                itertools.product(self._features, self._targets, [self._base_path])
+            )
         self._analysis = globals()[self._args.analysis.upper()]
 
     def _run_analysis(self, param):

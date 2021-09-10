@@ -7,15 +7,18 @@ from plots import Plotter
 
 
 class RSA(Analysis):
+    def __init__(self, feature, base_path):
+        super().__init__(feature, base_path)
+
     def run(self):
-        self.rdm = RDM(self.feature).run()
+        self.rdm = RDM(self.feature, self._base_path).run()
         return self
 
 
 class RDM(Analysis):
-    def __init__(self, feature):
-        super().__init__(feature)
-        self._loader = DataLoader(self._feature)
+    def __init__(self, feature, base_path):
+        super().__init__(feature, base_path)
+        self._loader = DataLoader(self._base_path, self._feature)
         self._matrix = np.zeros((self._loader.samples, self._loader.samples))
         self._axes = np.array([])
         self._subjects = 0
