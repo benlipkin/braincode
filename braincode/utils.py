@@ -1,7 +1,8 @@
-import sys
+import json
 import os
 import pickle as pkl
-import json
+import sys
+
 import numpy as np
 
 
@@ -29,7 +30,7 @@ def print_scores(pth):
                 if feature not in scores:
                     scores[feature] = {}
                 scores[feature][target] = scores_np.item()
-    
+
     print("Model-wise scores: \n{}".format(json.dumps(scores, indent=2)))
 
 

@@ -1,7 +1,8 @@
 import logging
-from abc import ABC, abstractmethod
 import os
+from abc import ABC, abstractmethod
 from pathlib import Path
+
 import numpy as np
 from data import DataLoader
 from plots import Plotter
@@ -94,11 +95,14 @@ class Decoder(Analysis):
     def _run_pipeline(self, mode, iters=1):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
-        fname = Path(os.path.join(self._base_path,
-            ".cache",
-            "scores",
-            f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
-        ))
+        fname = Path(
+            os.path.join(
+                self._base_path,
+                ".cache",
+                "scores",
+                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
+            )
+        )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
