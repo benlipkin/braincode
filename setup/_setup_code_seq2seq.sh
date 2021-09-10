@@ -19,7 +19,9 @@ TRAIN_FILES_NAME="train_files.txt"
 TEST_FILES_NAME="test_files.txt"
 TRAIN_FILES_TOK_NAME="train_files_tok.tsv"
 TEST_FILES_TOK_NAME="test_files_tok.tsv"
-SAVED_MODEL_NAME="code_seq2seq_py8kcodenet.pkl"
+MODEL_NAME="code_seq2seq_py8kcodenet"
+SAVED_MODEL_NAME="$MODEL_NAME.torch"
+SAVED_VOCAB_NAME="vocab_$MODEL_NAME.pkl"
 
 NAME=code_seq2seq
 CACHE_DIR=$ROOT_PATH/braincode/.cache
@@ -62,7 +64,8 @@ else
         --train_path $DATASET_DIR/$TRAIN_FILES_TOK_NAME \
         --dev_path $DATASET_DIR/$TEST_FILES_TOK_NAME \
         --expt_dir $MODEL_DIR \
-        --save_model_as $SAVED_MODEL_NAME
+        --save_model_as $SAVED_MODEL_NAME \
+        --save_vocab_as $SAVED_VOCAB_NAME
     fi
 
 fi

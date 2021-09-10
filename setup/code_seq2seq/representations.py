@@ -25,16 +25,7 @@ class TabularDataset_From_List(Dataset):
         super(TabularDataset_From_List, self).__init__(examples, fields, **kwargs)
 
 
-def get_representation(model, tokenized_program, max_len, input_vocab):
-    if torch.cuda.is_available():
-        device_count = torch.torch.cuda.device_count()
-        if device_count > 0:
-            device_id = random.randrange(device_count)
-            device = torch.device('cuda:'+str(device_id))
-            torch.cuda.set_device(device)
-    else:
-        device = 'cpu'
-    
+def get_representation(model, tokenized_program, max_len, input_vocab, device, debug=True):
     model.to(device)
     tokenized_program = tokenized_program[:max_len]
     src = SourceField()
@@ -46,22 +37,39 @@ def get_representation(model, tokenized_program, max_len, input_vocab):
     src.vocab = input_vocab # Overwrite vocab once `vocab` attribute has been set.
     rep = Representation(device)
     all_reps = rep.get_representation(model, dataset)
+    if debug:
+        print("# of unique program tokens: {}".format(len(set(tokenized_program))))
+        print("Vocab length: {}".format(len(src.vocab)))
+        print("Rep shape: {}".format(all_reps.shape))
+        print('---')
     return all_reps
 
 
 if __name__ == '__main__':
-    saved_model_dataset_path, rep_dump_path = sys.argv[1], sys.argv[2]
-    data_files_path = sys.argv[3]
+    saved_model_path, saved_vocab_path, rep_dump_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    data_files_path = sys.argv[4]
 
-    with open(saved_model_dataset_path, 'rb') as fp:
-        saved = pkl.load(fp)
+    if torch.cuda.is_available():
+        device_count = torch.torch.cuda.device_count()
+        if device_count > 0:
+            device_id = random.randrange(device_count)
+            device = torch.device('cuda:'+str(device_id))
+            torch.cuda.set_device(device)
+    else:
+        device = 'cpu'
 
-    seq2seq_model, input_vocab = saved['model'], saved['vocab']
+    with open(saved_model_path, 'rb') as fp:
+        seq2seq_model = torch.load(fp, map_location=device)
+
+    with open(saved_vocab_path, 'rb') as fp:
+        input_vocab = pkl.load(fp)
+
     max_len = params['max_len']
-    train_dataset = transform_data(data_files_path)
+    train_dataset = transform_data(data_files_path, debug=True)
 
+    print('Getting representations..')
     for p in train_dataset[:5]:
-        r = get_representation(seq2seq_model, p, max_len, input_vocab)
+        r = get_representation(seq2seq_model, p, max_len, input_vocab, device)
         dump_data(rep_dump_path, 'data_reps.torch', r)
 
     print('Done dumping to {}'.format(rep_dump_path))
