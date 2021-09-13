@@ -25,7 +25,7 @@ class TabularDataset_From_List(Dataset):
         super(TabularDataset_From_List, self).__init__(examples, fields, **kwargs)
 
 
-def get_representation(model, tokenized_program, max_len, input_vocab, device, debug=True):
+def get_representation(model, tokenized_program, max_len, input_vocab, device, debug=False):
     model.to(device)
     tokenized_program = tokenized_program[:max_len]
     src = SourceField()
