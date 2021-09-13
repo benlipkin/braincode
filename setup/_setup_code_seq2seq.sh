@@ -42,8 +42,8 @@ TAR_NAME=codenet-python
 if [ $DOWNLOAD_MODEL == "True" ]; then
     echo "dowload saved model"
     cd $MODEL_DIR
-    wget -O $SAVED_MODEL_NAME https://www.dropbox.com/s/qoowlupveda6xgj/code_seq2seq_py8kcodenet.torch?dl=0
-    wget -O $SAVED_VOCAB_NAME https://www.dropbox.com/s/2hsiivxwxo6c3em/vocab_code_seq2seq_py8kcodenet.pkl?dl=0
+    wget -O $SAVED_MODEL_NAME https://www.dropbox.com/s/15luknaba42bmax/code_seq2seq_py8kcodenet.torch?dl=0
+    wget -O $SAVED_VOCAB_NAME https://www.dropbox.com/s/f315rhn71hqhjcp/vocab_code_seq2seq_py8kcodenet.pkl?dl=0
 else
     if [ $DOWNLOAD_DATA == "True" ]; then
         cd $DATASET_DIR
