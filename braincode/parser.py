@@ -25,6 +25,7 @@ class CLI:
             "brain-MD",
             "brain-aud",
             "brain-vis",
+            "brain-composite",
             "code-random",
             "code-bow",
             "code-tfidf",

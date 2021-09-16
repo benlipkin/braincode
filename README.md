@@ -14,6 +14,7 @@ This pipeline supports three major functions.
 -   Multiple Demand (MD)
 -   Visual
 -   Auditory
+-   Composite (Union of all networks above)
 
 ### Supported Program Features
 
@@ -52,7 +53,7 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 
 ```bash
 usage:  [-h]
-        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,brain-composite,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
         [-t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
         [-p BASE_PATH]
         {rsa,mvpa,prda}
@@ -64,7 +65,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,brain-composite,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -p BASE_PATH, --base_path BASE_PATH
 ```
@@ -79,6 +80,7 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 -   brain-MD
 -   brain-vis
 -   brain-aud
+-   brain-composite
 
 **Sample run**
 
@@ -96,6 +98,7 @@ python braincode rsa -f brain-lang
 -   brain-MD
 -   brain-vis
 -   brain-aud
+-   brain-composite
 
 **Supported targets**
 

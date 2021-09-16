@@ -38,9 +38,17 @@ class DataLoader:
                 "Feature set incorrectly. Must be brain network to load subject data."
             )
         mat = loadmat(subject)
+        network = self._feature.split("-")[1]
+        if network == "composite":
+            network_indices = (
+                mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"] + mat["aud_tags"]
+            )
+            network_indices[network_indices > 1] = 1
+        else:
+            network_indices = mat[f"{network}_tags"]
         return (
             mat["data"],
-            mat[f"{self._feature.split('-')[1]}_tags"],
+            network_indices,
             mat["problem_content"],
             mat["problem_lang"],
             mat["problem_structure"],
