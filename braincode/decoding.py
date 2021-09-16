@@ -87,6 +87,16 @@ class Decoder(Analysis):
     def _run_decoding(self, mode):
         raise NotImplementedError("Handled by subclass.")
 
+    def _get_fname(self, mode):
+        return Path(
+            os.path.join(
+                self._base_path,
+                ".cache",
+                "scores",
+                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
+            )
+        )
+
     def _set_and_save(self, mode, val, fname):
         setattr(self, f"_{mode}", val)
         np.save(fname, val)
@@ -95,14 +105,7 @@ class Decoder(Analysis):
     def _run_pipeline(self, mode, iters=1):
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
-        fname = Path(
-            os.path.join(
-                self._base_path,
-                ".cache",
-                "scores",
-                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
-            )
-        )
+        fname = self._get_fname(mode)
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
         if fname.exists():
@@ -130,7 +133,7 @@ class MVPA(Decoder):
     def __init__(self, feature, target, base_path):
         super().__init__(feature, target, base_path)
 
-    def _run_decoding(self, mode):
+    def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
@@ -138,6 +141,9 @@ class MVPA(Decoder):
             if mode == "null":
                 y = self._shuffle_within_runs(y, runs)
             scores[idx] = self._cross_validate_model(X, y, runs)
+        if mode == "score" and cache_subject_scores:
+            temp_mode = "subjects"
+            self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
         return scores.mean()
 
 
