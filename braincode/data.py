@@ -205,6 +205,9 @@ class ProgramMetrics():
         return ast_node_count
 
     def get_halstead_complexity_metrics(self, sec=5):
+        # See https://radon.readthedocs.io/en/latest/intro.html for details on Halstead metrics 
+        # reported by Radon
+        
         local_fname = os.path.join(self.outpath, self.fname)
         cmd = ['radon', 'hal', local_fname, '-j']
         try:
