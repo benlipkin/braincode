@@ -18,6 +18,8 @@ requirements = [
     "torchtext==0.5.0",
     "dill==0.3.4",
     "astor==0.8.1",
+    "line_profiler==3.3.0",
+    "radon==5.1.0",
 ]
 
 setup(
