@@ -13,29 +13,16 @@ from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, feature, base_path):
+    def __init__(self, feature, target, base_path):
         self._feature = feature
+        self._target = target
         self._base_path = base_path
+        self._loader = DataLoader(self._base_path, self.feature, self.target)
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @property
     def feature(self):
         return self._feature
-
-    def _plot(self):
-        Plotter(self).plot()
-
-    @abstractmethod
-    def run(self):
-        raise NotImplementedError("Handled by subclass.")
-
-
-class Decoder(Analysis):
-    def __init__(self, feature, target, base_path):
-        super().__init__(feature, base_path)
-        self._target = target
-        self._base_path = base_path
-        self._loader = DataLoader(self._base_path, self.feature, self.target)
 
     @property
     def target(self):
@@ -46,6 +33,52 @@ class Decoder(Analysis):
         if not hasattr(self, "_score"):
             raise RuntimeError("Score not set. Need to run.")
         return self._score
+
+    def _get_fname(self, mode):
+        return Path(
+            os.path.join(
+                self._base_path,
+                ".cache",
+                "scores",
+                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
+            )
+        )
+
+    def _set_and_save(self, mode, val, fname):
+        setattr(self, f"_{mode}", val)
+        np.save(fname, val)
+        self._logger.info(f"Caching '{fname.name}'.")
+
+    def _run_pipeline(self, mode, iters=1):
+        if mode not in ["score", "null", "rsa_score", "rsa_null"]:
+            raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
+        fname = self._get_fname(mode)
+        if not fname.parent.exists():
+            fname.parent.mkdir(parents=True, exist_ok=True)
+        if fname.exists():
+            setattr(self, f"_{mode}", np.load(fname, allow_pickle=True))
+            self._logger.info(f"Loading '{fname.name}' from cache.")
+            return
+        samples = np.zeros((iters))
+        for idx in tqdm(range(iters)):
+            score = self._run_decoding(mode)
+            if mode == "score":
+                self._set_and_save(mode, score, fname)
+                return
+            samples[idx] = score
+        self._set_and_save(mode, samples, fname)
+
+    def _plot(self):
+        Plotter(self).plot()
+
+    @abstractmethod
+    def _run_decoding(self, mode):
+        raise NotImplementedError("Handled by subclass.")
+
+
+class Decoder(Analysis):
+    def __init__(self, feature, target, base_path):
+        super().__init__(feature, target, base_path)
 
     @property
     def null(self):
@@ -82,44 +115,6 @@ class Decoder(Analysis):
             else:
                 scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
         return scores.mean()
-
-    @abstractmethod
-    def _run_decoding(self, mode):
-        raise NotImplementedError("Handled by subclass.")
-
-    def _get_fname(self, mode):
-        return Path(
-            os.path.join(
-                self._base_path,
-                ".cache",
-                "scores",
-                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
-            )
-        )
-
-    def _set_and_save(self, mode, val, fname):
-        setattr(self, f"_{mode}", val)
-        np.save(fname, val)
-        self._logger.info(f"Caching '{fname.name}'.")
-
-    def _run_pipeline(self, mode, iters=1):
-        if mode not in ["score", "null"]:
-            raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
-        fname = self._get_fname(mode)
-        if not fname.parent.exists():
-            fname.parent.mkdir(parents=True, exist_ok=True)
-        if fname.exists():
-            setattr(self, f"_{mode}", np.load(fname, allow_pickle=True))
-            self._logger.info(f"Loading '{fname.name}' from cache.")
-            return
-        samples = np.zeros((iters))
-        for idx in tqdm(range(iters)):
-            score = self._run_decoding(mode)
-            if mode == "score":
-                self._set_and_save(mode, score, fname)
-                return
-            samples[idx] = score
-        self._set_and_save(mode, samples, fname)
 
     def run(self, perms=True, iters=1000):
         self._run_pipeline("score")

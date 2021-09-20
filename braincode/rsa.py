@@ -7,50 +7,48 @@ from plots import Plotter
 
 
 class RSA(Analysis):
-    def __init__(self, feature, base_path):
-        super().__init__(feature, base_path)
+    def __init__(self, feature, target, base_path):
+        super().__init__(feature, target, base_path)
 
-    def run(self):
-        self.rdm = RDM(self.feature, self._base_path).run()
-        return self
+    @staticmethod
+    def _calc_rsa(brain_rdm, model_rdm):
+        if not brain_rdm.matrix.size == model_rdm.matrix.size:
+            raise RuntimeError("RDMs mismatched. Check feature target pair.")
+        indices = np.triu_indices(brain_rdm.matrix.shape[0], k=1)
+        return np.corrcoef(brain_rdm.matrix[indices], model_rdm.matrix[indices])[1, 0]
 
-
-class RDM(Analysis):
-    def __init__(self, feature, base_path):
-        super().__init__(feature, base_path)
-        self._loader = DataLoader(self._base_path, self._feature)
-        self._matrix = np.zeros((self._loader.samples, self._loader.samples))
-        self._axes = np.array([])
-        self._subjects = 0
-
-    @property
-    def axes(self):
-        if self._axes.size == 0:
-            raise RuntimeError("Axes not set. Need to add subject.")
-        return self._axes
-
-    @property
-    def coef(self):
-        if self._subjects == 0:
-            raise RuntimeError("Coefficients not set. Need to add subject.")
-        return 1 - (self._matrix / self._subjects)
-
-    def _update_coef(self, data):
-        self._matrix += np.corrcoef(data)
-        self._subjects += 1
-
-    def _add_subject(self, subject):
-        X, axes = self._loader.get_data_rsa(subject)
-        self._update_coef(X)
-        if not self._axes.size:
-            self._axes = axes
-
-    def _calc_corr(self):
+    def _run_decoding(self, mode):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
-        for subject in subjects:
-            self._add_subject(subject)
+        scores = np.zeros(len(subjects))
+        for idx, subject in enumerate(subjects):
+            X, Y, _ = self._loader.get_data_mvpa(subject)
+            scores[idx] = self._calc_rsa(RDM(self._feature, X), RDM(self._target, Y))
+        if mode == "score" and cache_subject_scores:
+            temp_mode = "rsa_subjects"
+            self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
+        return scores.mean()
 
-    def run(self):
-        self._calc_corr()
-        self._plot()
+    def run(self, perms=True, iters=1000):
+        self._run_pipeline("rsa_score")
+        if perms:
+            self._run_pipeline("rsa_null", iters)
+            # self._plot()
         return self
+
+
+class RDM:
+    def __init__(self, name, samples):
+        self._name = name
+        self._samples = samples
+        self._matrix = self._calc_matrix()
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def matrix(self):
+        return self._matrix
+
+    def _calc_matrix(self):
+        return 1 - np.corrcoef(self._samples)

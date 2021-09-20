@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 class DataLoader:
-    def __init__(self, base_path, feature, target=None):
+    def __init__(self, base_path, feature, target):
         self._datadir = Path(os.path.join(base_path, "inputs"))
         self._events = (12, 6)  # nruns, nblocks
         self._feature = feature
@@ -75,8 +75,6 @@ class DataLoader:
         return np.array(programs)
 
     def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
-        if self._target is None:
-            raise RuntimeError("Target attribute not set. Need to properly init.")
         code = np.array(
             ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
         )
@@ -131,12 +129,6 @@ class DataLoader:
             np.array(lang),
             np.array(structure),
         )
-
-    def get_data_rsa(self, subject):
-        data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        X = self._prep_x(data, parc, np.ones(self.samples, dtype="bool"))
-        axes = np.vstack([self._formatcell(ar) for ar in [content, lang, structure]]).T
-        return X, axes
 
     @lru_cache(maxsize=None)
     def get_data_mvpa(self, subject):
