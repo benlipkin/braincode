@@ -22,18 +22,13 @@ class RSA(Analysis):
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
             X, Y, _ = self._loader.get_data_mvpa(subject)
+            if mode == "null":
+                np.random.shuffle(Y)
             scores[idx] = self._calc_rsa(RDM(self._feature, X), RDM(self._target, Y))
         if mode == "score" and cache_subject_scores:
-            temp_mode = "rsa_subjects"
+            temp_mode = "subjects"
             self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
         return scores.mean()
-
-    def run(self, perms=True, iters=1000):
-        self._run_pipeline("rsa_score")
-        if perms:
-            self._run_pipeline("rsa_null", iters)
-            # self._plot()
-        return self
 
 
 class RDM:

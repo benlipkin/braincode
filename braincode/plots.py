@@ -11,10 +11,8 @@ class Plotter:
         self._feature = self._analysis.feature.split("-")[1]
         self._target = self._analysis.target.split("-")[1]
         self._type = self._analysis.__class__.__name__
-        if self._type in ["MVPA", "PRDA"]:
+        if self._type in ["MVPA", "PRDA", "RSA"]:
             self.plot = self._plot_decoder
-        elif self._type == "RSA":
-            self.plot = self._plot_rsa
         else:
             raise TypeError("Analysis type not handled.")
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -30,10 +28,7 @@ class Plotter:
             fname.parent.mkdir(parents=True, exist_ok=True)
         plt.hist(self._analysis.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self._analysis.score, color="black", linewidth=3)
-        plt.xlim({"MVPA": [0.25, 0.75], "PRDA": [0, 1]}[self._type])
+        plt.xlim({"MVPA": [0.25, 0.75], "PRDA": [0, 1], "RSA": [0, 0.1]}[self._type])
         plt.savefig(fname)
         plt.show() if show else plt.clf()
         self._logger.info(f"Plotting '{fname.name}'.")
-
-    def _plot_rsa(self, show=False):
-        pass

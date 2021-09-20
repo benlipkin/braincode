@@ -34,12 +34,23 @@ class Analysis(ABC):
             raise RuntimeError("Score not set. Need to run.")
         return self._score
 
+    @property
+    def null(self):
+        if not hasattr(self, "_null"):
+            raise RuntimeError("Null not set. Need to run.")
+        return self._null
+
+    @property
+    def pval(self):
+        return (self.score < self.null).sum() / self.null.size
+
     def _get_fname(self, mode):
         return Path(
             os.path.join(
                 self._base_path,
                 ".cache",
                 "scores",
+                self.__class__.__name__.lower(),
                 f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
             )
         )
@@ -50,7 +61,7 @@ class Analysis(ABC):
         self._logger.info(f"Caching '{fname.name}'.")
 
     def _run_pipeline(self, mode, iters=1):
-        if mode not in ["score", "null", "rsa_score", "rsa_null"]:
+        if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
         fname = self._get_fname(mode)
         if not fname.parent.exists():
@@ -68,27 +79,24 @@ class Analysis(ABC):
             samples[idx] = score
         self._set_and_save(mode, samples, fname)
 
-    def _plot(self):
-        Plotter(self).plot()
-
     @abstractmethod
     def _run_decoding(self, mode):
         raise NotImplementedError("Handled by subclass.")
+
+    def _plot(self):
+        Plotter(self).plot()
+
+    def run(self, perms=True, iters=1000):
+        self._run_pipeline("score")
+        if perms:
+            self._run_pipeline("null", iters)
+            self._plot()
+        return self
 
 
 class Decoder(Analysis):
     def __init__(self, feature, target, base_path):
         super().__init__(feature, target, base_path)
-
-    @property
-    def null(self):
-        if not hasattr(self, "_null"):
-            raise RuntimeError("Null not set. Need to run.")
-        return self._null
-
-    @property
-    def pval(self):
-        return (self.score < self.null).sum() / self.null.size
 
     @staticmethod
     def _shuffle_within_runs(y_in, runs):
@@ -115,13 +123,6 @@ class Decoder(Analysis):
             else:
                 scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
         return scores.mean()
-
-    def run(self, perms=True, iters=1000):
-        self._run_pipeline("score")
-        if perms:
-            self._run_pipeline("null", iters)
-            self._plot()
-        return self
 
 
 class MVPA(Decoder):
