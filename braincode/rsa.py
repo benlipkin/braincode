@@ -17,7 +17,7 @@ class RSA(Analysis):
         indices = np.triu_indices(brain_rdm.matrix.shape[0], k=1)
         return np.corrcoef(brain_rdm.matrix[indices], model_rdm.matrix[indices])[1, 0]
 
-    def _run_decoding(self, mode):
+    def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
