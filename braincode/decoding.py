@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
-from sklearn.metrics import pairwise_distances
+from sklearn.metrics import explained_variance_score, pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
 
@@ -122,7 +122,7 @@ class Decoder(Analysis):
             if y.ndim == 1:
                 scores[idx] = model.score(X[test], y[test])
             else:
-                scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
+                scores[idx] = explained_variance_score(model.predict(X[test]), y[test])
         return scores.mean()
 
 
@@ -134,7 +134,7 @@ class MVPA(Decoder):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
-            X, y, runs = self._loader.get_data_mvpa(subject)
+            X, y, runs = self._loader.get_data(self.__class__.__name__.lower(), subject)
             if mode == "null":
                 y = self._shuffle_within_runs(y, runs)
             scores[idx] = self._cross_validate_model(X, y, runs)
@@ -149,7 +149,7 @@ class PRDA(Decoder):
         super().__init__(feature, target, base_path)
 
     def _run_decoding(self, mode):
-        X, y, runs = self._loader.get_data_prda()
+        X, y, runs = self._loader.get_data(self.__class__.__name__.lower())
         if mode == "null":
             np.random.shuffle(y)
         return self._cross_validate_model(X, y, runs)

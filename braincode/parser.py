@@ -40,7 +40,7 @@ class CLI:
             "task-content",
             "task-lang",
             "task-structure",
-            # "task-lines",
+            "task-lines",
             "task-nodes",
             "task-tokens",
             "task-halstead",
