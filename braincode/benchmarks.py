@@ -142,7 +142,10 @@ class ProgramMetrics:
         :param sec: Timeout for subprocess.run
         :return:[# of lines] executed
         """
-        if self.path[-3:] == ".py":
+        if not self.path[-3:] == ".py":
+            raise ValueError("Unrecognized file type")
+        
+        if not os.exists(os.path.join(self.outpath, self.fname + ".lprof")):
             cmd = [
                 "kernprof",
                 "-o",
@@ -162,15 +165,16 @@ class ProgramMetrics:
                 print(e)
 
             sum_hits = 0
-            with open(os.path.join(self.outpath, self.fname + ".lprof"), "rb") as fp:
-                obj = pkl.load(fp)
-                if len(obj.timings) > 1:
-                    print("something not right")
-                else:
-                    # obj.timings format - {filename: [(x1, y1, z1), (x2, y2, z2), (x3, y3, z3)]}
-                    # x1 - line number, y1 - hits, z1 - time spent on the line
-                    for v in obj.timings.values():
-                        for i in v:
-                            # index 1 contains number of hits.
-                            sum_hits += i[1]
+
+        with open(os.path.join(self.outpath, self.fname + ".lprof"), "rb") as fp:
+            obj = pkl.load(fp)
+            if len(obj.timings) > 1:
+                print("something not right")
+            else:
+                # obj.timings format - {filename: [(x1, y1, z1), (x2, y2, z2), (x3, y3, z3)]}
+                # x1 - line number, y1 - hits, z1 - time spent on the line
+                for v in obj.timings.values():
+                    for i in v:
+                        # index 1 contains number of hits.
+                        sum_hits += i[1]
         return sum_hits
