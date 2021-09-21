@@ -14,7 +14,7 @@ def clean_cache(pth):
         for ff in folders:
             files = os.listdir(os.path.join(pth, ff))
             for f in files:
-                if "score" in f and ".npy" in f:
+                if "score" in f or ".npy" in f:
                     print("Clearing {}".format(os.path.join(pth, ff, f)))
                     os.remove(os.path.join(pth, ff, f))
 
