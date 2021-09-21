@@ -39,7 +39,8 @@ def clean_cache(base_pth, choice):
         _clean_cache(choice)
     
 
-def print_scores(pth):
+def print_scores(base_pth):
+    pth = os.path.join(base_pth, "scores")
     scores = {}
     folders = os.listdir(pth)
     for ff in folders:
