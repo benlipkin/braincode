@@ -1,4 +1,5 @@
 import os
+import pickle as pkl
 from functools import lru_cache
 from pathlib import Path
 
@@ -144,16 +145,14 @@ class DataLoader:
             np.array(fnames),
         )
 
-    @lru_cache(maxsize=None)
-    def get_data_mvpa(self, subject):
+    def _calc_data_mvpa(self, subject):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
         y, mask = self._prep_y(content, lang, structure, id)
         X = self._prep_x(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
 
-    @lru_cache(maxsize=None)
-    def get_data_prda(self, k=5):
+    def _calc_data_prda(self, k=5):
         programs, content, lang, structure, fnames = self._load_all_programs()
         if self._target in ["task-content", "task-lang", "task-structure"]:
             y = locals()[self._target.split("-")[1]]
@@ -164,3 +163,33 @@ class DataLoader:
         X = ProgramEncoder(self._feature, self._base_path).fit_transform(programs)
         runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
         return X, y, runs
+
+    def _get_fname(self, analysis, subject=""):
+        fname = Path(
+            os.path.join(
+                self._base_path,
+                ".cache",
+                "representations",
+                analysis,
+                f"{self._feature.split('-')[1]}_{self._target.split('-')[1]}{subject}.pkl",
+            )
+        )
+        if not fname.parent.exists():
+            fname.parent.mkdir(parents=True, exist_ok=True)
+        return fname
+
+    @lru_cache(maxsize=None)
+    def get_data(self, analysis, subject=""):
+        fname = self._get_fname(analysis, subject)
+        if fname.exists():
+            with open(fname, "rb") as f:
+                data = pkl.load(f)
+            return data["X"], data["y"], data["runs"]
+        else:
+            if analysis in ["mvpa", "rsa"]:
+                X, y, runs = self._calc_data_mvpa(subject)
+            elif analysis == "prda":
+                X, y, runs = self._calc_data_prda()
+            with open(fname, "wb") as f:
+                pkl.dump({"X": X, "y": y, "runs": runs}, f)
+            return X, y, runs
