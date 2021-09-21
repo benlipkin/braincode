@@ -6,9 +6,10 @@ import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
-from decoding import MVPA, PRDA
 from joblib import Parallel, delayed, parallel_backend
 from rsa import RSA
+
+from decoding import MVPA, PRDA
 
 
 class CLI:
@@ -39,6 +40,11 @@ class CLI:
             "task-content",
             "task-lang",
             "task-structure",
+            # "task-lines",
+            "task-nodes",
+            "task-tokens",
+            "task-halstead",
+            "task-cyclomatic",
             "code-random",
             "code-bow",
             "code-tfidf",

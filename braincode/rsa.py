@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+
 from data import DataLoader
 from decoding import Analysis
 from plots import Plotter

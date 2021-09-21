@@ -4,12 +4,13 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
-from data import DataLoader
-from plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
+
+from data import DataLoader
+from plots import Plotter
 
 
 class Analysis(ABC):
@@ -106,7 +107,7 @@ class Decoder(Analysis):
         return y_out
 
     @staticmethod
-    def _rank_accuracy(pred, true, metric="cosine"):
+    def _rank_accuracy(pred, true, metric="euclidean"):
         distances = pairwise_distances(pred, true, metric=metric)
         scores = (distances.T > np.diag(distances)).sum(axis=0) / (
             distances.shape[1] - 1

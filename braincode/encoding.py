@@ -1,12 +1,15 @@
 import multiprocessing
-import torch
-import random
 import os
 import pickle as pkl
+import random
 from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
+import torch
+from tensorflow.keras.preprocessing.text import Tokenizer
+from transformers import RobertaModel, RobertaTokenizer
+
 from code_seq2seq.representations import get_representation
 from code_seq2seq.tokenize import _tokenize_programs as tokenize_programs
 from code_seq2seq.train import params
@@ -14,17 +17,17 @@ from code_transformer.env import DATA_PATH_STAGE_2
 from code_transformer.preprocessing.datamanager.preprocessed import \
     CTPreprocessedDataManager
 from code_transformer.preprocessing.graph.binning import ExponentialBinning
-from code_transformer.preprocessing.graph.distances import (
-    AncestorShortestPaths, DistanceBinning, PersonalizedPageRank,
-    ShortestPaths, SiblingShortestPaths)
+from code_transformer.preprocessing.graph.distances import (AncestorShortestPaths,
+                                                            DistanceBinning,
+                                                            PersonalizedPageRank,
+                                                            ShortestPaths,
+                                                            SiblingShortestPaths)
 from code_transformer.preprocessing.graph.transform import DistancesTransformer
 from code_transformer.preprocessing.nlp.vocab import VocabularyTransformer
 from code_transformer.preprocessing.pipeline.stage1 import CTStage1Preprocessor
 from code_transformer.utils.inference import (get_model_manager,
                                               make_batch_from_sample)
 from datasets import load_dataset
-from tensorflow.keras.preprocessing.text import Tokenizer
-from transformers import RobertaModel, RobertaTokenizer
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
@@ -295,23 +298,21 @@ class CodeBERTa(Transformer):
 class CodeSeq2seq(Transformer):
     def __init__(self, base_path):
         super().__init__(base_path)
-        cache_dir = Path(os.path.join(self._base_path, ".cache", "models", "code_seq2seq"))
-        
+        cache_dir = Path(
+            os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
+        )
         if torch.cuda.is_available():
             device_count = torch.torch.cuda.device_count()
             if device_count > 0:
                 device_id = random.randrange(device_count)
-                self._device = torch.device('cuda:'+str(device_id))
+                self._device = torch.device("cuda:" + str(device_id))
                 torch.cuda.set_device(self._device)
         else:
-            self._device = 'cpu'
-        
+            self._device = "cpu"
         with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
             self._model = torch.load(fp, map_location=self._device)
-        
         with open(cache_dir.joinpath("vocab_code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
             self._vocab = pkl.load(fp)
-        
         self._max_seq_len = params["max_len"]
 
     def _forward_pipeline(self, program):
@@ -320,5 +321,5 @@ class CodeSeq2seq(Transformer):
             tokenize_programs([program])[0],
             self._max_seq_len,
             self._vocab,
-            self._device
+            self._device,
         )
