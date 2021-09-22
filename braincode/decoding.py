@@ -87,7 +87,7 @@ class Analysis(ABC):
     def _plot(self):
         Plotter(self).plot()
 
-    def run(self, perms=True, iters=2):
+    def run(self, perms=True, iters=1000):
         self._run_pipeline("score")
         if perms:
             self._run_pipeline("null", iters)
