@@ -35,6 +35,23 @@ class DataLoader:
     def samples(self):
         return np.prod(self._events)
 
+    @staticmethod
+    def _get_network_indices(network, mat):
+        if network == "MD+lang+vis+aud":
+            network_indices = (
+                mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"] + mat["aud_tags"]
+            )
+        elif network == "MD+lang+vis":
+            network_indices = mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"]
+        elif network == "MD+lang":
+            network_indices = mat["MD_tags"] + mat["lang_tags"]
+        else:
+            raise ValueError("Network not supported. Select valid network.")
+        network_indices[network_indices > 1] = 1
+        print(network_indices.sum())
+        raise NotImplementedError("testing")
+        return network_indices
+
     def _load_brain_data(self, subject):
         if "brain" not in self._feature:
             raise ValueError(
@@ -42,11 +59,8 @@ class DataLoader:
             )
         mat = loadmat(subject)
         network = self._feature.split("-")[1]
-        if network == "composite":
-            network_indices = (
-                mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"] + mat["aud_tags"]
-            )
-            network_indices[network_indices > 1] = 1
+        if "+" in network:
+            network_indices = self._get_network_indices(network, mat)
         else:
             network_indices = mat[f"{network}_tags"]
         return (
