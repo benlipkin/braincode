@@ -15,7 +15,7 @@ class ProgramBenchmark:
         self._benchmark = benchmark
         self._base_path = basepath
         self._fnames = fnames
-        self._metrics = self.load_all_benchmarks(self.basepath)
+        self._metrics = self.load_all_benchmarks(self._base_path)
       
     def load_all_benchmarks(self, basepath):
         # Populate all benchmarks needs to be setup before calling this method
@@ -27,19 +27,23 @@ class ProgramBenchmark:
         return metrics
 
     def fit_transform(self, programs):
+        # Pre-requisite -- the programs list and self._fnames list are sorted the same way
+        # Using results stored in cache instead of processing each program again
         outputs = []
-        for i, program in enumerate(programs):
-            metrics = ProgramMetrics(program, str(self._fnames[i]), self._base_path)
+        for f in self._fnames:
+            print(f)
+            print(list(self._metrics.keys())[:5])
+            qwe
             if self._benchmark == "task-lines":
-                metric = metrics._metrics[str(self._fnames[i])]['number_of_runtime_steps']
+                metric = self._metrics[str(f)]['number_of_runtime_steps']
             elif self._benchmark == "task-nodes":
-                metric = metrics._metrics[str(self._fnames[i])]['ast_node_counts']
+                metric = self._metrics[str(f)]['ast_node_counts']
             elif self._benchmark == "task-tokens":
-                metric = metrics._metrics[str(self._fnames[i])]['token_counts']
+                metric = self._metrics[str(f)]['token_counts']
             elif self._benchmark == "task-halstead":
-                metric = metrics._metrics[str(self._fnames[i])]['program_length']
+                metric = self._metrics[str(f)]['program_length']
             elif self._benchmark == "task-cyclomatic":
-                metric = metrics._metrics[str(self._fnames[i])]['cyclomatic_complexity']
+                metric = self._metrics[str(f)]['cyclomatic_complexity']
             else:
                 raise ValueError(
                     "Undefined program metric. Make sure to use valid identifier."

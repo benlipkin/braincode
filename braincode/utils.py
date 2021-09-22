@@ -2,6 +2,7 @@ import json
 import os
 import pickle as pkl
 import sys
+import tqdm
 
 import numpy as np
 from braincode.benchmarks import ProgramMetrics
@@ -18,15 +19,16 @@ def populate_benchmarks(basepath):
         return src
 
     basepath = sys.argv[1]
-    inpath = os.path.join(basepath, "inputs", "")
+    inpath = os.path.join(basepath, "inputs", "python_programs")
     outpath = os.path.join(basepath, ".cache", "profiler")
     os.makedirs(outpath, exist_ok=True)
     
     # For every program in the dataset
     cnt = 0
     for ff in os.listdir(inpath):
+        print(ff)
         if ff in ['en', 'jap']:
-            for f in os.listdir(os.path.join(inpath, ff)):
+            for f in tqdm.tqdm(os.listdir(os.path.join(inpath, ff))):
                 if '.py' not in f:
                     continue
 
@@ -47,9 +49,9 @@ def populate_benchmarks(basepath):
                 all_metrics['ast_node_counts'] = metrics.get_ast_node_counts()
                 all_metrics['token_counts'] = metrics.get_token_counts()
                 all_metrics['program_length'] = metrics.get_halstead_complexity_metrics()['program_length']
-                all_metrics['cyclomatic_complexity'] = metrics.get_halstead_complexity_metrics()['complexity']
+                all_metrics['cyclomatic_complexity'] = metrics.get_halstead_complexity_metrics()['cyclomatic_complexity']
 
-                with open(outpath, fname+".benchmark") as fp:
+                with open(os.path.join(outpath, fname+".benchmark"), 'w') as fp:
                     json.dump(all_metrics, fp)
                 
                 cnt += 1
