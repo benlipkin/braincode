@@ -4,18 +4,68 @@ import pickle as pkl
 import sys
 
 import numpy as np
+from braincode.benchmarks import ProgramMetrics
 
+def populate_benchmarks(basepath):
+    # This method is invoked from a standalone script to 
+    # run the profiler on all input programs, and cache all results
+
+    def _prepare_src_for_profiler(src):
+        indent = "  "
+        src = src.replace("\n", "\n" + indent)
+        src = indent + src
+        src = "@profile\ndef profile_me():\n" + src + "\nprofile_me()"
+        return src
+
+    basepath = sys.argv[1]
+    inpath = os.path.join(basepath, "inputs", "")
+    outpath = os.path.join(basepath, ".cache", "profiler")
+    os.makedirs(outpath, exist_ok=True)
+    
+    # For every program in the dataset
+    cnt = 0
+    for ff in os.listdir(inpath):
+        if ff in ['en', 'jap']:
+            for f in os.listdir(os.path.join(inpath, ff)):
+                if '.py' not in f:
+                    continue
+
+                with open(os.path.join(inpath, ff, f), 'r') as fp:
+                    src = fp.read()
+                fname = ff + "_" + f
+                # Prepare a copy of the src for the profilers
+                if not os.path.exists(os.path.join(outpath, fname)):
+                    src_profiler = _prepare_src_for_profiler(src)
+                    with open(os.path.join(outpath, fname), "w") as fp:
+                        fp.write(src_profiler)
+                
+                # Run all the profilers on the input program, and save their results as a json
+                all_metrics = {}
+
+                metrics = ProgramMetrics(src, fname, basepath)
+                all_metrics['number_of_runtime_steps'] = metrics.get_number_of_runtime_steps()
+                all_metrics['ast_node_counts'] = metrics.get_ast_node_counts()
+                all_metrics['token_counts'] = metrics.get_token_counts()
+                all_metrics['program_length'] = metrics.get_halstead_complexity_metrics()['program_length']
+                all_metrics['cyclomatic_complexity'] = metrics.get_halstead_complexity_metrics()['complexity']
+
+                with open(outpath, fname+".benchmark") as fp:
+                    json.dump(all_metrics, fp)
+                
+                cnt += 1
+    
+    print('Done populating benchmark metrics for {} input files'.format(cnt))
 
 def clean_cache(base_pth, choice):
     def _clean_cache(choice):
-        if choice == 2:
+        if choice == 1:
             folder_name = "scores"
-        elif choice == 3:
+        elif choice == 2:
             folder_name = "representations"
-        elif choice == 4:
+        elif choice == 3:
             folder_name = "profiler"
         
-        pth = os.path.join(base_pth, folder_name)
+        pth = os.path.join(base_pth, ".cache", folder_name)
         print("Clear path? {}".format(pth))
         inp = input()
         if "y" in inp.lower() or "1" in inp.lower():
@@ -40,7 +90,7 @@ def clean_cache(base_pth, choice):
     
 
 def print_scores(base_pth):
-    pth = os.path.join(base_pth, "scores")
+    pth = os.path.join(base_pth, ".cache", "scores")
     scores = {}
     folders = os.listdir(pth)
     for ff in folders:
@@ -61,9 +111,22 @@ def print_scores(base_pth):
 
 if __name__ == "__main__":
     pth = sys.argv[1]
+    
+    # Choices:
+    # 1. Clean cache files
+    #    argv[3] choices -- 
+    #    1. Clear scores files
+    #    2. Clear representations files
+    #    3. Clear profiler files
+    # 2: Populate benchmark metrics
+    # 3: Pretty print processed scores
+
     choice = int(sys.argv[2])
 
     if choice == 1:
+        subchoice = int(sys.argv[3])
+        clean_cache(pth, subchoice)
+    elif choice == 2:
+        populate_benchmarks(pth)
+    elif choice == 3:
         print_scores(pth)
-    elif choice in [0, 2, 3, 4]:
-        clean_cache(pth, choice)
