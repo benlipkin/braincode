@@ -12,4 +12,4 @@ wget -O inputs.zip https://www.dropbox.com/s/78e0r8kmmnwfa1m/inputs.zip?dl=0
 unzip inputs.zip -d inputs
 
 # Process and populate benchmark metrics on input files
-python -m braincode.utils $1 2
+python -m braincode.utils $HOME_DIR 2
