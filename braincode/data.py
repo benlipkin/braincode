@@ -35,6 +35,21 @@ class DataLoader:
     def samples(self):
         return np.prod(self._events)
 
+    @staticmethod
+    def _get_network_indices(network, mat):
+        if network == "MD+lang+vis+aud":
+            network_indices = (
+                mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"] + mat["aud_tags"]
+            )
+        elif network == "MD+lang+vis":
+            network_indices = mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"]
+        elif network == "MD+lang":
+            network_indices = mat["MD_tags"] + mat["lang_tags"]
+        else:
+            raise ValueError("Network not supported. Select valid network.")
+        network_indices[network_indices > 1] = 1
+        return network_indices
+
     def _load_brain_data(self, subject):
         if "brain" not in self._feature:
             raise ValueError(
@@ -42,11 +57,8 @@ class DataLoader:
             )
         mat = loadmat(subject)
         network = self._feature.split("-")[1]
-        if network == "composite":
-            network_indices = (
-                mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"] + mat["aud_tags"]
-            )
-            network_indices[network_indices > 1] = 1
+        if "+" in network:
+            network_indices = self._get_network_indices(network, mat)
         else:
             network_indices = mat[f"{network}_tags"]
         return (
@@ -80,19 +92,17 @@ class DataLoader:
         return np.array(programs), np.array(fnames)
 
     def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
-        code = np.array(
-            ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
-        )
+        lang = self._formatcell(lang)
         if self._target == "test-code":
-            y = code
-            mask = np.ones(code.size, dtype="bool")
+            mask = np.array([i in ["en", "sent"] for i in lang])
+            y = lang[mask]
         else:
-            mask = code == "code"
-            if self._target in ["task-content", "task-lang", "task-structure"]:
+            mask = lang == "en"
+            if self._target in ["task-content", "task-structure"]:
                 y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             else:
                 y, fnames = self._load_select_programs(
-                    self._formatcell(lang)[mask], self._formatcell(id)[mask]
+                    lang[mask], self._formatcell(id)[mask]
                 )
                 if self._target in [
                     "code-random",
@@ -128,7 +138,7 @@ class DataLoader:
 
     def _load_all_programs(self):
         programs, content, lang, structure, fnames = [], [], [], [], []
-        files = list(self.datadir.joinpath("python_programs").rglob("*.py"))
+        files = list(self.datadir.joinpath("python_programs", "en").rglob("*.py"))
         for file in sorted(files):
             fnames.append(file.as_posix())
             with open(fnames[-1], "r") as f:
@@ -154,7 +164,7 @@ class DataLoader:
 
     def _calc_data_prda(self, k=5):
         programs, content, lang, structure, fnames = self._load_all_programs()
-        if self._target in ["task-content", "task-lang", "task-structure"]:
+        if self._target in ["task-content", "task-structure"]:
             y = locals()[self._target.split("-")[1]]
         else:
             y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(

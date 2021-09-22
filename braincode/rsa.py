@@ -22,7 +22,7 @@ class RSA(Analysis):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
-            X, Y, _ = self._loader.get_data(self.__class__.__name__.lower())
+            X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)
             if mode == "null":
                 np.random.shuffle(Y)
             scores[idx] = self._calc_rsa(RDM(self._feature, X), RDM(self._target, Y))
