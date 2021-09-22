@@ -80,15 +80,13 @@ class DataLoader:
         return np.array(programs), np.array(fnames)
 
     def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
-        code = np.array(
-            ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
-        )
+        lang = self._formatcell(lang)
         if self._target == "test-code":
-            y = code
-            mask = np.ones(code.size, dtype="bool")
+            mask = np.array([i in ["en", "sent"] for i in lang])
+            y = lang[mask]
         else:
-            mask = code == "code"
-            if self._target in ["task-content", "task-lang", "task-structure"]:
+            mask = lang == "en"
+            if self._target in ["task-content", "task-structure"]:
                 y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             else:
                 y, fnames = self._load_select_programs(
@@ -128,7 +126,7 @@ class DataLoader:
 
     def _load_all_programs(self):
         programs, content, lang, structure, fnames = [], [], [], [], []
-        files = list(self.datadir.joinpath("python_programs").rglob("*.py"))
+        files = list(self.datadir.joinpath("python_programs", "en").rglob("*.py"))
         for file in sorted(files):
             fnames.append(file.as_posix())
             with open(fnames[-1], "r") as f:
@@ -154,7 +152,7 @@ class DataLoader:
 
     def _calc_data_prda(self, k=5):
         programs, content, lang, structure, fnames = self._load_all_programs()
-        if self._target in ["task-content", "task-lang", "task-structure"]:
+        if self._target in ["task-content", "task-structure"]:
             y = locals()[self._target.split("-")[1]]
         else:
             y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
