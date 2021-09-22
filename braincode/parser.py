@@ -22,11 +22,13 @@ class CLI:
             "prda",
         ]
         self._features = [
-            "brain-lang",
+            "brain-MD+lang+vis+aud",
+            "brain-MD+lang+vis",
+            "brain-MD+lang",
             "brain-MD",
-            "brain-aud",
+            "brain-lang",
             "brain-vis",
-            "brain-composite",
+            "brain-aud",
             "code-random",
             "code-bow",
             "code-tfidf",
@@ -38,7 +40,6 @@ class CLI:
         self._targets = [
             "test-code",
             "task-content",
-            "task-lang",
             "task-structure",
             # "task-lines",
             "task-nodes",
