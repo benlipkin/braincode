@@ -20,30 +20,31 @@ class ProgramBenchmark:
     def load_all_benchmarks(self, basepath):
         # Populate all benchmarks needs to be setup before calling this method
         metrics = {}
-        fs = os.listdir(os.path.join(basepath, ".cache", "profiler"))
-        for f in fs:
+        inpath = os.path.join(basepath, ".cache", "profiler")
+        for f in os.listdir(inpath):
             if '.benchmark' in f:
-                metrics[f.split('.')[0]] = json.load(f)
+                with open(os.path.join(inpath, f), 'r') as fp:
+                    metrics[f.split('.')[0]] = json.load(fp)
         return metrics
 
     def fit_transform(self, programs):
-        # Pre-requisite -- the programs list and self._fnames list are sorted the same way
-        # Using results stored in cache instead of processing each program again
+        # Pre-requisite -- the programs list and self._fnames list are sorted in the same order
+        # Using results stored in cache instead of processing each program again.
+        # Hence, the input `programs` to this function is unused.
         outputs = []
         for f in self._fnames:
-            print(f)
-            print(list(self._metrics.keys())[:5])
-            qwe
+            f = str(f).split('.')[0] # remove .py
+            f = "_".join(f.split(os.sep)[-2:]) # retain only `en/filename` and rename to `en_filename`
             if self._benchmark == "task-lines":
-                metric = self._metrics[str(f)]['number_of_runtime_steps']
+                metric = self._metrics[f]['number_of_runtime_steps']
             elif self._benchmark == "task-nodes":
-                metric = self._metrics[str(f)]['ast_node_counts']
+                metric = self._metrics[f]['ast_node_counts']
             elif self._benchmark == "task-tokens":
-                metric = self._metrics[str(f)]['token_counts']
+                metric = self._metrics[f]['token_counts']
             elif self._benchmark == "task-halstead":
-                metric = self._metrics[str(f)]['program_length']
+                metric = self._metrics[f]['program_length']
             elif self._benchmark == "task-cyclomatic":
-                metric = self._metrics[str(f)]['cyclomatic_complexity']
+                metric = self._metrics[f]['cyclomatic_complexity']
             else:
                 raise ValueError(
                     "Undefined program metric. Make sure to use valid identifier."
