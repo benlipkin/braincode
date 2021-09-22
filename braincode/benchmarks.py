@@ -16,15 +16,15 @@ class ProgramBenchmark:
         self._base_path = basepath
         self._fnames = fnames
         self._metrics = self.load_all_benchmarks(self._base_path)
-      
+
     def load_all_benchmarks(self, basepath):
         # Populate all benchmarks needs to be setup before calling this method
         metrics = {}
         inpath = os.path.join(basepath, ".cache", "profiler")
         for f in os.listdir(inpath):
-            if '.benchmark' in f:
-                with open(os.path.join(inpath, f), 'r') as fp:
-                    metrics[f.split('.')[0]] = json.load(fp)
+            if ".benchmark" in f:
+                with open(os.path.join(inpath, f), "r") as fp:
+                    metrics[f.split(".")[0]] = json.load(fp)
         return metrics
 
     def fit_transform(self, programs):
@@ -33,18 +33,20 @@ class ProgramBenchmark:
         # Hence, the input `programs` to this function is unused.
         outputs = []
         for f in self._fnames:
-            f = str(f).split('.')[0] # remove .py
-            f = "_".join(f.split(os.sep)[-2:]) # retain only `en/filename` and rename to `en_filename`
+            f = str(f).split(".")[0]  # remove .py
+            f = "_".join(
+                f.split(os.sep)[-2:]
+            )  # retain only `en/filename` and rename to `en_filename`
             if self._benchmark == "task-lines":
-                metric = self._metrics[f]['number_of_runtime_steps']
+                metric = self._metrics[f]["number_of_runtime_steps"]
             elif self._benchmark == "task-nodes":
-                metric = self._metrics[f]['ast_node_counts']
+                metric = self._metrics[f]["ast_node_counts"]
             elif self._benchmark == "task-tokens":
-                metric = self._metrics[f]['token_counts']
+                metric = self._metrics[f]["token_counts"]
             elif self._benchmark == "task-halstead":
-                metric = self._metrics[f]['program_length']
+                metric = self._metrics[f]["program_difficulty"]
             elif self._benchmark == "task-cyclomatic":
-                metric = self._metrics[f]['cyclomatic_complexity']
+                metric = self._metrics[f]["cyclomatic_complexity"]
             else:
                 raise ValueError(
                     "Undefined program metric. Make sure to use valid identifier."
@@ -55,11 +57,11 @@ class ProgramBenchmark:
 
 class ProgramMetrics:
     def __init__(self, program, path, base_path):
-        self.program = program        
+        self.program = program
         self.fname = "_".join(path.split(os.sep)[-2:])
         self.base_path = base_path
         self.outpath = os.path.join(self.base_path, ".cache", "profiler")
-  
+
     def get_token_counts(self):
         exclude_tokens_types = [
             "NEWLINE",
@@ -141,7 +143,7 @@ class ProgramMetrics:
         """
         if not self.fname[-3:] == ".py":
             raise ValueError("Unrecognized file type")
-        
+
         if not os.path.exists(os.path.join(self.outpath, self.fname + ".lprof")):
             cmd = [
                 "kernprof",
@@ -165,7 +167,9 @@ class ProgramMetrics:
         with open(os.path.join(self.outpath, self.fname + ".lprof"), "rb") as fp:
             obj = pkl.load(fp)
             if len(obj.timings) > 1:
-                raise ValueError("The number of timings cannot be greater than 1 in lprof dump")
+                raise ValueError(
+                    "The number of timings cannot be greater than 1 in lprof dump"
+                )
             else:
                 # obj.timings format - {filename: [(x1, y1, z1), (x2, y2, z2), (x3, y3, z3)]}
                 # x1 - line number, y1 - hits, z1 - time spent on the line
