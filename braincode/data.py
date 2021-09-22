@@ -165,6 +165,8 @@ class DataLoader:
         return X, y, runs
 
     def _get_fname(self, analysis, subject=""):
+        if subject != "":
+            subject = subject.name.split(".")[0]
         fname = Path(
             os.path.join(
                 self._base_path,
