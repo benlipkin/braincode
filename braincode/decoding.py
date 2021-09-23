@@ -122,12 +122,9 @@ class Decoder(Analysis):
             if y.ndim == 1:
                 scores[idx] = model.score(X[test], y[test])
             else:
-                if y.shape[1] == 1:
-                    scores[idx] = np.corrcoef(
-                        model.predict(X[test]).squeeze(), y[test].squeeze()
-                    )[1, 0]
-                else:
-                    scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
+                scores[idx] = np.corrcoef(
+                    model.predict(X[test]).flatten(), y[test].flatten()
+                )[1, 0]
         return scores.mean()
 
 
