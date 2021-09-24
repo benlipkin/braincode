@@ -92,17 +92,19 @@ class DataLoader:
         return np.array(programs), np.array(fnames)
 
     def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
-        lang = self._formatcell(lang)
+        code = np.array(
+            ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
+        )
         if self._target == "test-code":
-            mask = np.array([i in ["en", "sent"] for i in lang])
-            y = lang[mask]
+            y = code
+            mask = np.ones(code.size, dtype="bool")
         else:
-            mask = lang == "en"
-            if self._target in ["task-content", "task-structure"]:
+            mask = code == "code"
+            if self._target in ["task-content", "test-lang", "task-structure"]:
                 y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             else:
                 y, fnames = self._load_select_programs(
-                    lang[mask], self._formatcell(id)[mask]
+                    self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )
                 if self._target in [
                     "code-random",

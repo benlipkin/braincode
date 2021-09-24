@@ -7,8 +7,9 @@ import tqdm
 import numpy as np
 from braincode.benchmarks import ProgramMetrics
 
+
 def populate_benchmarks(basepath):
-    # This method is invoked from a standalone script to 
+    # This method is invoked from a standalone script to
     # run the profiler on all input programs, and cache all results
 
     def _prepare_src_for_profiler(src):
@@ -22,17 +23,17 @@ def populate_benchmarks(basepath):
     inpath = os.path.join(basepath, "inputs", "python_programs")
     outpath = os.path.join(basepath, ".cache", "profiler")
     os.makedirs(outpath, exist_ok=True)
-    
+
     # For every program in the dataset
     cnt = 0
     for ff in os.listdir(inpath):
         print(ff)
-        if ff in ['en', 'jap']:
+        if ff in ["en", "jap"]:
             for f in tqdm.tqdm(os.listdir(os.path.join(inpath, ff))):
-                if '.py' not in f:
+                if ".py" not in f:
                     continue
 
-                with open(os.path.join(inpath, ff, f), 'r') as fp:
+                with open(os.path.join(inpath, ff, f), "r") as fp:
                     src = fp.read()
                 fname = ff + "_" + f
                 # Prepare a copy of the src for the profilers
@@ -40,23 +41,30 @@ def populate_benchmarks(basepath):
                     src_profiler = _prepare_src_for_profiler(src)
                     with open(os.path.join(outpath, fname), "w") as fp:
                         fp.write(src_profiler)
-                
+
                 # Run all the profilers on the input program, and save their results as a json
                 all_metrics = {}
 
                 metrics = ProgramMetrics(src, fname, basepath)
-                all_metrics['number_of_runtime_steps'] = metrics.get_number_of_runtime_steps()
-                all_metrics['ast_node_counts'] = metrics.get_ast_node_counts()
-                all_metrics['token_counts'] = metrics.get_token_counts()
-                all_metrics['program_length'] = metrics.get_halstead_complexity_metrics()['program_length']
-                all_metrics['cyclomatic_complexity'] = metrics.get_halstead_complexity_metrics()['cyclomatic_complexity']
+                all_metrics[
+                    "number_of_runtime_steps"
+                ] = metrics.get_number_of_runtime_steps()
+                all_metrics["ast_node_counts"] = metrics.get_ast_node_counts()
+                all_metrics["token_counts"] = metrics.get_token_counts()
+                all_metrics[
+                    "program_difficulty"
+                ] = metrics.get_halstead_complexity_metrics()["program_difficulty"]
+                all_metrics[
+                    "cyclomatic_complexity"
+                ] = metrics.get_halstead_complexity_metrics()["cyclomatic_complexity"]
 
-                with open(os.path.join(outpath, fname+".benchmark"), 'w') as fp:
+                with open(os.path.join(outpath, fname + ".benchmark"), "w") as fp:
                     json.dump(all_metrics, fp)
-                
+
                 cnt += 1
-    
-    print('Done populating benchmark metrics for {} input files'.format(cnt))
+
+    print("Done populating benchmark metrics for {} input files".format(cnt))
+
 
 def clean_cache(base_pth, choice):
     def _clean_cache(choice):
@@ -66,7 +74,7 @@ def clean_cache(base_pth, choice):
             folder_name = "representations"
         elif choice == 3:
             folder_name = "profiler"
-        
+
         pth = os.path.join(base_pth, ".cache", folder_name)
         print("Clear path? {}".format(pth))
         inp = input()
@@ -79,17 +87,18 @@ def clean_cache(base_pth, choice):
                         condition = "pkl" in f
                     elif folder_name == "profiler":
                         condition = ".lprof" in f or ".py" in f
-                    
+
                     if condition:
                         print("Clearing {}".format(os.path.join(pth, dir, f)))
                         os.remove(os.path.join(pth, dir, f))
+
     # clear scores
     if choice == 0:
         for i in [1, 2, 3]:
             _clean_cache(i)
     else:
         _clean_cache(choice)
-    
+
 
 def print_scores(base_pth):
     pth = os.path.join(base_pth, ".cache", "scores")
@@ -113,11 +122,10 @@ def print_scores(base_pth):
 
 if __name__ == "__main__":
     pth = sys.argv[1]
-    
+
     # Choices:
     # 1. Clean cache files
-    #    argv[3] choices -- 
-    #    0. Clear all of the below files
+    #    argv[3] choices --
     #    1. Clear scores files
     #    2. Clear representations files
     #    3. Clear profiler files

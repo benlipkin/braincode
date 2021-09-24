@@ -39,9 +39,10 @@ class CLI:
         ]
         self._targets = [
             "test-code",
+            "test-lang",
             "task-content",
             "task-structure",
-            # "task-lines",
+            "task-lines",
             "task-nodes",
             "task-tokens",
             "task-halstead",
