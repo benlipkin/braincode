@@ -114,14 +114,6 @@ class Decoder(Analysis):
         )
         return scores.mean()
 
-    @staticmethod
-    def _mean_corrcoef(pred, test):
-        scores = np.zeros(test.shape[1])
-        for idx in range(scores.size):
-            scores[idx] = np.corrcoef(test[:, idx], pred[:, idx])[1, 0]
-        scores[np.isnan(scores)] = 0
-        return scores.mean()
-
     def _cross_validate_model(self, X, y, runs):
         model_class = RidgeClassifierCV if y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
@@ -130,7 +122,12 @@ class Decoder(Analysis):
             if y.ndim == 1:
                 scores[idx] = model.score(X[test], y[test])
             else:
-                scores[idx] = self._mean_corrcoef(model.predict(X[test]), y[test])
+                if y.shape[1] == 1:
+                    scores[idx] = np.corrcoef(
+                        model.predict(X[test]).squeeze(), y[test].squeeze()
+                    )[1, 0]
+                else:
+                    scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
         return scores.mean()
 
 
