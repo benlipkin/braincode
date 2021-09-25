@@ -126,6 +126,7 @@ if __name__ == "__main__":
     # Choices:
     # 1. Clean cache files
     #    argv[3] choices --
+    #    0. Apply all the three choices below
     #    1. Clear scores files
     #    2. Clear representations files
     #    3. Clear profiler files
