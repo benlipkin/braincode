@@ -94,7 +94,7 @@ def clean_cache(base_pth, choice):
 
     # clear scores
     if choice == 0:
-        for i in [2, 3, 4]:
+        for i in [1, 2, 3]:
             _clean_cache(i)
     else:
         _clean_cache(choice)
@@ -126,6 +126,7 @@ if __name__ == "__main__":
     # Choices:
     # 1. Clean cache files
     #    argv[3] choices --
+    #    0. Apply all the three choices below
     #    1. Clear scores files
     #    2. Clear representations files
     #    3. Clear profiler files

@@ -42,7 +42,7 @@ Requirements: [Anaconda](https://conda.io/projects/conda/en/latest/user-guide/in
 ```bash
 conda create -n braincode python=3.7
 source activate braincode
-git clone --depth 1 https://github.com/benlipkin/braincode.git
+git clone --depth 1 https://github.com/anonmyous-author/anonymous-code
 cd braincode
 pip install . # -e for development mode
 cd setup
