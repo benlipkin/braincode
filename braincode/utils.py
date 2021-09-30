@@ -2,9 +2,9 @@ import json
 import os
 import pickle as pkl
 import sys
-import tqdm
 
 import numpy as np
+import tqdm
 from braincode.benchmarks import ProgramMetrics
 
 

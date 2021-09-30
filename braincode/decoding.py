@@ -4,13 +4,12 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
+from data import DataLoader
+from plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.metrics import explained_variance_score, pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
-
-from data import DataLoader
-from plots import Plotter
 
 
 class Analysis(ABC):
@@ -137,6 +136,9 @@ class MVPA(Decoder):
 
     def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
+        subjects = [
+            s for s in subjects if "737" not in str(s)
+        ]  # remove this subject as in Ivanova et al (2020)
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
             X, y, runs = self._loader.get_data(self.__class__.__name__.lower(), subject)

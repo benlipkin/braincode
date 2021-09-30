@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import numpy as np
-
 from data import DataLoader
 from decoding import Analysis
 from plots import Plotter
@@ -20,6 +19,9 @@ class RSA(Analysis):
 
     def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
+        subjects = [
+            s for s in subjects if "737" not in str(s)
+        ]  # remove this subject as in Ivanova et al (2020)
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
             X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)

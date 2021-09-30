@@ -6,10 +6,9 @@ import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
+from decoding import MVPA, PRDA
 from joblib import Parallel, delayed, parallel_backend
 from rsa import RSA
-
-from decoding import MVPA, PRDA
 
 
 class CLI:

@@ -5,10 +5,9 @@ from pathlib import Path
 
 import numpy as np
 from benchmarks import ProgramBenchmark
+from encoding import ProgramEncoder
 from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-
-from encoding import ProgramEncoder
 
 
 class DataLoader:
