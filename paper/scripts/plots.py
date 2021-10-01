@@ -15,7 +15,7 @@ def update_names(data):
     data.loc[data.Feature == "lang", "Feature"] = "Language"
     data.loc[data.Feature == "vis", "Feature"] = "Visual"
     data.loc[data.Feature == "aud", "Feature"] = "Auditory"
-    data.loc[data.Feature == "random", "Feature"] = "Random Embedding"  #
+    data.loc[data.Feature == "random", "Feature"] = "Random Embedding"
     data.loc[data.Feature == "bow", "Feature"] = "Bag Of Words"
     data.loc[data.Feature == "tfidf", "Feature"] = "TF-IDF"
     data.loc[data.Feature == "seq2seq", "Feature"] = "Seq2Seq"
@@ -26,12 +26,12 @@ def update_names(data):
     data.loc[data.Target == "lang", "Target"] = "Variable Language"
     data.loc[data.Target == "content", "Target"] = "Data Type"
     data.loc[data.Target == "structure", "Target"] = "Control Flow"
-    data.loc[data.Target == "lines", "Target"] = "Runtime Steps"
+    data.loc[data.Target == "lines", "Target"] = "Dynamic Length"
     data.loc[data.Target == "nodes", "Target"] = "Node Count"
-    data.loc[data.Target == "tokens", "Target"] = "Token Count"
-    data.loc[data.Target == "halstead", "Target"] = "Halstead Difficulty"  #
-    data.loc[data.Target == "cyclomatic", "Target"] = "Cyclomatic Complexity"  #
-    data.loc[data.Target == "random", "Target"] = "Random Embedding"  #
+    data.loc[data.Target == "tokens", "Target"] = "Static Length"
+    data.loc[data.Target == "halstead", "Target"] = "Halstead Difficulty"
+    data.loc[data.Target == "cyclomatic", "Target"] = "Cyclomatic Complexity"
+    data.loc[data.Target == "random", "Target"] = "Random Embedding"
     data.loc[data.Target == "bow", "Target"] = "Bag Of Words"
     data.loc[data.Target == "tfidf", "Target"] = "TF-IDF"
     data.loc[data.Target == "seq2seq", "Target"] = "Seq2Seq"
