@@ -2,38 +2,42 @@
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
 
-This pipeline supports three major functions.
+This pipeline supports two major functions.
 
--   **RSA** (representational similarity analysis): models program representational structure within the supported brain networks.
--   **MVPA** (multivariate pattern analysis): evaluates decoding of program benchmark tasks or embeddings from their respective neural representations within a collection of canonical brain networks.
--   **PRDA** (program representation decoding analysis): evaluates decoding of program benchmark tasks from their respective in-silico embeddings.
+-   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**. RSA (representational similarity analysis) is also available as an alternative to MVPA. Only MVPA was used for the present work, but we allow the flexibility for the user.
+-   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
 
-### Supported Brain Networks
+### Supported Brain Regions
 
 -   Language
 -   Multiple Demand (MD)
 -   Visual
 -   Auditory
--   Composite (Union of all networks above)
+-   MD+L, MD+LV, MD+LVA (unions of above networks)
 
-### Supported Program Features
+### Supported Code Features
 
-**Benchmark Tasks**
+**Code Properties**
 
 -   Code (code vs. sentences)
--   Content (math vs. str) <sup>\*referred to as 'datatype' in paper</sup>
+-   Content (math vs. str) <sup>\*datatype</sup>
 -   Language (english vs. japanese)
--   Structure (seq vs. for vs. if) <sup>\*referred to as 'control flow' in paper</sup>
+-   Structure (seq vs. for vs. if) <sup>\*control flow</sup>
+-   Token Count (# of tokens in program) <sup>\*static analysis</sup>
+-   Lines (# of runtime steps during execution) <sup>\*dynamic analysis</sup>
+-   Node Count (# of nodes in AST)
+-   Halstead Difficulty (function of tokens, operations, vocabulary)
+-   Cyclomatic Complexity (function of program control flow graph)
 
-**Program Embeddings**
+**Code Models**
 
--   RandomEmbedding
 -   BagOfWords
 -   TF-IDF
 -   seq2seq<sup> [1](https://github.com/IBM/pytorch-seq2seq)</sup>
 -   XLNet<sup> [2](https://arxiv.org/pdf/1906.08237.pdf)</sup>
 -   CodeTransformer<sup> [3](https://arxiv.org/pdf/2103.11318.pdf)</sup>
 -   CodeBERTa<sup> [4](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
+-   RandomEmbedding
 
 ## Installation
 
@@ -53,8 +57,8 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 
 ```bash
 usage:  [-h]
-        [-f {all,brain-lang,brain-MD,brain-aud,brain-vis,brain-composite,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-        [-t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+        [-f {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+        [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
         [-p BASE_PATH]
         {rsa,mvpa,prda}
 
@@ -65,47 +69,36 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-lang,brain-MD,brain-aud,brain-vis,brain-composite,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-lang,brain-MD,brain-aud,brain-vis,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
-  -t {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,task-content,task-lang,task-structure,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -f {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -p BASE_PATH, --base_path BASE_PATH
 ```
 
 note: BASE_PATH must be specified to match setup.sh if changed from default.
 
-### RSA
+### MVPA (or RSA)
 
 **Supported features**
 
--   brain-lang
 -   brain-MD
+-   brain-lang
 -   brain-vis
 -   brain-aud
--   brain-composite
-
-**Sample run**
-
-To model representational similarity of programs within the brain's Language network:
-
-```bash
-python braincode rsa -f brain-lang
-```
-
-### MVPA
-
-**Supported features**
-
--   brain-lang
--   brain-MD
--   brain-vis
--   brain-aud
--   brain-composite
+-   brain-MD+L
+-   brain-MD+LV
+-   brain-MD+LVA
 
 **Supported targets**
 
 -   test-code
+-   test-lang
 -   task-content
--   task-lang
 -   task-structure
+-   task-lines
+-   task-tokens
+-   task-nodes
+-   task-halstead
+-   task-cyclomatic
 -   code-random
 -   code-bow
 -   code-tfidf
@@ -116,7 +109,7 @@ python braincode rsa -f brain-lang
 
 **Sample run**
 
-To decode TF-IDF embeddings from the brain's MD network program representations:
+To decode a TF-IDF model from MD region representations:
 
 ```bash
 python braincode mvpa -f brain-MD -t code-tfidf
@@ -137,20 +130,24 @@ python braincode mvpa -f brain-MD -t code-tfidf
 **Supported targets**
 
 -   task-content
--   task-lang
 -   task-structure
+-   task-lines
+-   task-tokens
+-   task-nodes
+-   task-halstead
+-   task-cyclomatic
 
 **Sample run**
 
-To decode program structure (seq vs. for vs. if) from the CodeBERTa program representations:
+To decode node count from the CodeBERTa program representations:
 
 ```bash
-python braincode prda -f code-codeberta -t task-structure
+python braincode prda -f code-codeberta -t task-nodes
 ```
 
 ## Citation
 
-If you use this work, please cite ...
+If you use this work, please cite XXX (under review)
 
 ## License
 
