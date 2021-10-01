@@ -72,8 +72,8 @@ def make_table0():
     targets = [
         "content",
         "structure",
-        "lines",
         "tokens",
+        "lines",
     ]
     make_table(name, analysis, features, targets)
 
@@ -107,8 +107,8 @@ def make_table2():
         "aud",
     ]
     targets = [
-        "lines",
         "tokens",
+        "lines",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -165,8 +165,8 @@ def make_table5():
         "MD",
     ]
     targets = [
-        "lines",
         "tokens",
+        "lines",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -208,8 +208,8 @@ def make_table7():
         "lang",
         "content",
         "structure",
-        "lines",
         "tokens",
+        "lines",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -229,8 +229,8 @@ def make_table8():
         "lang",
         "content",
         "structure",
-        "lines",
         "tokens",
+        "lines",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
