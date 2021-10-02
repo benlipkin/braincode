@@ -57,6 +57,7 @@ def populate_benchmarks(basepath):
                 all_metrics[
                     "cyclomatic_complexity"
                 ] = metrics.get_halstead_complexity_metrics()["cyclomatic_complexity"]
+                all_metrics["byte_counts"] = metrics.get_byte_counts()
 
                 with open(os.path.join(outpath, fname + ".benchmark"), "w") as fp:
                     json.dump(all_metrics, fp)

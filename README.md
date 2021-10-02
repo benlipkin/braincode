@@ -25,6 +25,7 @@ This pipeline supports two major functions.
 -   Structure (seq vs. for vs. if) <sup>\*control flow</sup>
 -   Token Count (# of tokens in program) <sup>\*static analysis</sup>
 -   Lines (# of runtime steps during execution) <sup>\*dynamic analysis</sup>
+-   Bytes (# of bytecode ops executed)
 -   Node Count (# of nodes in AST)
 -   Halstead Difficulty (function of tokens, operations, vocabulary)
 -   Cyclomatic Complexity (function of program control flow graph)
@@ -70,7 +71,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -f {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
-  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -p BASE_PATH, --base_path BASE_PATH
 ```
 
@@ -95,6 +96,7 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 -   task-content
 -   task-structure
 -   task-lines
+-   task-bytes
 -   task-tokens
 -   task-nodes
 -   task-halstead
