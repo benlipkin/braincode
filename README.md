@@ -59,7 +59,7 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ```bash
 usage:  [-h]
         [-f {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-        [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+        [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
         [-p BASE_PATH]
         {rsa,mvpa,prda}
 
@@ -134,6 +134,7 @@ python braincode mvpa -f brain-MD -t code-tfidf
 -   task-content
 -   task-structure
 -   task-lines
+-   task-bytes
 -   task-tokens
 -   task-nodes
 -   task-halstead

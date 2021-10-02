@@ -117,6 +117,7 @@ class DataLoader:
                     encoder = ProgramEncoder(self._target, self._base_path)
                 elif self._target in [
                     "task-lines",
+                    "task-bytes",
                     "task-nodes",
                     "task-tokens",
                     "task-halstead",

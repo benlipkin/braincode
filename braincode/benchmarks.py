@@ -40,6 +40,8 @@ class ProgramBenchmark:
             )  # retain only `en/filename` and rename to `en_filename`
             if self._benchmark == "task-lines":
                 metric = self._metrics[f]["number_of_runtime_steps"]
+            elif self._benchmark == "task-bytes":
+                metric = self._metrics[f]["byte_counts"]
             elif self._benchmark == "task-nodes":
                 metric = self._metrics[f]["ast_node_counts"]
             elif self._benchmark == "task-tokens":
@@ -189,7 +191,7 @@ class ProgramMetrics:
         bc = dis.Bytecode(byte_code)
         bc_profile_me = None
         for b in bc:
-            if b.argval.__class__.__name__ == 'code':
+            if b.argval.__class__.__name__ == "code":
                 bc_profile_me = dis.Bytecode(b.argval)
 
         if bc_profile_me is None:

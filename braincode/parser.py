@@ -42,6 +42,7 @@ class CLI:
             "task-content",
             "task-structure",
             "task-lines",
+            "task-bytes",
             "task-nodes",
             "task-tokens",
             "task-halstead",
