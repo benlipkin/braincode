@@ -238,7 +238,7 @@ def make_table8():
 
 def make_table9():
     name = "mvpa"
-    analysis = "mvpa_properties_static"
+    analysis = "mvpa_properties_supplemental"
     features = [
         "MD",
         "lang",
@@ -250,6 +250,8 @@ def make_table9():
         "nodes",
         "halstead",
         "cyclomatic",
+        "lines",
+        "bytes",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -257,7 +259,7 @@ def make_table9():
 
 def make_table10():
     name = "mvpa"
-    analysis = "mvpa_properties_static_ablation"
+    analysis = "mvpa_properties_supplemental_ablation"
     features = [
         "MD+lang+vis+aud",
         "MD+lang+vis",
@@ -269,6 +271,8 @@ def make_table10():
         "nodes",
         "halstead",
         "cyclomatic",
+        "lines",
+        "bytes",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)

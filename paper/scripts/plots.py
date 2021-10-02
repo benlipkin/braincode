@@ -27,6 +27,7 @@ def update_names(data):
     data.loc[data.Target == "content", "Target"] = "Data Type"
     data.loc[data.Target == "structure", "Target"] = "Control Flow"
     data.loc[data.Target == "lines", "Target"] = "Dynamic Analysis"
+    data.loc[data.Target == "bytes", "Target"] = "Bytecode Operations"
     data.loc[data.Target == "nodes", "Target"] = "Node Count"
     data.loc[data.Target == "tokens", "Target"] = "Static Analysis"
     data.loc[data.Target == "halstead", "Target"] = "Halstead Difficulty"

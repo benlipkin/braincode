@@ -124,7 +124,7 @@ def main():
         "mvpa_properties_rgr_ablation",
         "mvpa_models_ablation",
         "prda_properties",
-        "mvpa_properties_static",
+        "mvpa_properties_supplemental",
     ]
     for dataset in datasets:
         make_table(dataset)
