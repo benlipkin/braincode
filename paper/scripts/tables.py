@@ -47,7 +47,11 @@ def reorder_columns(data, dataset):
 def format_scores(data, dataset):
     map = lambda x: f"{x:0.2f}"
     for i, row in data.iterrows():
-        if "prda" not in dataset and "rgr" not in dataset and "static" not in dataset:
+        if (
+            "prda" not in dataset
+            and "rgr" not in dataset
+            and "supplemental" not in dataset
+        ):
             baseline = float(row.name[1])
             diff = row - baseline
             row = row.apply(map).values + " (+" + diff.apply(map).values + ")"
@@ -55,7 +59,7 @@ def format_scores(data, dataset):
             row = row.apply(map).values
         row = [s.replace("+-", "-") for s in row]
         data.loc[i] = row
-    if "rgr" in dataset or "static" in dataset:
+    if "rgr" in dataset or "supplemental" in dataset:
         data = data.reset_index(level=1, drop=True)
     return data
 
