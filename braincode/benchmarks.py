@@ -6,6 +6,7 @@ import subprocess
 import sys
 from io import BytesIO
 from tokenize import tok_name, tokenize
+import dis
 
 import numpy as np
 
@@ -47,6 +48,8 @@ class ProgramBenchmark:
                 metric = self._metrics[f]["program_difficulty"]
             elif self._benchmark == "task-cyclomatic":
                 metric = self._metrics[f]["cyclomatic_complexity"]
+            elif self._benchmark == "task-bytes":
+                metric = self._metrics[f]["byte_counts"]
             else:
                 raise ValueError(
                     "Undefined program metric. Make sure to use valid identifier."
@@ -178,3 +181,22 @@ class ProgramMetrics:
                         # index 1 contains number of hits.
                         sum_hits += i[1]
         return sum_hits
+
+    def get_byte_counts(self):
+        with open(os.path.join(self.outpath, self.fname)) as fp:
+            src = fp.read()
+        byte_code = compile(src, os.path.join(self.outpath, self.fname), "exec")
+        bc = dis.Bytecode(byte_code)
+        bc_profile_me = None
+        for b in bc:
+            if b.argval.__class__.__name__ == 'code':
+                bc_profile_me = dis.Bytecode(b.argval)
+
+        if bc_profile_me is None:
+            raise ValueError("Disassembler did not find profile_me() method")
+
+        num_bytes = 0
+        for _ in bc_profile_me:
+            num_bytes += 1
+
+        return num_bytes
