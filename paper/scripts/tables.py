@@ -91,7 +91,7 @@ def make_table(dataset):
 def make_latex_table(dataset, type):
     dataset = f"{dataset}_{type}stats"
     data = pd.read_csv(f"../stats/raw/{dataset}.csv")
-    data = data.sort_values(by="p (corrected)")
+    data = data.sort_values(by=["p (corrected)", "p"])
     if data.size:
         s = "Brain Region"
         if "crossed" in dataset:
@@ -108,6 +108,12 @@ def make_latex_table(dataset, type):
             data = data.rename(columns={"f": "F"})
         data = data.rename(columns={"h (corrected)": "Sig."})
         data = data.set_index(grouping)
+        if "anova" in dataset:
+            data["F"] = data["F"].apply(lambda x: f"{x:0.2f}")
+        else:
+            data["t"] = data["t"].apply(lambda x: f"{x:0.2f}")
+        data["p"] = data["p"].apply(lambda x: f"{x:0.2e}")
+        data["p (corrected)"] = data["p (corrected)"].apply(lambda x: f"{x:0.2e}")
         latex = data.to_latex()
         latex = latex.replace("{lrrrr}", "{l||rrrr}")
         latex = latex.replace("{lllrrrr}", "{l||ll|rrrr}")
