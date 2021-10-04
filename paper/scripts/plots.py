@@ -165,11 +165,13 @@ def make_inline_plot(data, dataset):
             ylim = [0.52, 0.62]
             xlabel = "Code Model"
             ylabel = "Rank Accuracy (%)"
+            size = [6, 2]
         else:
             score = samples["z"]
             ylim = [-1, 10]
             xlabel = "Code Property"
             ylabel = "Decoding Score (z)"
+            size = [4, 2]
         c = np.array([0.1 + (i * 0.30), 0.5 + (i * 0.15), 0.9 - (i * 0.30)])
         plt.plot(samples["Target"], score, "o-", color=c)
     plt.xticks(rotation=0, fontsize=8)
@@ -187,7 +189,8 @@ def make_inline_plot(data, dataset):
         plt.plot([0, len(samples)], [baseline, baseline], "--", color="0.25")
     for spine in ["right", "top"]:
         ax.spines[spine].set_visible(False)
-    plt.gcf().set_size_inches([6, 2])
+    plt.gcf().set_size_inches(size)
+    return ax
 
 
 def make_inline_plots(dataset):

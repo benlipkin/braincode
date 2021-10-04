@@ -91,7 +91,13 @@ def make_table(dataset):
 def make_latex_table(dataset, type):
     dataset = f"{dataset}_{type}stats"
     data = pd.read_csv(f"../stats/raw/{dataset}.csv")
-    data = data.sort_values(by=["p (corrected)", "p"])
+    data["h (corrected)"] = 1 - data["h (corrected)"]
+    if "anova" in type:
+        priority = ["h (corrected)", "Grouping"]
+    else:
+        priority = ["h (corrected)", "Grouping", "S1", "S2"]
+    data = data.sort_values(by=priority)
+    data["h (corrected)"] = 1 - data["h (corrected)"]
     if data.size:
         s = "Brain Region"
         if "crossed" in dataset:
@@ -106,7 +112,7 @@ def make_latex_table(dataset, type):
             data = data.rename(columns={"S1": f"{s} A", "S2": f"{s} B"})
         else:
             data = data.rename(columns={"f": "F"})
-        data = data.rename(columns={"h (corrected)": "Sig."})
+        data = data.rename(columns={"h (corrected)": "Is Significant?"})
         data = data.set_index(grouping)
         if "anova" in dataset:
             data["F"] = data["F"].apply(lambda x: f"{x:0.2f}")
