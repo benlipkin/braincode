@@ -24,12 +24,7 @@ def make_pivot_table(data, dataset):
     else:
         index = ["Target", "Empirical Baseline"]
         columns = "Feature"
-    return pd.pivot_table(
-        data=data,
-        index=index,
-        columns=columns,
-        values="Score",
-    )
+    return pd.pivot_table(data=data, index=index, columns=columns, values="Score")
 
 
 def reorder_columns(data, dataset):
@@ -96,7 +91,7 @@ def make_table(dataset):
 def make_latex_table(dataset, type):
     dataset = f"{dataset}_{type}stats"
     data = pd.read_csv(f"../stats/raw/{dataset}.csv")
-    data = data[data["h (corrected)"] == 1].iloc[:, :-1]
+    data = data.sort_values(by="p (corrected)")
     if data.size:
         s = "Brain Region"
         if "crossed" in dataset:
@@ -111,6 +106,7 @@ def make_latex_table(dataset, type):
             data = data.rename(columns={"S1": f"{s} A", "S2": f"{s} B"})
         else:
             data = data.rename(columns={"f": "F"})
+        data = data.rename(columns={"h (corrected)": "Sig"})
         data = data.set_index(grouping)
         latex = data.to_latex()
         latex = latex.replace("{lrrr}", "{l||rrr}")
