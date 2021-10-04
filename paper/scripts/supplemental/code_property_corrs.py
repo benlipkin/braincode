@@ -37,10 +37,11 @@ def main():
     corrs = np.corrcoef(properties)
     df = pd.DataFrame(corrs, columns=names, index=names)
     map = lambda x: f"{x:0.2f}"
-    for i, row in df.iterrows():
+    for i, (idx, row) in enumerate(df.iterrows()):
         row = row.apply(map).values
+        row[:i] = "-"
         row = [s.replace("-0.00", "0.00") for s in row]
-        df.loc[i] = row
+        df.loc[idx] = row
     latex = df.to_latex().replace("{llllllllll}", "{l|lllllllll}")
     with open(f"code_property_corrs.tex", "w") as f:
         f.write(latex)
