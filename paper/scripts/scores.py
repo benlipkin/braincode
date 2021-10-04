@@ -129,8 +129,8 @@ def make_table3():
         "ct",
         "xlnet",
         "seq2seq",
-        "bow",
         "tfidf",
+        "bow",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)

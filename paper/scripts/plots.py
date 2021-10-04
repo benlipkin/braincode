@@ -148,6 +148,57 @@ def plot_data(dataset):
     plt.close()
 
 
+def filter_data(data):
+    data = data[data.Feature.isin(["MD", "Language"])]
+    data = data[~(data.Target.isin(["Code vs. Sentence", "Variable Language"]))]
+    return data
+
+
+def make_inline_plot(data, dataset):
+    ax = plt.subplot(111)
+    for i, network in enumerate(data.Feature.unique()):
+        samples = data[data.Feature == network]
+        if "model" in dataset:
+            basemodel = "Random Embedding"
+            samples = samples[samples.Target != basemodel]
+            score = samples["Score"]
+            ylim = [0.52, 0.62]
+            xlabel = "Code Model"
+            ylabel = "Rank Accuracy (%)"
+        else:
+            score = samples["z"]
+            ylim = [-1, 10]
+            xlabel = "Code Property"
+            ylabel = "Decoding Score (z)"
+        c = np.array([0.1 + (i * 0.30), 0.5 + (i * 0.15), 0.9 - (i * 0.30)])
+        plt.plot(samples["Target"], score, "o-", color=c)
+    plt.xticks(rotation=0, fontsize=8)
+    plt.xlabel(xlabel, fontweight="bold")
+    plt.ylabel(ylabel, fontweight="bold")
+    plt.ylim(ylim)
+    plt.legend(data.Feature.unique(), loc="center left", bbox_to_anchor=[1, 1])
+    for network in data.Feature.unique():
+        samples = data[data.Feature == network]
+        if "model" in dataset:
+            basemodel = "Random Embedding"
+            baseline = samples[samples.Target == basemodel]["Score"]
+        else:
+            baseline = 0
+        plt.plot([0, len(samples)], [baseline, baseline], "--", color="0.25")
+    for spine in ["right", "top"]:
+        ax.spines[spine].set_visible(False)
+    plt.gcf().set_size_inches([6, 2])
+
+
+def make_inline_plots(dataset):
+    data = load_data(dataset)
+    data = update_names(data)
+    data = filter_data(data)
+    ax = make_inline_plot(data, dataset)
+    plt.savefig(f"../plots/{dataset}_inline.jpg", bbox_inches="tight")
+    plt.close()
+
+
 def main():
     datasets = [
         "mvpa_properties_cls",
@@ -159,6 +210,8 @@ def main():
     ]
     for dataset in datasets:
         plot_data(dataset)
+    for dataset in ["mvpa_properties_all", "mvpa_models"]:
+        make_inline_plots(dataset)
 
 
 if __name__ == "__main__":
