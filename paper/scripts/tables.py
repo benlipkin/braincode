@@ -115,8 +115,8 @@ def make_latex_table(dataset, type):
         data["p"] = data["p"].apply(lambda x: f"{x:0.2e}")
         data["p (corrected)"] = data["p (corrected)"].apply(lambda x: f"{x:0.2e}")
         latex = data.to_latex()
-        latex = latex.replace("{lrrrr}", "{l||rrrr}")
-        latex = latex.replace("{lllrrrr}", "{l||ll|rrrr}")
+        latex = latex.replace("{llllr}", "{l||lllr}")
+        latex = latex.replace("{llllllr}", "{l||ll|lllr}")
         with open(f"../stats/latex/{dataset}.tex", "w") as f:
             f.write(latex)
 
