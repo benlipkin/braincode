@@ -106,11 +106,11 @@ def make_latex_table(dataset, type):
             data = data.rename(columns={"S1": f"{s} A", "S2": f"{s} B"})
         else:
             data = data.rename(columns={"f": "F"})
-        data = data.rename(columns={"h (corrected)": "Sig"})
+        data = data.rename(columns={"h (corrected)": "Sig."})
         data = data.set_index(grouping)
         latex = data.to_latex()
-        latex = latex.replace("{lrrr}", "{l||rrr}")
-        latex = latex.replace("{lllrrr}", "{l||ll|rrr}")
+        latex = latex.replace("{lrrrr}", "{l||rrrr}")
+        latex = latex.replace("{lllrrrr}", "{l||ll|rrrr}")
         with open(f"../stats/latex/{dataset}.tex", "w") as f:
             f.write(latex)
 
