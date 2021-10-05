@@ -174,7 +174,7 @@ def make_inline_plot(data, dataset):
             size = [4, 2]
         c = np.array([0.1 + (i * 0.30), 0.5 + (i * 0.15), 0.9 - (i * 0.30)])
         plt.plot(samples["Target"], score, "D-", color=c, markersize=8, linewidth=3)
-    plt.xticks(rotation=0, fontsize=8)
+    plt.xticks(rotation=0, fontsize=10)
     plt.xlabel(xlabel, fontweight="bold")
     plt.ylabel(ylabel, fontweight="bold")
     plt.ylim(ylim)
