@@ -174,11 +174,14 @@ def make_inline_plot(data, dataset):
             size = [4, 2]
         c = np.array([0.1 + (i * 0.30), 0.5 + (i * 0.15), 0.9 - (i * 0.30)])
         plt.plot(samples["Target"], score, "D-", color=c, markersize=8, linewidth=3)
-    plt.xticks(rotation=0, fontsize=10)
-    plt.xlabel(xlabel, fontweight="bold")
-    plt.ylabel(ylabel, fontweight="bold")
+    plt.xticks(rotation=0, fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.xlabel(xlabel, fontweight="bold", fontsize=12)
+    plt.ylabel(ylabel, fontweight="bold", fontsize=12)
     plt.ylim(ylim)
-    plt.legend(data.Feature.unique(), loc="center left", bbox_to_anchor=[1, 1])
+    plt.legend(
+        data.Feature.unique(), loc="center left", bbox_to_anchor=[1, 1], fontsize=12
+    )
     for network in data.Feature.unique():
         samples = data[data.Feature == network]
         if "model" in dataset:
