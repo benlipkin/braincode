@@ -162,7 +162,7 @@ def make_inline_plot(data, dataset):
             basemodel = "Random Embedding"
             samples = samples[samples.Target != basemodel]
             score = samples["Score"]
-            ylim = [0.52, 0.62]
+            ylim = [0.49, 0.61]
             xlabel = "Code Model"
             ylabel = "Rank Accuracy (%)"
             size = [6, 2]
@@ -173,7 +173,7 @@ def make_inline_plot(data, dataset):
             ylabel = "Decoding Score (z)"
             size = [4, 2]
         c = np.array([0.1 + (i * 0.30), 0.5 + (i * 0.15), 0.9 - (i * 0.30)])
-        plt.plot(samples["Target"], score, "o-", color=c)
+        plt.plot(samples["Target"], score, "D-", color=c, markersize=8, linewidth=3)
     plt.xticks(rotation=0, fontsize=8)
     plt.xlabel(xlabel, fontweight="bold")
     plt.ylabel(ylabel, fontweight="bold")
@@ -186,6 +186,9 @@ def make_inline_plot(data, dataset):
             baseline = samples[samples.Target == basemodel]["Score"]
         else:
             baseline = 0
+        plt.plot([0, len(samples)], [baseline, baseline], "--", color="0.25")
+    if "model" in dataset:
+        baseline = data["Null Mean"].mean()
         plt.plot([0, len(samples)], [baseline, baseline], "--", color="0.25")
     for spine in ["right", "top"]:
         ax.spines[spine].set_visible(False)
