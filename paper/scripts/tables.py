@@ -102,7 +102,10 @@ def make_latex_table(dataset, type):
         s = "Brain Region"
         if "crossed" in dataset:
             grouping = "Brain Region"
-            s = "Code Model"
+            if "model" in dataset:
+                s = "Code Model"
+            else:
+                s = "Code Property"
         elif "properties" in dataset:
             grouping = "Code Property"
         elif "model" in dataset:
@@ -151,6 +154,7 @@ def main():
     for dataset in datasets_stats:
         make_latex_table(dataset, "")
         make_latex_table(dataset, "anova_")
+    make_latex_table("mvpa_properties_rgr_subjects_crossed", "")
 
 
 if __name__ == "__main__":

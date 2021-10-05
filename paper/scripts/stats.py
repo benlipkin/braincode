@@ -91,6 +91,7 @@ def main():
         if "models" in dataset:
             calc_stats(f"{dataset}_subjects", reverse_grouping=True)
             calc_anova(f"{dataset}_subjects", reverse_grouping=True)
+        calc_stats("mvpa_properties_rgr", reverse_grouping=True)
 
 
 if __name__ == "__main__":
