@@ -7,6 +7,18 @@ This pipeline supports two major functions.
 -   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**. RSA (representational similarity analysis) is also available as an alternative to MVPA. Only MVPA was used for the present work, but we allow the flexibility for the user.
 -   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
 
+To run all experiments from the paper, the following commands will suffice after setup:
+```bash
+python braincode mvpa # runs all core MVPA analyses in parallel
+python braincode prda # runs all supplemental PRDA analyses in parallel
+```
+
+To regenerate tables and figures from the paper, run the following after completing the analyses:
+```bash
+cd paper/scripts
+source run.sh # pulls scores, runs stats, generates plots and tables
+```
+
 ### Supported Brain Regions
 
 -   Language
