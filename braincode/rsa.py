@@ -7,8 +7,8 @@ from plots import Plotter
 
 
 class RSA(Analysis):
-    def __init__(self, feature, target, base_path, score_only):
-        super().__init__(feature, target, base_path, score_only)
+    def __init__(self, feature, target, base_path, score_only, code_model_dim):
+        super().__init__(feature, target, base_path, score_only, code_model_dim)
 
     @staticmethod
     def _calc_rsa(brain_rdm, model_rdm):

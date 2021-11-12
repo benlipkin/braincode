@@ -23,6 +23,7 @@ from code_transformer.preprocessing.pipeline.stage1 import CTStage1Preprocessor
 from code_transformer.utils.inference import (get_model_manager,
                                               make_batch_from_sample)
 from datasets import load_dataset
+from sklearn.random_projection import GaussianRandomProjection
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
 
@@ -32,7 +33,7 @@ os.environ["DATASETS_VERBOSITY"] = "error"
 
 
 class ProgramEncoder:
-    def __init__(self, encoder, base_path):
+    def __init__(self, encoder, base_path, code_model_dim):
         if encoder == "code-random":
             self._encoder = RandomEmbedding(base_path)
         elif encoder == "code-bow":
@@ -49,13 +50,20 @@ class ProgramEncoder:
             self._encoder = CodeBERTa(base_path)
         else:
             raise ValueError("Encoder not recognized. Select valid encoder.")
+        self._code_model_dim = code_model_dim
 
     def fit_transform(self, programs):
         if not callable(getattr(self._encoder, "fit_transform", None)):
             raise NotImplementedError(
                 f"{self._encoder.__class__.__name__} must implement 'fit_transform' method."
             )
-        return self._encoder.fit_transform(programs)
+        encoding = self._encoder.fit_transform(programs)
+        if self._code_model_dim != "":
+            return GaussianRandomProjection(
+                n_components=int(self._code_model_dim), random_state=0
+            ).fit_transform(encoding)
+        else:
+            return encoding
 
 
 class RandomEmbedding:

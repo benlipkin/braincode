@@ -74,6 +74,7 @@ class CLI:
         )
         self._parser.add_argument("-p", "--base_path", default=self._base_path)
         self._parser.add_argument("-s", "--score_only", action="store_true")
+        self._parser.add_argument("-d", "--code_model_dim", default="")
 
     def _parse_args(self):
         if not hasattr(self, "_parser"):
@@ -94,6 +95,7 @@ class CLI:
             raise RuntimeError("CLI args not set. Need to parse first.")
         self._base_path = self._args.base_path
         self._score_only = self._args.score_only
+        self._code_model_dim = self._args.code_model_dim
         if self._args.feature != self._default:
             self._features = [self._args.feature]
         if self._args.target != self._default:
@@ -109,7 +111,11 @@ class CLI:
             raise ValueError("Invalid argument for analysis.")
         self._params = list(
             itertools.product(
-                self._features, self._targets, [self._base_path], [self._score_only]
+                self._features,
+                self._targets,
+                [self._base_path],
+                [self._score_only],
+                [self._code_model_dim],
             )
         )
         self._analysis = globals()[self._args.analysis.upper()]

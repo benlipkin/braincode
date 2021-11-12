@@ -90,7 +90,9 @@ class DataLoader:
                 programs.append(f.read())
         return np.array(programs), np.array(fnames)
 
-    def _prep_y(self, content, lang, structure, id, encoder=LabelEncoder()):
+    def _prep_y(
+        self, content, lang, structure, id, code_model_dim, encoder=LabelEncoder()
+    ):
         code = np.array(
             ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
         )
@@ -114,7 +116,9 @@ class DataLoader:
                     "code-ct",
                     "code-codeberta",
                 ]:
-                    encoder = ProgramEncoder(self._target, self._base_path)
+                    encoder = ProgramEncoder(
+                        self._target, self._base_path, code_model_dim
+                    )
                 elif self._target in [
                     "task-lines",
                     "task-bytes",
@@ -157,9 +161,9 @@ class DataLoader:
             np.array(fnames),
         )
 
-    def _calc_data_mvpa(self, subject):
+    def _calc_data_mvpa(self, subject, code_model_dim):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        y, mask = self._prep_y(content, lang, structure, id)
+        y, mask = self._prep_y(content, lang, structure, id, code_model_dim)
         X = self._prep_x(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
@@ -176,16 +180,18 @@ class DataLoader:
         runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
         return X, y, runs
 
-    def _get_fname(self, analysis, subject=""):
+    def _get_fname(self, analysis, subject="", code_model_dim=""):
         if subject != "":
             subject = subject.name.split(".")[0]
+        if code_model_dim != "":
+            code_model_dim = f"_dim{code_model_dim}"
         fname = Path(
             os.path.join(
                 self._base_path,
                 ".cache",
                 "representations",
                 analysis,
-                f"{self._feature.split('-')[1]}_{self._target.split('-')[1]}{subject}.pkl",
+                f"{self._feature.split('-')[1]}_{self._target.split('-')[1]}{subject}{code_model_dim}.pkl",
             )
         )
         if not fname.parent.exists():
@@ -193,15 +199,15 @@ class DataLoader:
         return fname
 
     @lru_cache(maxsize=None)
-    def get_data(self, analysis, subject=""):
-        fname = self._get_fname(analysis, subject)
+    def get_data(self, analysis, subject="", code_model_dim=""):
+        fname = self._get_fname(analysis, subject, code_model_dim)
         if fname.exists():
             with open(fname, "rb") as f:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
         else:
             if analysis in ["mvpa", "rsa"]:
-                X, y, runs = self._calc_data_mvpa(subject)
+                X, y, runs = self._calc_data_mvpa(subject, code_model_dim)
             elif analysis == "prda":
                 X, y, runs = self._calc_data_prda()
             with open(fname, "wb") as f:

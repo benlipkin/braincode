@@ -13,11 +13,14 @@ from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, feature, target, base_path, score_only):
+    def __init__(self, feature, target, base_path, score_only, code_model_dim):
         self._feature = feature
         self._target = target
         self._base_path = base_path
         self._score_only = score_only
+        self._code_model_dim = code_model_dim
+        if "code-" not in self.target:
+            self._code_model_dim = ""
         self._loader = DataLoader(self._base_path, self.feature, self.target)
         self._logger = logging.getLogger(self.__class__.__name__)
 
@@ -52,7 +55,7 @@ class Analysis(ABC):
                 ".cache",
                 "scores",
                 self.__class__.__name__.lower(),
-                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}.npy",
+                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}{self._code_model_dim}.npy",
             )
         )
 
@@ -96,8 +99,8 @@ class Analysis(ABC):
 
 
 class Decoder(Analysis):
-    def __init__(self, feature, target, base_path, score_only):
-        super().__init__(feature, target, base_path, score_only)
+    def __init__(self, feature, target, base_path, score_only, code_model_dim):
+        super().__init__(feature, target, base_path, score_only, code_model_dim)
 
     @staticmethod
     def _shuffle_within_runs(y_in, runs):
@@ -132,8 +135,8 @@ class Decoder(Analysis):
 
 
 class MVPA(Decoder):
-    def __init__(self, feature, target, base_path, score_only):
-        super().__init__(feature, target, base_path, score_only)
+    def __init__(self, feature, target, base_path, score_only, code_model_dim):
+        super().__init__(feature, target, base_path, score_only, code_model_dim)
 
     def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
@@ -142,7 +145,9 @@ class MVPA(Decoder):
         ]  # remove this subject as in Ivanova et al (2020)
         scores = np.zeros(len(subjects))
         for idx, subject in enumerate(subjects):
-            X, y, runs = self._loader.get_data(self.__class__.__name__.lower(), subject)
+            X, y, runs = self._loader.get_data(
+                self.__class__.__name__.lower(), subject, self._code_model_dim
+            )
             if mode == "null":
                 y = self._shuffle_within_runs(y, runs)
             scores[idx] = self._cross_validate_model(X, y, runs)
@@ -153,8 +158,8 @@ class MVPA(Decoder):
 
 
 class PRDA(Decoder):
-    def __init__(self, feature, target, base_path, score_only):
-        super().__init__(feature, target, base_path, score_only)
+    def __init__(self, feature, target, base_path, score_only, code_model_dim):
+        super().__init__(feature, target, base_path, score_only, code_model_dim)
 
     def _run_decoding(self, mode):
         X, y, runs = self._loader.get_data(self.__class__.__name__.lower())
