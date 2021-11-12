@@ -7,7 +7,7 @@ import numpy as np
 from data import DataLoader
 from plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
-from sklearn.metrics import explained_variance_score, pairwise_distances
+from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
 
