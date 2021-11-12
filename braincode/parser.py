@@ -73,6 +73,7 @@ class CLI:
             default=self._default,
         )
         self._parser.add_argument("-p", "--base_path", default=self._base_path)
+        self._parser.add_argument("-s", "--score_only", action="store_true")
 
     def _parse_args(self):
         if not hasattr(self, "_parser"):
@@ -92,6 +93,7 @@ class CLI:
         if not hasattr(self, "_args"):
             raise RuntimeError("CLI args not set. Need to parse first.")
         self._base_path = self._args.base_path
+        self._score_only = self._args.score_only
         if self._args.feature != self._default:
             self._features = [self._args.feature]
         if self._args.target != self._default:
@@ -106,7 +108,9 @@ class CLI:
         else:
             raise ValueError("Invalid argument for analysis.")
         self._params = list(
-            itertools.product(self._features, self._targets, [self._base_path])
+            itertools.product(
+                self._features, self._targets, [self._base_path], [self._score_only]
+            )
         )
         self._analysis = globals()[self._args.analysis.upper()]
 
@@ -121,7 +125,7 @@ class CLI:
             raise RuntimeError("Analysis parameters not set. Need to prep first.")
         n_jobs = min(multiprocessing.cpu_count(), len(self._params))
         self._logger.info(
-            f"Running {self._analysis.__name__} for each set of {self._params} parameters using {n_jobs} CPUs."
+            f"Running {self._analysis.__name__} for each set of {len(self._params)} parameters using {n_jobs} CPUs."
         )
         with parallel_backend("loky", n_jobs=n_jobs):
             Parallel()(delayed(self._run_analysis)(param) for param in self._params)

@@ -13,10 +13,11 @@ from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, feature, target, base_path):
+    def __init__(self, feature, target, base_path, score_only):
         self._feature = feature
         self._target = target
         self._base_path = base_path
+        self._score_only = score_only
         self._loader = DataLoader(self._base_path, self.feature, self.target)
         self._logger = logging.getLogger(self.__class__.__name__)
 
@@ -86,17 +87,17 @@ class Analysis(ABC):
     def _plot(self):
         Plotter(self).plot()
 
-    def run(self, perms=True, iters=1000):
+    def run(self, iters=1000):
         self._run_pipeline("score")
-        if perms:
+        if not self._score_only:
             self._run_pipeline("null", iters)
             self._plot()
         return self
 
 
 class Decoder(Analysis):
-    def __init__(self, feature, target, base_path):
-        super().__init__(feature, target, base_path)
+    def __init__(self, feature, target, base_path, score_only):
+        super().__init__(feature, target, base_path, score_only)
 
     @staticmethod
     def _shuffle_within_runs(y_in, runs):
@@ -131,8 +132,8 @@ class Decoder(Analysis):
 
 
 class MVPA(Decoder):
-    def __init__(self, feature, target, base_path):
-        super().__init__(feature, target, base_path)
+    def __init__(self, feature, target, base_path, score_only):
+        super().__init__(feature, target, base_path, score_only)
 
     def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
@@ -152,8 +153,8 @@ class MVPA(Decoder):
 
 
 class PRDA(Decoder):
-    def __init__(self, feature, target, base_path):
-        super().__init__(feature, target, base_path)
+    def __init__(self, feature, target, base_path, score_only):
+        super().__init__(feature, target, base_path, score_only)
 
     def _run_decoding(self, mode):
         X, y, runs = self._loader.get_data(self.__class__.__name__.lower())
