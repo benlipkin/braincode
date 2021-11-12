@@ -19,7 +19,7 @@ def main():
     ]
     datatype, cond, iter, lines, bytes = [], [], [], [], []
     tokens, nodes, halstead, cyclomatic = [], [], [], []
-    for file in Path("../../../braincode/.cache/profiler").glob("en*.benchmark"):
+    for file in Path("../../../../braincode/.cache/profiler").glob("en*.benchmark"):
         with open(file, "r") as f:
             datatype.append(int("math" in file.name))
             cond.append(int("if" in file.name))
