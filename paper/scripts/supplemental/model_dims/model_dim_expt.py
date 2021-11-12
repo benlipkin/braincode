@@ -75,7 +75,7 @@ def plot_data(df):
         for spine in ["right", "top"]:
             axes[i].spines[spine].set_visible(False)
     plt.legend(models["Code Model"].unique())
-    plt.savefig("model_dim_expt.jpg")
+    plt.savefig("model_dim_expt.jpg", bbox_inches="tight")
     plt.close()
 
 
