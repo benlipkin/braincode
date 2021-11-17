@@ -123,9 +123,17 @@ def individual_formatting(ax, dataset):
     plt.ylim(dataset_cfg["ylim"])
     plt.yticks(dataset_cfg["yticks"], labels=[f"{t}" for t in dataset_cfg["yticks"]])
     plt.legend(loc="center left", bbox_to_anchor=dataset_cfg["legend_loc"])
-    for i, target in enumerate(data.Target.unique()):
-        baseline = data[data.Target == target]["Null Mean"].mean()
-        ax.plot([i - 0.25, i + 0.6], [baseline, baseline], "--", color="0.25")
+    # for i, target in enumerate(data.Target.unique()):
+    #     baseline = data[data.Target == target]["Null Mean"].mean()
+    #     ax.plot([i - 0.25, i + 0.6], [baseline, baseline], "--", color="0.25")
+    if dataset == "mvpa_properties_cls":
+        ax.plot([-0.35, 2.65], [0.5, 0.5], "--", color="0.25")
+        ax.plot([2.65, 3.65], [0.33, 0.33], "--", color="0.25")
+    elif dataset == "mvpa_properties_rgr":
+        ax.plot([-0.35, 1.65], [0, 0], "--", color="0.25")
+    elif dataset == "mvpa_models":
+        ax.plot([-0.35, 6.65], [0.5, 0.5], "--", color="0.25")
+    ### Rev comment for theoretical instead of empirical baseline
     plt.gcf().set_size_inches(*dataset_cfg["size"])
     x_start = -0.12
     for target in data.Target.unique():
