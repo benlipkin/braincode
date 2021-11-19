@@ -170,18 +170,29 @@ def make_inline_plot(data, dataset):
             basemodel = "Random Embedding"
             samples = samples[samples.Target != basemodel]
             score = samples["Score"]
-            ylim = [0.49, 0.61]
+            error = samples["95CI"]
+            ylim = [0.49, 0.63]
             xlabel = "Code Model"
             ylabel = "Rank Accuracy (%)"
             size = [6, 2]
         else:
             score = samples["z"]
-            ylim = [-1, 10]
+            error = np.divide(samples["95CI"], samples["Null SD"])
+            ylim = [-1, 12]
             xlabel = "Code Property"
             ylabel = "Decoding Score (z)"
             size = [4, 2]
         c = np.array([0.1 + (i * 0.30), 0.5 + (i * 0.15), 0.9 - (i * 0.30)])
-        plt.plot(samples["Target"], score, "D-", color=c, markersize=8, linewidth=3)
+        plt.errorbar(
+            samples["Target"],
+            score,
+            yerr=error,
+            fmt="D-",
+            color=c,
+            markersize=8,
+            linewidth=3,
+            capsize=5,
+        )
     plt.xticks(rotation=0, fontsize=12)
     plt.yticks(fontsize=12)
     plt.xlabel(xlabel, fontweight="bold", fontsize=12)
@@ -194,7 +205,7 @@ def make_inline_plot(data, dataset):
         samples = data[data.Feature == network]
         if "model" in dataset:
             basemodel = "Random Embedding"
-            baseline = samples[samples.Target == basemodel]["Score"]
+            baseline = samples[samples.Target == basemodel]["Score"].values
         else:
             baseline = 0
         plt.plot([0, len(samples)], [baseline, baseline], "--", color="0.25")
