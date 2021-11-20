@@ -108,7 +108,7 @@ def individual_formatting(ax, dataset):
         },
         "mvpa_models": {
             "xlabel": "Code Model",
-            "ylabel": "Rank Accuracy (%)",
+            "ylabel": "Ranked Accuracy (%)",
             "ylim": [0.45, 0.65],
             "yticks": [0.45, 0.50, 0.55, 0.60, 0.65],
             "size": (8, 4),
@@ -173,7 +173,7 @@ def make_inline_plot(data, dataset):
             error = samples["95CI"]
             ylim = [0.49, 0.63]
             xlabel = "Code Model"
-            ylabel = "Rank Accuracy (%)"
+            ylabel = "Ranked Accuracy (%)"
             size = [6, 2]
         else:
             score = samples["z"]
