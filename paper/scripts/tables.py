@@ -83,6 +83,8 @@ def make_table(dataset):
     data = make_pivot_table(data, dataset)
     data = reorder_columns(data, dataset)
     data = format_scores(data, dataset)
+    if "ablation" in dataset:
+        data = data.loc[:, [col for col in data.columns if "+" in col]]
     latex = format_latex(data.to_latex(), dataset)
     with open(f"../tables/latex/{dataset}.tex", "w") as f:
         f.write(latex)
@@ -149,7 +151,6 @@ def main():
         "mvpa_models_subjects_crossed",
         "mvpa_properties_all_ablation_subjects",
         "mvpa_models_ablation_subjects",
-        "mvpa_models_ablation_subjects_crossed",
     ]
     for dataset in datasets_stats:
         make_latex_table(dataset, "")

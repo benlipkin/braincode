@@ -8,9 +8,9 @@ def load_data(dataset):
 
 
 def update_names(data):
-    data.loc[data.Feature == "MD+lang+vis+aud", "Feature"] = "MD+LVA"
-    data.loc[data.Feature == "MD+lang+vis", "Feature"] = "MD+LV"
     data.loc[data.Feature == "MD+lang", "Feature"] = "MD+L"
+    data.loc[data.Feature == "MD+vis", "Feature"] = "MD+V"
+    data.loc[data.Feature == "lang+vis", "Feature"] = "L+V"
     data.loc[data.Feature == "MD", "Feature"] = "MD"
     data.loc[data.Feature == "lang", "Feature"] = "Language"
     data.loc[data.Feature == "vis", "Feature"] = "Visual"

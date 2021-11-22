@@ -36,7 +36,7 @@ def make_table(name, analysis, features, targets):
     table["Null SD"] = np.array(null_std)
     table["z"] = (table["Score"] - table["Null Mean"]) / table["Null SD"]
     table["p (corrected)"] = st.norm.sf(table["z"]) * table.shape[0]
-    table["h (corrected)"] = (table["p (corrected)"] < 0.01).astype(int)
+    table["h (corrected)"] = (table["p (corrected)"] < 1e-2).astype(int)
     table.to_csv(f"../tables/raw/{analysis}.csv", index=False)
 
 
@@ -140,10 +140,12 @@ def make_table4():
     name = "mvpa"
     analysis = "mvpa_properties_cls_ablation"
     features = [
-        "MD+lang+vis+aud",
-        "MD+lang+vis",
         "MD+lang",
+        "MD+vis",
+        "lang+vis",
         "MD",
+        "lang",
+        "vis",
     ]
     targets = [
         "code",
@@ -159,10 +161,12 @@ def make_table5():
     name = "mvpa"
     analysis = "mvpa_properties_rgr_ablation"
     features = [
-        "MD+lang+vis+aud",
-        "MD+lang+vis",
         "MD+lang",
+        "MD+vis",
+        "lang+vis",
         "MD",
+        "lang",
+        "vis",
     ]
     targets = [
         "tokens",
@@ -176,10 +180,12 @@ def make_table6():
     name = "mvpa"
     analysis = "mvpa_models_ablation"
     features = [
-        "MD+lang+vis+aud",
-        "MD+lang+vis",
         "MD+lang",
+        "MD+vis",
+        "lang+vis",
         "MD",
+        "lang",
+        "vis",
     ]
     targets = [
         "random",
@@ -219,10 +225,12 @@ def make_table8():
     name = "mvpa"
     analysis = "mvpa_properties_all_ablation"
     features = [
-        "MD+lang+vis+aud",
-        "MD+lang+vis",
         "MD+lang",
+        "MD+vis",
+        "lang+vis",
         "MD",
+        "lang",
+        "vis",
     ]
     targets = [
         "code",
@@ -261,10 +269,12 @@ def make_table10():
     name = "mvpa"
     analysis = "mvpa_properties_supplemental_ablation"
     features = [
-        "MD+lang+vis+aud",
-        "MD+lang+vis",
         "MD+lang",
+        "MD+vis",
+        "lang+vis",
         "MD",
+        "lang",
+        "vis",
     ]
     targets = [
         "tokens",
