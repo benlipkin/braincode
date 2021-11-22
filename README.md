@@ -8,12 +8,14 @@ This pipeline supports two major functions.
 -   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
 
 To run all experiments from the paper, the following commands will suffice after setup:
+
 ```bash
 python braincode mvpa # runs all core MVPA analyses in parallel
 python braincode prda # runs all supplemental PRDA analyses in parallel
 ```
 
 To regenerate tables and figures from the paper, run the following after completing the analyses:
+
 ```bash
 cd paper/scripts
 source run.sh # pulls scores, runs stats, generates plots and tables
@@ -25,7 +27,7 @@ source run.sh # pulls scores, runs stats, generates plots and tables
 -   Multiple Demand (MD)
 -   Visual
 -   Auditory
--   MD+L, MD+LV, MD+LVA (unions of above networks)
+-   MD+L, MD+V, L+V (combinations of critical networks)
 
 ### Supported Code Features
 
@@ -69,11 +71,11 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ## Run
 
 ```bash
-usage:  [-h]
-        [-f {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-        [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-        [-p BASE_PATH]
-        {rsa,mvpa,prda}
+usage: braincode [-h]
+                 [-f {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+                 [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
+                 [-p BASE_PATH] [-s] [-d CODE_MODEL_DIM]
+                 {rsa,mvpa,prda}
 
 run specified analysis type
 
@@ -82,9 +84,11 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-MD+lang+vis+aud,brain-MD+lang+vis,brain-MD+lang,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
-  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -f {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -p BASE_PATH, --base_path BASE_PATH
+  -s, --score_only
+  -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
 ```
 
 note: BASE_PATH must be specified to match setup.sh if changed from default.
@@ -97,9 +101,6 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 -   brain-lang
 -   brain-vis
 -   brain-aud
--   brain-MD+L
--   brain-MD+LV
--   brain-MD+LVA
 
 **Supported targets**
 

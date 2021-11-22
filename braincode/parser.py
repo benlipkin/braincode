@@ -21,9 +21,12 @@ class CLI:
             "prda",
         ]
         self._features = [
-            "brain-MD+lang+vis+aud",
-            "brain-MD+lang+vis",
             "brain-MD+lang",
+            "brain-MD+vis",
+            "brain-MD+aud",
+            "brain-lang+vis",
+            "brain-lang+aud",
+            "brain-vis+aud",
             "brain-MD",
             "brain-lang",
             "brain-vis",

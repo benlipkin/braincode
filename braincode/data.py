@@ -35,15 +35,10 @@ class DataLoader:
         return np.prod(self._events)
 
     @staticmethod
-    def _get_network_indices(network, mat):
-        if network == "MD+lang+vis+aud":
-            network_indices = (
-                mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"] + mat["aud_tags"]
-            )
-        elif network == "MD+lang+vis":
-            network_indices = mat["MD_tags"] + mat["lang_tags"] + mat["vis_tags"]
-        elif network == "MD+lang":
-            network_indices = mat["MD_tags"] + mat["lang_tags"]
+    def _get_joint_network_indices(network, mat):
+        networks = network.split("+")
+        if len(networks) == 2:
+            network_indices = mat[f"{networks[0]}_tags"] + mat[f"{networks[1]}_tags"]
         else:
             raise ValueError("Network not supported. Select valid network.")
         network_indices[network_indices > 1] = 1
@@ -57,7 +52,7 @@ class DataLoader:
         mat = loadmat(subject)
         network = self._feature.split("-")[1]
         if "+" in network:
-            network_indices = self._get_network_indices(network, mat)
+            network_indices = self._get_joint_network_indices(network, mat)
         else:
             network_indices = mat[f"{network}_tags"]
         return (
