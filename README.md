@@ -86,9 +86,9 @@ optional arguments:
   -h, --help            show this help message and exit
   -f {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
   -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
-  -p BASE_PATH, --base_path BASE_PATH
   -s, --score_only
   -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
+  -p BASE_PATH, --base_path BASE_PATH
 ```
 
 note: BASE_PATH must be specified to match setup.sh if changed from default.

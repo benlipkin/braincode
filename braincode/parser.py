@@ -75,9 +75,9 @@ class CLI:
             choices=[self._default] + self._targets,
             default=self._default,
         )
-        self._parser.add_argument("-p", "--base_path", default=self._base_path)
         self._parser.add_argument("-s", "--score_only", action="store_true")
         self._parser.add_argument("-d", "--code_model_dim", default="")
+        self._parser.add_argument("-p", "--base_path", default=self._base_path)
 
     def _parse_args(self):
         if not hasattr(self, "_parser"):
