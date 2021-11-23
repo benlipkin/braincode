@@ -74,7 +74,7 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 usage: braincode [-h]
                  [-f {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
                  [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-                 [-p BASE_PATH] [-s] [-d CODE_MODEL_DIM]
+                 [-s] [-d CODE_MODEL_DIM] [-p BASE_PATH]
                  {rsa,mvpa,prda}
 
 run specified analysis type
