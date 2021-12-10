@@ -62,7 +62,8 @@ class Analysis(ABC):
     def _set_and_save(self, mode, val, fname):
         setattr(self, f"_{mode}", val)
         np.save(fname, val)
-        self._logger.info(f"Caching '{fname.name}'.")
+        tag = f": {val:.3f}" if mode == "score" else ""
+        self._logger.info(f"Caching '{fname.name}'{tag}.")
 
     def _run_pipeline(self, mode, iters=1):
         if mode not in ["score", "null"]:

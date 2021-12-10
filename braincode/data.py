@@ -110,6 +110,8 @@ class DataLoader:
                     "code-xlnet",
                     "code-ct",
                     "code-codeberta",
+                    "code-ada",
+                    "code-babbage",
                 ]:
                     encoder = ProgramEncoder(
                         self._target, self._base_path, code_model_dim

@@ -27,6 +27,8 @@ from sklearn.random_projection import GaussianRandomProjection
 from tensorflow.keras.preprocessing.text import Tokenizer
 from transformers import RobertaModel, RobertaTokenizer
 
+# import openai
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 os.environ["DATASETS_VERBOSITY"] = "error"
@@ -41,13 +43,17 @@ class ProgramEncoder:
         elif encoder == "code-tfidf":
             self._encoder = TFIDF(base_path)
         elif encoder == "code-seq2seq":
-            self._encoder = CodeSeq2seq(base_path)
+            self._encoder = Seq2Seq(base_path)
         elif encoder == "code-xlnet":
             self._encoder = XLNet(base_path)
         elif encoder == "code-ct":
             self._encoder = CodeTransformer(base_path)
         elif encoder == "code-codeberta":
             self._encoder = CodeBERTa(base_path)
+        elif encoder == "code-ada":
+            self._encoder = AdaGPT3(base_path)
+        elif encoder == "code-babbage":
+            self._encoder = BabbageGPT3(base_path)
         else:
             raise ValueError("Encoder not recognized. Select valid encoder.")
         self._code_model_dim = code_model_dim
@@ -69,7 +75,7 @@ class ProgramEncoder:
 class RandomEmbedding:
     def __init__(self, base_path):
         self._base_path = base_path
-        seq2seq_cfg = CodeSeq2seq(base_path)
+        seq2seq_cfg = Seq2Seq(base_path)
         self._vocab = seq2seq_cfg._vocab
         self._vocab_size = len(self._vocab)
         self._embedding_size = seq2seq_cfg._model.encoder.hidden_size
@@ -300,7 +306,7 @@ class CodeBERTa(Transformer):
         )[1]
 
 
-class CodeSeq2seq(Transformer):
+class Seq2Seq(Transformer):
     def __init__(self, base_path):
         super().__init__(base_path)
         cache_dir = Path(
@@ -328,3 +334,43 @@ class CodeSeq2seq(Transformer):
             self._vocab,
             self._device,
         )
+
+
+class OpenAiGPT3:
+    def __init__(self, base_path):
+        self._base_path = base_path
+        openai.api_key_path = Path(os.path.join(self._base_path, ".openai_api_key"))
+
+    @property
+    @abstractmethod
+    def _engine(self):
+        raise NotImplementedError()
+
+    def _get_rep(self, program):
+        return openai.Engine(id=self._engine).embeddings(
+            input=[program.replace("\n", " ")]
+        )["data"][0]["embedding"]
+
+    def fit_transform(self, programs):
+        outputs = []
+        for program in programs:
+            outputs.append(self._get_rep(program))
+        return np.array(outputs)
+
+
+class AdaGPT3(OpenAiGPT3):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+
+    @property
+    def _engine(self):
+        return "ada-code-search-code"
+
+
+class BabbageGPT3(OpenAiGPT3):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+
+    @property
+    def _engine(self):
+        return "babbage-code-search-code"
