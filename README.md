@@ -46,13 +46,15 @@ source run.sh # pulls scores, runs stats, generates plots and tables
 
 **Code Models**
 
+-   Token Projection
 -   BagOfWords
 -   TF-IDF
 -   seq2seq<sup> [1](https://github.com/IBM/pytorch-seq2seq)</sup>
 -   XLNet<sup> [2](https://arxiv.org/pdf/1906.08237.pdf)</sup>
 -   CodeTransformer<sup> [3](https://arxiv.org/pdf/2103.11318.pdf)</sup>
--   CodeBERTa<sup> [4](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
--   RandomEmbedding
+-   CodeGPT<sup> [4](https://huggingface.co/microsoft/CodeGPT-small-py)</sup>
+-   CodeBERT<sup> [5](https://arxiv.org/pdf/2002.08155.pdf)</sup>
+-   CodeBERTa<sup> [6](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
 
 ## Installation
 
@@ -71,11 +73,11 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ## Run
 
 ```bash
-usage: braincode [-h]
-                 [-f {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-                 [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}]
-                 [-s] [-d CODE_MODEL_DIM] [-p BASE_PATH]
-                 {rsa,mvpa,prda}
+usage:  [-h]
+        [-f {all,brain-MD+lang,brain-MD+vis,brain-MD+aud,brain-lang+vis,brain-lang+aud,brain-vis+aud,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}]
+        [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}]
+        [-s] [-d CODE_MODEL_DIM] [-p BASE_PATH]
+        {rsa,mvpa,prda}
 
 run specified analysis type
 
@@ -84,8 +86,8 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --feature {all,brain-MD+lang,brain-MD+vis,brain-lang+vis,brain-MD,brain-lang,brain-vis,brain-aud,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
-  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-random,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-ct,code-codeberta}
+  -f {all,brain-MD+lang,brain-MD+vis,brain-MD+aud,brain-lang+vis,brain-lang+aud,brain-vis+aud,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}, --feature {all,brain-MD+lang,brain-MD+vis,brain-MD+aud,brain-lang+vis,brain-lang+aud,brain-vis+aud,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}
+  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}
   -s, --score_only
   -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
   -p BASE_PATH, --base_path BASE_PATH
@@ -114,13 +116,15 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 -   task-nodes
 -   task-halstead
 -   task-cyclomatic
--   code-random
+-   code-projection
 -   code-bow
 -   code-tfidf
 -   code-seq2seq
+-   code-transformer
 -   code-xlnet
--   code-ct
--   code-codeberta
+-   code-bert
+-   code-gpt2
+-   code-roberta
 
 **Sample run**
 
@@ -134,13 +138,15 @@ python braincode mvpa -f brain-MD -t code-tfidf
 
 **Supported features**
 
--   code-random
+-   code-projection
 -   code-bow
 -   code-tfidf
 -   code-seq2seq
+-   code-transformer
 -   code-xlnet
--   code-ct
--   code-codeberta
+-   code-bert
+-   code-gpt2
+-   code-roberta
 
 **Supported targets**
 
@@ -155,10 +161,10 @@ python braincode mvpa -f brain-MD -t code-tfidf
 
 **Sample run**
 
-To decode node count from the CodeBERTa program representations:
+To decode node count from the CodeBERT program representations:
 
 ```bash
-python braincode prda -f code-codeberta -t task-nodes
+python braincode prda -f code-bert -t task-nodes
 ```
 
 ## Citation
