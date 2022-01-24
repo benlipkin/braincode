@@ -25,7 +25,7 @@ from code_transformer.utils.inference import (get_model_manager,
 from datasets import load_dataset
 from sklearn.random_projection import GaussianRandomProjection
 from tensorflow.keras.preprocessing.text import Tokenizer
-from transformers import RobertaModel, RobertaTokenizer
+from transformers import AutoModel, AutoTokenizer
 
 # import openai
 
@@ -36,19 +36,23 @@ os.environ["DATASETS_VERBOSITY"] = "error"
 
 class ProgramEncoder:
     def __init__(self, encoder, base_path, code_model_dim):
-        if encoder == "code-random":
-            self._encoder = RandomEmbedding(base_path)
+        if encoder == "code-projection":
+            self._encoder = TokenProjection(base_path)
         elif encoder == "code-bow":
             self._encoder = BagOfWords(base_path)
         elif encoder == "code-tfidf":
             self._encoder = TFIDF(base_path)
         elif encoder == "code-seq2seq":
-            self._encoder = Seq2Seq(base_path)
-        elif encoder == "code-xlnet":
-            self._encoder = XLNet(base_path)
-        elif encoder == "code-ct":
+            self._encoder = CodeSeq2Seq(base_path)
+        elif encoder == "code-transformer":
             self._encoder = CodeTransformer(base_path)
-        elif encoder == "code-codeberta":
+        elif encoder == "code-xlnet":
+            self._encoder = CodeXLNet(base_path)
+        elif encoder == "code-bert":
+            self._encoder = CodeBERT(base_path)
+        elif encoder == "code-gpt2":
+            self._encoder = CodeGPT2(base_path)
+        elif encoder == "code-roberta":
             self._encoder = CodeBERTa(base_path)
         elif encoder == "code-ada":
             self._encoder = AdaGPT3(base_path)
@@ -72,10 +76,10 @@ class ProgramEncoder:
             return encoding
 
 
-class RandomEmbedding:
+class TokenProjection:
     def __init__(self, base_path):
         self._base_path = base_path
-        seq2seq_cfg = Seq2Seq(base_path)
+        seq2seq_cfg = CodeSeq2Seq(base_path)
         self._vocab = seq2seq_cfg._vocab
         self._vocab_size = len(self._vocab)
         self._embedding_size = seq2seq_cfg._model.encoder.hidden_size
@@ -104,7 +108,7 @@ class CountVectorizer(ABC):
         self._dataset = load_dataset(
             "code_search_net", "python", split="validation", cache_dir=cache_dir
         )["func_code_string"]
-        self._model = Tokenizer(num_words=RandomEmbedding(base_path)._vocab_size)
+        self._model = Tokenizer(num_words=TokenProjection(base_path)._vocab_size)
 
     @property
     @abstractmethod
@@ -137,15 +141,16 @@ class TFIDF(CountVectorizer):
         return "tfidf"
 
 
-class Transformer(ABC):
+class DNN(ABC):
     def __init__(self, base_path):
         self._base_path = base_path
 
     @staticmethod
     def _get_rep(forward_output):
-        if forward_output.device != "cpu":
-            forward_output = forward_output.cpu()
-        return forward_output.detach().numpy().squeeze()
+        rep = forward_output[0].mean(axis=1)
+        if rep.device != "cpu":
+            rep = rep.cpu()
+        return rep.detach().numpy().squeeze()
 
     @abstractmethod
     def _forward_pipeline(program):
@@ -158,7 +163,43 @@ class Transformer(ABC):
         return np.array(outputs)
 
 
-class ZuegnerModel(Transformer):
+class CodeSeq2Seq(DNN):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        cache_dir = Path(
+            os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
+        )
+        if torch.cuda.is_available():
+            device_count = torch.torch.cuda.device_count()
+            if device_count > 0:
+                device_id = random.randrange(device_count)
+                self._device = torch.device("cuda:" + str(device_id))
+                torch.cuda.set_device(self._device)
+        else:
+            self._device = "cpu"
+        with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
+            self._model = torch.load(fp, map_location=self._device)
+        with open(cache_dir.joinpath("vocab_code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
+            self._vocab = pkl.load(fp)
+        self._max_seq_len = params["max_len"]
+
+    @staticmethod
+    def _get_rep(rep):
+        if rep.device != "cpu":
+            rep = rep.cpu()
+        return rep.detach().numpy().squeeze()
+
+    def _forward_pipeline(self, program):
+        return get_representation(
+            self._model,
+            tokenize_programs([program])[0],
+            self._max_seq_len,
+            self._vocab,
+            self._device,
+        )
+
+
+class ZuegnerModel(DNN):
     def __init__(self, base_path):
         super().__init__(base_path)
         model_manager = get_model_manager(self._model_type)
@@ -239,10 +280,10 @@ class ZuegnerModel(Transformer):
             self._model_config,
             self._model_type,
         )
-        return self._forward(batch).all_emb[-1][1]
+        return self._forward(batch)
 
 
-class XLNet(ZuegnerModel):
+class CodeXLNet(ZuegnerModel):
     def __init__(self, base_path):
         super().__init__(base_path)
 
@@ -282,58 +323,57 @@ class CodeTransformer(ZuegnerModel):
         return self._model.lm_encoder.forward_batch(batch, need_all_embeddings=True)
 
 
-class CodeBERTa(Transformer):
+class HFModel(DNN):
     def __init__(self, base_path):
         super().__init__(base_path)
-        spec = "huggingface/CodeBERTa-small-v1"
         cache_dir = Path(
             os.path.join(
                 self._base_path,
                 ".cache",
                 "models",
-                "huggingface",
-                spec.split(os.sep)[-1],
+                self._spec.split(os.sep)[0],
+                self._spec.split(os.sep)[-1],
             )
         )
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
-        self._tokenizer = RobertaTokenizer.from_pretrained(spec, cache_dir=cache_dir)
-        self._model = RobertaModel.from_pretrained(spec, cache_dir=cache_dir)
+        self._tokenizer = AutoTokenizer.from_pretrained(self._spec, cache_dir=cache_dir)
+        self._model = AutoModel.from_pretrained(self._spec, cache_dir=cache_dir)
+
+    @property
+    @abstractmethod
+    def _spec(self):
+        raise NotImplementedError()
 
     def _forward_pipeline(self, program):
-        return self._model.forward(
-            self._tokenizer.encode(program, return_tensors="pt")
-        )[1]
+        return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
 
 
-class Seq2Seq(Transformer):
+class CodeBERT(HFModel):
     def __init__(self, base_path):
         super().__init__(base_path)
-        cache_dir = Path(
-            os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
-        )
-        if torch.cuda.is_available():
-            device_count = torch.torch.cuda.device_count()
-            if device_count > 0:
-                device_id = random.randrange(device_count)
-                self._device = torch.device("cuda:" + str(device_id))
-                torch.cuda.set_device(self._device)
-        else:
-            self._device = "cpu"
-        with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
-            self._model = torch.load(fp, map_location=self._device)
-        with open(cache_dir.joinpath("vocab_code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
-            self._vocab = pkl.load(fp)
-        self._max_seq_len = params["max_len"]
 
-    def _forward_pipeline(self, program):
-        return get_representation(
-            self._model,
-            tokenize_programs([program])[0],
-            self._max_seq_len,
-            self._vocab,
-            self._device,
-        )
+    @property
+    def _spec(self):
+        return "microsoft/codebert-base-mlm"
+
+
+class CodeGPT2(HFModel):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+
+    @property
+    def _spec(self):
+        return "microsoft/CodeGPT-small-py"
+
+
+class CodeBERTa(HFModel):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+
+    @property
+    def _spec(self):
+        return "huggingface/CodeBERTa-small-v1"
 
 
 class OpenAiGPT3:

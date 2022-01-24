@@ -103,15 +103,17 @@ class DataLoader:
                     self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )
                 if self._target in [
-                    "code-random",
+                    "code-projection",
                     "code-bow",
                     "code-tfidf",
                     "code-seq2seq",
+                    "code-transformer",
                     "code-xlnet",
-                    "code-ct",
-                    "code-codeberta",
-                    "code-ada",
-                    "code-babbage",
+                    "code-bert",
+                    "code-gpt2",
+                    "code-roberta",
+                    # "code-ada",
+                    # "code-babbage",
                 ]:
                     encoder = ProgramEncoder(
                         self._target, self._base_path, code_model_dim
@@ -173,7 +175,7 @@ class DataLoader:
             y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
                 programs
             )
-        X = ProgramEncoder(self._feature, self._base_path).fit_transform(programs)
+        X = ProgramEncoder(self._feature, self._base_path, "").fit_transform(programs)
         runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
         return X, y, runs
 
