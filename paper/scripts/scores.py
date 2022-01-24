@@ -61,13 +61,15 @@ def make_table0():
     name = "prda"
     analysis = "prda_properties"
     features = [
-        "random",
-        "codeberta",
-        "ct",
+        "projection",
+        "roberta",
+        "transformer",
+        "bert",
+        "gpt2",
         "xlnet",
         "seq2seq",
-        "bow",
         "tfidf",
+        "bow",
     ]
     targets = [
         "content",
@@ -124,9 +126,11 @@ def make_table3():
         "aud",
     ]
     targets = [
-        "random",
-        "codeberta",
-        "ct",
+        "projection",
+        "roberta",
+        "transformer",
+        "bert",
+        "gpt2",
         "xlnet",
         "seq2seq",
         "tfidf",
@@ -188,13 +192,15 @@ def make_table6():
         "vis",
     ]
     targets = [
-        "random",
-        "codeberta",
-        "ct",
+        "projection",
+        "roberta",
+        "transformer",
+        "bert",
+        "gpt2",
         "xlnet",
         "seq2seq",
-        "bow",
         "tfidf",
+        "bow",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)

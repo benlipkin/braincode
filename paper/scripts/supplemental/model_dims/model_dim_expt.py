@@ -7,6 +7,7 @@ import pandas as pd
 
 mpl.rcParams["axes.prop_cycle"] = mpl.cycler(
     color=[
+        "tab:brown",
         "tab:red",
         "tab:orange",
         "tab:olive",
@@ -14,13 +15,24 @@ mpl.rcParams["axes.prop_cycle"] = mpl.cycler(
         "tab:cyan",
         "tab:blue",
         "tab:purple",
+        "tab:pink",
     ]
 )
 
 
 def get_table():
     brain_networks = ["MD", "lang", "vis", "aud"]
-    code_models = ["random", "bow", "tfidf", "seq2seq", "xlnet", "ct", "codeberta"]
+    code_models = [
+        "projection",
+        "bow",
+        "tfidf",
+        "seq2seq",
+        "xlnet",
+        "bert",
+        "gpt2",
+        "transformer",
+        "roberta",
+    ]
     dims = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
     rows = []
     for opt in itertools.product(brain_networks, code_models, dims):
@@ -38,13 +50,15 @@ def update_names(df):
     df.loc[df["Brain Network"] == "lang", "Brain Network"] = "Language"
     df.loc[df["Brain Network"] == "vis", "Brain Network"] = "Visual"
     df.loc[df["Brain Network"] == "aud", "Brain Network"] = "Auditory"
-    df.loc[df["Code Model"] == "random", "Code Model"] = "RandomEmbedding"
+    df.loc[df["Code Model"] == "projection", "Code Model"] = "TokenProjection"
     df.loc[df["Code Model"] == "bow", "Code Model"] = "BagOfWords"
     df.loc[df["Code Model"] == "tfidf", "Code Model"] = "TF-IDF"
     df.loc[df["Code Model"] == "seq2seq", "Code Model"] = "Seq2Seq"
     df.loc[df["Code Model"] == "xlnet", "Code Model"] = "XLNet"
-    df.loc[df["Code Model"] == "ct", "Code Model"] = "CodeTransformer"
-    df.loc[df["Code Model"] == "codeberta", "Code Model"] = "CodeBERTa"
+    df.loc[df["Code Model"] == "transformer", "Code Model"] = "CodeTransformer"
+    df.loc[df["Code Model"] == "bert", "Code Model"] = "CodeBERT"
+    df.loc[df["Code Model"] == "gpt2", "Code Model"] = "CodeGPT"
+    df.loc[df["Code Model"] == "roberta", "Code Model"] = "CodeBERTa"
     return df
 
 

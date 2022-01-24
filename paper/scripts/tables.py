@@ -35,7 +35,7 @@ def reorder_columns(data, dataset):
     else:
         data = data.iloc[:, [2, 1, 3, 0]]
     if "models" in dataset:
-        data = data.iloc[[3, 0, 5, 4, 6, 2, 1], :]
+        data = data.iloc[[7, 2, 4, 1, 3, 8, 5, 6, 0], :]
     return data
 
 
@@ -62,8 +62,8 @@ def format_scores(data, dataset):
 def format_latex(latex, dataset):
     latex = latex.replace("{lllll}", "{l||llll}")
     latex = latex.replace("{llllll}", "{l||l|llll}")
-    latex = latex.replace("{llllllll}", "{l||lllllll}")
-    latex = latex.replace("{lllllllll}", "{l||l|lllllll}")
+    latex = latex.replace("{llllllllll}", "{l||lllllllll}")
+    latex = latex.replace("{lllllllllll}", "{l||l|lllllllll}")
     latex = latex.replace("& Feature", "Feature &")
     if "prda" in dataset:
         latex = latex.replace("Feature", "Model Representation")

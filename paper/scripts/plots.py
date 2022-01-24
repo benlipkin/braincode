@@ -15,13 +15,15 @@ def update_names(data):
     data.loc[data.Feature == "lang", "Feature"] = "Language"
     data.loc[data.Feature == "vis", "Feature"] = "Visual"
     data.loc[data.Feature == "aud", "Feature"] = "Auditory"
-    data.loc[data.Feature == "random", "Feature"] = "Random Embedding"
+    data.loc[data.Feature == "projection", "Feature"] = "Token Projection"
     data.loc[data.Feature == "bow", "Feature"] = "Bag Of Words"
     data.loc[data.Feature == "tfidf", "Feature"] = "TF-IDF"
     data.loc[data.Feature == "seq2seq", "Feature"] = "Seq2Seq"
     data.loc[data.Feature == "xlnet", "Feature"] = "XLNet"
-    data.loc[data.Feature == "ct", "Feature"] = "CodeTransformer"
-    data.loc[data.Feature == "codeberta", "Feature"] = "CodeBERTa"
+    data.loc[data.Feature == "transformer", "Feature"] = "CodeTransformer"
+    data.loc[data.Feature == "roberta", "Feature"] = "CodeBERTa"
+    data.loc[data.Feature == "bert", "Feature"] = "CodeBERT"
+    data.loc[data.Feature == "gpt2", "Feature"] = "CodeGPT"
     data.loc[data.Target == "code", "Target"] = "Code vs. Sentence"
     data.loc[data.Target == "lang", "Target"] = "Variable Language"
     data.loc[data.Target == "content", "Target"] = "Data Type"
@@ -32,13 +34,15 @@ def update_names(data):
     data.loc[data.Target == "tokens", "Target"] = "Static Analysis"
     data.loc[data.Target == "halstead", "Target"] = "Halstead Difficulty"
     data.loc[data.Target == "cyclomatic", "Target"] = "Cyclomatic Complexity"
-    data.loc[data.Target == "random", "Target"] = "Random Embedding"
+    data.loc[data.Target == "projection", "Target"] = "Token Projection"
     data.loc[data.Target == "bow", "Target"] = "Bag Of Words"
     data.loc[data.Target == "tfidf", "Target"] = "TF-IDF"
     data.loc[data.Target == "seq2seq", "Target"] = "Seq2Seq"
     data.loc[data.Target == "xlnet", "Target"] = "XLNet"
-    data.loc[data.Target == "ct", "Target"] = "CodeTransformer"
-    data.loc[data.Target == "codeberta", "Target"] = "CodeBERTa"
+    data.loc[data.Target == "transformer", "Target"] = "CodeTransformer"
+    data.loc[data.Target == "roberta", "Target"] = "CodeBERTa"
+    data.loc[data.Target == "bert", "Target"] = "CodeBERT"
+    data.loc[data.Target == "gpt2", "Target"] = "CodeGPT"
     return data
 
 
@@ -56,7 +60,7 @@ def make_base_plot(data, dataset):
             r = np.array([x + bar_width for x in r])
         if "ablation" in dataset:
             color = np.array(
-                [1.0 - (cidx * 0.3), 0.05 + (cidx * 0.15), 0 + (0.3 * cidx)]
+                [1.0 - (cidx * 0.2), 0.05 + (cidx * 0.15), 0 + (0.2 * cidx)]
             )
         else:
             color = np.array(
@@ -132,7 +136,7 @@ def individual_formatting(ax, dataset):
     elif dataset == "mvpa_properties_rgr":
         ax.plot([-0.35, 1.65], [0, 0], "--", color="0.25")
     elif dataset == "mvpa_models":
-        ax.plot([-0.35, 6.65], [0.5, 0.5], "--", color="0.25")
+        ax.plot([-0.35, 8.65], [0.5, 0.5], "--", color="0.25")
     ### Rev comment for theoretical instead of empirical baseline
     plt.gcf().set_size_inches(*dataset_cfg["size"])
     x_start = -0.12
@@ -167,7 +171,7 @@ def make_inline_plot(data, dataset):
     for i, network in enumerate(data.Feature.unique()):
         samples = data[data.Feature == network]
         if "model" in dataset:
-            basemodel = "Random Embedding"
+            basemodel = "Token Projection"
             samples = samples[samples.Target != basemodel]
             score = samples["Score"]
             error = samples["95CI"]
@@ -204,7 +208,7 @@ def make_inline_plot(data, dataset):
     for network in data.Feature.unique():
         samples = data[data.Feature == network]
         if "model" in dataset:
-            basemodel = "Random Embedding"
+            basemodel = "Token Projection"
             baseline = samples[samples.Target == basemodel]["Score"].values
         else:
             baseline = 0
