@@ -3,24 +3,8 @@ from setuptools import find_packages, setup
 with open("README.md") as readme_file:
     readme = readme_file.read()
 
-requirements = [
-    "numpy==1.18.1",
-    "scipy==1.4.1",
-    "scikit_learn==0.24.1",
-    "torch==1.4.0",
-    "tensorflow==2.3.0",
-    "transformers==3.1.0",
-    "datasets==1.9.0",
-    "matplotlib==3.3.4",
-    "joblib==0.14.1",
-    "tqdm==4.43.0",
-    "code-transformer @ git+https://github.com/danielzuegner/code-transformer.git",
-    "torchtext==0.5.0",
-    "dill==0.3.4",
-    "astor==0.8.1",
-    "line_profiler==3.3.0",
-    "radon==5.1.0",
-]
+with open("requirements.txt") as reqs_file:
+    requirements = reqs_file.read().split("\n")
 
 setup(
     name="BrainCode",
