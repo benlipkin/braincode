@@ -29,7 +29,7 @@ def make_pivot_table(data, dataset):
 
 def reorder_columns(data, dataset):
     if "prda" in dataset:
-        data = data.iloc[[3, 0, 5, 4, 6, 2, 1], :]
+        data = data.iloc[[7, 2, 4, 1, 3, 8, 5, 6, 0], :]
     elif "ablation" in dataset:
         pass
     else:
