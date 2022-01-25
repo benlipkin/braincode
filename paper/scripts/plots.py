@@ -156,7 +156,7 @@ def plot_data(dataset):
     data = update_names(data)
     ax = make_base_plot(data, dataset)
     ax = individual_formatting(ax, dataset)
-    plt.savefig(f"../plots/{dataset}.jpg", bbox_inches="tight")
+    plt.savefig(f"../plots/{dataset}.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
@@ -227,7 +227,7 @@ def make_inline_plots(dataset):
     data = update_names(data)
     data = filter_data(data)
     ax = make_inline_plot(data, dataset)
-    plt.savefig(f"../plots/{dataset}_inline.jpg", bbox_inches="tight")
+    plt.savefig(f"../plots/{dataset}_inline.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
