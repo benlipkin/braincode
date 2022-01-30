@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from benchmarks import ProgramBenchmark
-from encoding import ProgramEncoder
+from embeddings import ProgramEmbedder
 from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
@@ -115,7 +115,7 @@ class DataLoader:
                     # "code-ada",
                     # "code-babbage",
                 ]:
-                    encoder = ProgramEncoder(
+                    encoder = ProgramEmbedder(
                         self._target, self._base_path, code_model_dim
                     )
                 elif self._target in [
@@ -175,7 +175,7 @@ class DataLoader:
             y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
                 programs
             )
-        X = ProgramEncoder(self._feature, self._base_path, "").fit_transform(programs)
+        X = ProgramEmbedder(self._feature, self._base_path, "").fit_transform(programs)
         runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
         return X, y, runs
 

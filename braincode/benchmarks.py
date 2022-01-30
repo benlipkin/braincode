@@ -1,12 +1,11 @@
 import ast
+import dis
 import json
 import os
 import pickle as pkl
 import subprocess
-import sys
 from io import BytesIO
 from tokenize import tok_name, tokenize
-import dis
 
 import numpy as np
 

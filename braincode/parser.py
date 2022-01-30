@@ -2,7 +2,6 @@ import itertools
 import logging
 import multiprocessing
 import sys
-import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
