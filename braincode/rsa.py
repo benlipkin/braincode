@@ -1,9 +1,6 @@
-from pathlib import Path
-
 import numpy as np
-from data import DataLoader
 from decoding import Analysis
-from plots import Plotter
+from scipy.stats import pearsonr
 
 
 class RSA(Analysis):
@@ -15,7 +12,8 @@ class RSA(Analysis):
         if not brain_rdm.matrix.size == model_rdm.matrix.size:
             raise RuntimeError("RDMs mismatched. Check feature target pair.")
         indices = np.triu_indices(brain_rdm.matrix.shape[0], k=1)
-        return np.corrcoef(brain_rdm.matrix[indices], model_rdm.matrix[indices])[1, 0]
+        score, pval = pearsonr(brain_rdm.matrix[indices], model_rdm.matrix[indices])
+        return score
 
     def _run_decoding(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
