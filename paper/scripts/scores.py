@@ -294,6 +294,28 @@ def make_table10():
     make_subjects_table(name, analysis, features, targets)
 
 
+def make_table11():
+    name = "rsa"
+    analysis = "rsa_models"
+    features = [
+        "MD",
+        "lang",
+    ]
+    targets = [
+        "projection",
+        "transformer",
+        "roberta",
+        "gpt2",
+        "bert",
+        "xlnet",
+        "seq2seq",
+        "bow",
+        "tfidf",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
 if __name__ == "__main__":
     make_table0()
     make_table1()
@@ -306,3 +328,4 @@ if __name__ == "__main__":
     make_table8()
     make_table9()
     make_table10()
+    make_table11()

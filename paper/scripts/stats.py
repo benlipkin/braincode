@@ -87,6 +87,7 @@ def main():
         "mvpa_models",
         "mvpa_properties_all_ablation",
         "mvpa_models_ablation",
+        "rsa_models",
     ]
     for dataset in datasets:
         calc_stats(f"{dataset}_subjects")

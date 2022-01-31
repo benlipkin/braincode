@@ -32,6 +32,8 @@ def reorder_columns(data, dataset):
         data = data.iloc[[7, 2, 4, 1, 3, 8, 5, 6, 0], :]
     elif "ablation" in dataset:
         pass
+    elif "rsa" in dataset:
+        data = data.iloc[:, [1, 0]]
     else:
         data = data.iloc[:, [2, 1, 3, 0]]
     if "models" in dataset:
@@ -46,6 +48,7 @@ def format_scores(data, dataset):
             "prda" not in dataset
             and "rgr" not in dataset
             and "supplemental" not in dataset
+            and "rsa" not in dataset
         ):
             baseline = float(row.name[1])
             diff = row - baseline
@@ -69,7 +72,7 @@ def format_latex(latex, dataset):
         latex = latex.replace("Feature", "Model Representation")
     else:
         latex = latex.replace("Feature", "Brain Representation")
-    if "mvpa" in dataset and "model" in dataset:
+    if "model" in dataset and "prda" not in dataset:
         latex = latex.replace("Target", "Code Models")
     else:
         latex = latex.replace("Target", "Code Properties")
@@ -142,6 +145,7 @@ def main():
         "mvpa_models_ablation",
         "prda_properties",
         "mvpa_properties_supplemental",
+        "rsa_models",
     ]
     for dataset in datasets:
         make_table(dataset)
@@ -151,6 +155,8 @@ def main():
         "mvpa_models_subjects_crossed",
         "mvpa_properties_all_ablation_subjects",
         "mvpa_models_ablation_subjects",
+        "rsa_models_subjects",
+        "rsa_models_subjects_crossed",
     ]
     for dataset in datasets_stats:
         make_latex_table(dataset, "")
