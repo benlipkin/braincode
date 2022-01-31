@@ -4,8 +4,12 @@ Project investigating human and artificial neural representations of python prog
 
 This pipeline supports two major functions.
 
--   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**. RSA (representational similarity analysis) is also available as an alternative to MVPA. Only MVPA was used for the present work, but we allow the flexibility for the user.
+-   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**. RSA (representational similarity analysis) is also supported as an alternative to MVPA. Only MVPA was used for the core analyses of this present work, but we allow the flexibility for the user.
 -   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
+
+Under development (coming soon):
+
+-   **VWEA** (voxel-wise encoding analysis) evaluates variance explained in single voxels using **code properties** and **code model** representations as features.
 
 To run all experiments from the paper, the following commands will suffice after setup:
 
