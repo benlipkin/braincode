@@ -118,6 +118,12 @@ class Decoder(Analysis):
         )
         return scores.mean()
 
+    @staticmethod
+    def _pearsonr(pred, true):
+        if not (pred.shape[1] == 1 and true.shape[1] == 1):
+            raise TypeError("Only supports singleton 2D arrays.")
+        return np.corrcoef(pred.squeeze(), true.squeeze())[1, 0]
+
     def _cross_validate_model(self, X, y, runs):
         model_class = RidgeClassifierCV if y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
@@ -127,9 +133,7 @@ class Decoder(Analysis):
                 scores[idx] = model.score(X[test], y[test])
             else:
                 if y.shape[1] == 1:
-                    scores[idx] = np.corrcoef(
-                        model.predict(X[test]).squeeze(), y[test].squeeze()
-                    )[1, 0]
+                    scores[idx] = self._pearsonr(model.predict(X[test]), y[test])
                 else:
                     scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
         return scores.mean()
