@@ -1,6 +1,7 @@
 import numpy as np
-from decoding import Analysis
+from decoding import BrainMapping
 
 
-class VWEA(Analysis):  # voxel-wise encoding analysis
-    pass
+class VWEA(BrainMapping):
+    def __init__(self, feature, target, kwargs):
+        super().__init__(feature, target, kwargs)

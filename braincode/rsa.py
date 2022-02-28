@@ -4,8 +4,8 @@ from scipy.stats import pearsonr
 
 
 class RSA(Analysis):
-    def __init__(self, feature, target, base_path, score_only, code_model_dim):
-        super().__init__(feature, target, base_path, score_only, code_model_dim)
+    def __init__(self, feature, target, kwargs):
+        super().__init__(feature, target, **kwargs)
 
     @staticmethod
     def _calc_rsa(brain_rdm, model_rdm):
@@ -15,7 +15,7 @@ class RSA(Analysis):
         score, pval = pearsonr(brain_rdm.matrix[indices], model_rdm.matrix[indices])
         return score
 
-    def _run_decoding(self, mode, cache_subject_scores=True):
+    def _run_mapping(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         subjects = [
             s for s in subjects if "737" not in str(s)

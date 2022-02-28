@@ -102,30 +102,11 @@ class DataLoader:
                 y, fnames = self._load_select_programs(
                     self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )
-                if self._target in [
-                    "code-projection",
-                    "code-bow",
-                    "code-tfidf",
-                    "code-seq2seq",
-                    "code-transformer",
-                    "code-xlnet",
-                    "code-bert",
-                    "code-gpt2",
-                    "code-roberta",
-                    # "code-ada",
-                    # "code-babbage",
-                ]:
+                if "code-" in self._target:
                     encoder = ProgramEmbedder(
                         self._target, self._base_path, code_model_dim
                     )
-                elif self._target in [
-                    "task-lines",
-                    "task-bytes",
-                    "task-nodes",
-                    "task-tokens",
-                    "task-halstead",
-                    "task-cyclomatic",
-                ]:
+                elif "task-" in self._target:
                     encoder = ProgramBenchmark(self._target, self._base_path, fnames)
                 else:
                     raise ValueError("Target not recognized. Select valid target.")
@@ -207,6 +188,11 @@ class DataLoader:
         else:
             if analysis in ["mvpa", "rsa"]:
                 X, y, runs = self._calc_data_mvpa(subject, code_model_dim)
+            elif analysis == "vwea":
+                y, X, runs = self._calc_data_mvpa(subject, code_model_dim)
+                if X.ndim == 1:
+                    X = X.reshape(-1, 1)
+                y = y.mean(axis=1).reshape(-1, 1)
             elif analysis == "prda":
                 X, y, runs = self._calc_data_prda()
             with open(fname, "wb") as f:

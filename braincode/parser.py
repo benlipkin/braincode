@@ -6,18 +6,20 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from decoding import MVPA, PRDA
+from encoding import VWEA
 from joblib import Parallel, delayed, parallel_backend
 from rsa import RSA
 
 
 class CLI:
     def __init__(self):
-        self._base_path = Path(__file__).parent
+        self._default_path = Path(__file__).parent
         self._default = "all"
         self._analyses = [
             "rsa",
             "mvpa",
             "prda",
+            "vwea",
         ]
         self._features = [
             "brain-MD+lang",
@@ -84,7 +86,7 @@ class CLI:
         )
         self._parser.add_argument("-s", "--score_only", action="store_true")
         self._parser.add_argument("-d", "--code_model_dim", default="")
-        self._parser.add_argument("-p", "--base_path", default=self._base_path)
+        self._parser.add_argument("-p", "--base_path", default=self._default_path)
 
     def _parse_args(self):
         if not hasattr(self, "_parser"):
@@ -103,14 +105,11 @@ class CLI:
     def _prep_analyses(self):
         if not hasattr(self, "_args"):
             raise RuntimeError("CLI args not set. Need to parse first.")
-        self._base_path = self._args.base_path
-        self._score_only = self._args.score_only
-        self._code_model_dim = self._args.code_model_dim
         if self._args.feature != self._default:
             self._features = [self._args.feature]
         if self._args.target != self._default:
             self._targets = [self._args.target]
-        if self._args.analysis in ["rsa", "mvpa"]:
+        if self._args.analysis in ["rsa", "mvpa", "vwea"]:
             self._features = self._clean_arg(self._features, "brain-", "-f")
             if self._args.analysis == "rsa":
                 self._targets = self._clean_arg(self._targets, "code-", "-t")
@@ -119,14 +118,13 @@ class CLI:
             self._targets = self._clean_arg(self._targets, "task-", "-t")
         else:
             raise ValueError("Invalid argument for analysis.")
+        self._kwargs = {
+            "base_path": self._args.base_path,
+            "score_only": self._args.score_only,
+            "code_model_dim": self._args.code_model_dim,
+        }
         self._params = list(
-            itertools.product(
-                self._features,
-                self._targets,
-                [self._base_path],
-                [self._score_only],
-                [self._code_model_dim],
-            )
+            itertools.product(self._features, self._targets, [self._kwargs])
         )
         self._analysis = globals()[self._args.analysis.upper()]
 

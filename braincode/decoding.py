@@ -77,7 +77,7 @@ class Analysis(ABC):
             return
         samples = np.zeros((iters))
         for idx in tqdm(range(iters)):
-            score = self._run_decoding(mode)
+            score = self._run_mapping(mode)
             if mode == "score":
                 self._set_and_save(mode, score, fname)
                 return
@@ -85,7 +85,7 @@ class Analysis(ABC):
         self._set_and_save(mode, samples, fname)
 
     @abstractmethod
-    def _run_decoding(self, mode):
+    def _run_mapping(self, mode):
         raise NotImplementedError("Handled by subclass.")
 
     def _plot(self):
@@ -99,9 +99,9 @@ class Analysis(ABC):
         return self
 
 
-class Decoder(Analysis):
-    def __init__(self, feature, target, base_path, score_only, code_model_dim):
-        super().__init__(feature, target, base_path, score_only, code_model_dim)
+class Mapping(Analysis):
+    def __init__(self, feature, target, kwargs):
+        super().__init__(feature, target, **kwargs)
 
     @staticmethod
     def _shuffle_within_runs(y_in, runs):
@@ -139,11 +139,11 @@ class Decoder(Analysis):
         return scores.mean()
 
 
-class MVPA(Decoder):
-    def __init__(self, feature, target, base_path, score_only, code_model_dim):
-        super().__init__(feature, target, base_path, score_only, code_model_dim)
+class BrainMapping(Mapping):
+    def __init__(self, feature, target, kwargs):
+        super().__init__(feature, target, kwargs)
 
-    def _run_decoding(self, mode, cache_subject_scores=True):
+    def _run_mapping(self, mode, cache_subject_scores=True):
         subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
         subjects = [
             s for s in subjects if "737" not in str(s)
@@ -162,11 +162,16 @@ class MVPA(Decoder):
         return scores.mean()
 
 
-class PRDA(Decoder):
-    def __init__(self, feature, target, base_path, score_only, code_model_dim):
-        super().__init__(feature, target, base_path, score_only, code_model_dim)
+class MVPA(BrainMapping):
+    def __init__(self, feature, target, kwargs):
+        super().__init__(feature, target, kwargs)
 
-    def _run_decoding(self, mode):
+
+class PRDA(Mapping):
+    def __init__(self, feature, target, kwargs):
+        super().__init__(feature, target, kwargs)
+
+    def _run_mapping(self, mode):
         X, y, runs = self._loader.get_data(self.__class__.__name__.lower())
         if mode == "null":
             np.random.shuffle(y)
