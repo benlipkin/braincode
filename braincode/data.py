@@ -148,10 +148,14 @@ class DataLoader:
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
 
-    def _calc_data_nlea(self, subject, code_model_dim):
+    def _calc_data_vwea(self, subject, code_model_dim):
         y, X, runs = self._calc_data_mvpa(subject, code_model_dim)
         if X.ndim == 1:
             X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
+        return X, y, runs
+
+    def _calc_data_nlea(self, subject, code_model_dim):
+        X, y, runs = self._calc_data_vwea(subject, code_model_dim)
         y = y.mean(axis=1).reshape(-1, 1)
         return X, y, runs
 
@@ -195,6 +199,8 @@ class DataLoader:
         else:
             if analysis in ["mvpa", "rsa"]:
                 X, y, runs = self._calc_data_mvpa(subject, code_model_dim)
+            elif analysis == "vwea":
+                X, y, runs = self._calc_data_vwea(subject, code_model_dim)
             elif analysis == "nlea":
                 X, y, runs = self._calc_data_nlea(subject, code_model_dim)
             elif analysis == "prda":

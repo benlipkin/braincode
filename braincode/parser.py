@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from decoding import MVPA, PRDA
-from encoding import NLEA
+from encoding import NLEA, VWEA
 from joblib import Parallel, delayed, parallel_backend
 from rsa import RSA
 
@@ -15,7 +15,7 @@ class CLI:
     def __init__(self):
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
-        self._analyses = ["rsa", "mvpa", "prda", "nlea"]
+        self._analyses = ["mvpa", "rsa", "vwea", "nlea", "prda"]
         self._features = (
             self._brain_networks + self._code_models + self._expanded_features
         )
@@ -109,11 +109,11 @@ class CLI:
             self._features = [self._args.feature]
         if self._args.target != self._default_arg:
             self._targets = [self._args.target]
-        if self._args.analysis in ["rsa", "mvpa", "nlea"]:
+        if self._args.analysis in ["rsa", "mvpa", "vwea", "nlea"]:
             self._features = self._clean_arg(self._features, "brain-", "-f")
         if self._args.analysis in ["rsa", "mvpa", "prda"]:
             self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
-        if self._args.analysis in ["rsa", "nlea"]:
+        if self._args.analysis in ["rsa", "vwea", "nlea"]:
             self._features = self._clean_arg(self._features, "+", "-f", keep=False)
         if self._args.analysis == "rsa":
             self._targets = self._clean_arg(self._targets, "code-", "-t")
