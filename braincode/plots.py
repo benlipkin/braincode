@@ -13,7 +13,7 @@ class Plotter:
         self._type = self._analysis.__class__.__name__
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def _plot_decoder(self, show=False):
+    def plot(self, show=False):
         fname = Path(
             os.path.join(
                 self._analysis._base_path,
