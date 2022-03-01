@@ -188,7 +188,7 @@ class DataLoader:
         else:
             if analysis in ["mvpa", "rsa"]:
                 X, y, runs = self._calc_data_mvpa(subject, code_model_dim)
-            elif analysis == "vwea":
+            elif analysis == "nlea":
                 y, X, runs = self._calc_data_mvpa(subject, code_model_dim)
                 if X.ndim == 1:
                     X = X.reshape(-1, 1)

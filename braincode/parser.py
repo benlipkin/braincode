@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from decoding import MVPA, PRDA
-from encoding import VWEA
+from encoding import NLEA
 from joblib import Parallel, delayed, parallel_backend
 from rsa import RSA
 
@@ -19,7 +19,7 @@ class CLI:
             "rsa",
             "mvpa",
             "prda",
-            "vwea",
+            "nlea",
         ]
         self._features = [
             "brain-MD+lang",
@@ -109,7 +109,7 @@ class CLI:
             self._features = [self._args.feature]
         if self._args.target != self._default:
             self._targets = [self._args.target]
-        if self._args.analysis in ["rsa", "mvpa", "vwea"]:
+        if self._args.analysis in ["rsa", "mvpa", "nlea"]:
             self._features = self._clean_arg(self._features, "brain-", "-f")
             if self._args.analysis == "rsa":
                 self._targets = self._clean_arg(self._targets, "code-", "-t")
