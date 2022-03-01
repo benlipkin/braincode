@@ -24,10 +24,7 @@ class CLI:
         self._features = [
             "brain-MD+lang",
             "brain-MD+vis",
-            "brain-MD+aud",
             "brain-lang+vis",
-            "brain-lang+aud",
-            "brain-vis+aud",
             "brain-MD",
             "brain-lang",
             "brain-vis",
@@ -93,8 +90,8 @@ class CLI:
             raise RuntimeError("CLI parser not set. Need to build first.")
         self._args = self._parser.parse_args()
 
-    def _clean_arg(self, arg, match, input):
-        arg = [opt for opt in arg if match in opt]
+    def _clean_arg(self, arg, match, input, keep=True):
+        arg = [opt for opt in arg if ((match in opt) == keep)]
         if len(arg) > 0:
             return arg
         else:
@@ -111,6 +108,10 @@ class CLI:
             self._targets = [self._args.target]
         if self._args.analysis in ["rsa", "mvpa", "nlea"]:
             self._features = self._clean_arg(self._features, "brain-", "-f")
+            if self._args.analysis in ["mvpa", "rsa"]:
+                self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
+            if self._args.analysis in ["nlea", "rsa"]:
+                self._features = self._clean_arg(self._features, "+", "-f", keep=False)
             if self._args.analysis == "rsa":
                 self._targets = self._clean_arg(self._targets, "code-", "-t")
         elif self._args.analysis == "prda":
