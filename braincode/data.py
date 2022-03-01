@@ -141,25 +141,25 @@ class DataLoader:
             np.array(fnames),
         )
 
-    def _calc_data_mvpa(self, subject, code_model_dim):
+    def _prep_data_mvpa(self, subject, code_model_dim):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
         y, mask = self._prep_y(content, lang, structure, id, code_model_dim)
         X = self._prep_x(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
 
-    def _calc_data_vwea(self, subject, code_model_dim):
-        y, X, runs = self._calc_data_mvpa(subject, code_model_dim)
+    def _prep_data_vwea(self, subject, code_model_dim):
+        y, X, runs = self._prep_data_mvpa(subject, code_model_dim)
         if X.ndim == 1:
             X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
         return X, y, runs
 
-    def _calc_data_nlea(self, subject, code_model_dim):
-        X, y, runs = self._calc_data_vwea(subject, code_model_dim)
+    def _prep_data_nlea(self, subject, code_model_dim):
+        X, y, runs = self._prep_data_vwea(subject, code_model_dim)
         y = y.mean(axis=1).reshape(-1, 1)
         return X, y, runs
 
-    def _calc_data_prda(self, k=5):
+    def _prep_data_prda(self, k=5):
         programs, content, lang, structure, fnames = self._load_all_programs()
         if self._target in ["task-content", "task-structure"]:
             y = locals()[self._target.split("-")[1]]
@@ -198,13 +198,13 @@ class DataLoader:
             return data["X"], data["y"], data["runs"]
         else:
             if analysis in ["mvpa", "rsa"]:
-                X, y, runs = self._calc_data_mvpa(subject, code_model_dim)
+                X, y, runs = self._prep_data_mvpa(subject, code_model_dim)
             elif analysis == "vwea":
-                X, y, runs = self._calc_data_vwea(subject, code_model_dim)
+                X, y, runs = self._prep_data_vwea(subject, code_model_dim)
             elif analysis == "nlea":
-                X, y, runs = self._calc_data_nlea(subject, code_model_dim)
+                X, y, runs = self._prep_data_nlea(subject, code_model_dim)
             elif analysis == "prda":
-                X, y, runs = self._calc_data_prda()
+                X, y, runs = self._prep_data_prda()
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": y, "runs": runs}, f)
             return X, y, runs
