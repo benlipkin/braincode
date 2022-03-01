@@ -7,7 +7,7 @@ import numpy as np
 from benchmarks import ProgramBenchmark
 from embeddings import ProgramEmbedder
 from scipy.io import loadmat
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
 
 class DataLoader:
@@ -148,6 +148,13 @@ class DataLoader:
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
 
+    def _calc_data_nlea(self, subject, code_model_dim):
+        y, X, runs = self._calc_data_mvpa(subject, code_model_dim)
+        if X.ndim == 1:
+            X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
+        y = y.mean(axis=1).reshape(-1, 1)
+        return X, y, runs
+
     def _calc_data_prda(self, k=5):
         programs, content, lang, structure, fnames = self._load_all_programs()
         if self._target in ["task-content", "task-structure"]:
@@ -189,10 +196,7 @@ class DataLoader:
             if analysis in ["mvpa", "rsa"]:
                 X, y, runs = self._calc_data_mvpa(subject, code_model_dim)
             elif analysis == "nlea":
-                y, X, runs = self._calc_data_mvpa(subject, code_model_dim)
-                if X.ndim == 1:
-                    X = X.reshape(-1, 1)
-                y = y.mean(axis=1).reshape(-1, 1)
+                X, y, runs = self._calc_data_nlea(subject, code_model_dim)
             elif analysis == "prda":
                 X, y, runs = self._calc_data_prda()
             with open(fname, "wb") as f:
