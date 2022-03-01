@@ -14,57 +14,62 @@ from rsa import RSA
 class CLI:
     def __init__(self):
         self._default_path = Path(__file__).parent
-        self._default = "all"
-        self._analyses = [
-            "rsa",
-            "mvpa",
-            "prda",
-            "nlea",
-        ]
-        self._features = [
-            "brain-MD+lang",
-            "brain-MD+vis",
-            "brain-lang+vis",
-            "brain-MD",
-            "brain-lang",
-            "brain-vis",
-            "brain-aud",
-            "code-projection",
-            "code-bow",
-            "code-tfidf",
-            "code-seq2seq",
-            "code-transformer",
-            "code-xlnet",
-            "code-bert",
-            "code-gpt2",
-            "code-roberta",
-            # "code-ada",
-            # "code-babbage",
-        ]
-        self._targets = [
-            "test-code",
-            "test-lang",
-            "task-content",
-            "task-structure",
-            "task-lines",
-            "task-bytes",
-            "task-nodes",
-            "task-tokens",
-            "task-halstead",
-            "task-cyclomatic",
-            "code-projection",
-            "code-bow",
-            "code-tfidf",
-            "code-seq2seq",
-            "code-transformer",
-            "code-xlnet",
-            "code-bert",
-            "code-gpt2",
-            "code-roberta",
-            # "code-ada",
-            # "code-babbage",
-        ]
+        self._default_arg = "all"
+        self._analyses = ["rsa", "mvpa", "prda", "nlea"]
+        self._features = (
+            self._brain_networks + self._code_models + self._expanded_features
+        )
+        self._targets = (
+            self._code_benchmarks + self._code_models
+        )  # + self._expanded_targets
         self._logger = logging.getLogger(self.__class__.__name__)
+
+    @staticmethod
+    def _base_args(prefix, units):
+        return [f"{prefix}-{i}" for i in units]
+
+    @staticmethod
+    def _joint_args(prefix, units):
+        return [f"{prefix}-{i}+{j}" for i, j in list(itertools.combinations(units, 2))]
+
+    @property
+    def _brain_networks(self):
+        prefix = "brain"
+        units = ["MD", "lang", "vis", "aud"]
+        return self._base_args(prefix, units)
+
+    @property
+    def _code_models(self):
+        prefix = "code"
+        base_models = ["projection", "bow", "tfidf", "seq2seq"]
+        transformers = ["xlnet", "bert", "gpt2", "transformer", "roberta"]
+        units = base_models + transformers
+        return self._base_args(prefix, units)
+
+    @property
+    def _code_benchmarks(self):
+        prefix = ("test", "task")
+        test_tasks = ["code", "lang"]
+        base_tasks = ["content", "structure", "tokens", "lines"]
+        extra_tasks = ["nodes", "bytes", "halstead", "cyclomatic"]
+        units = (test_tasks, base_tasks + extra_tasks)
+        return list(
+            itertools.chain.from_iterable(
+                self._base_args(p, u) for p, u in zip(prefix, units)
+            )
+        )
+
+    @property
+    def _expanded_features(self):
+        prefix = "brain"
+        units = ["MD", "lang", "vis"]
+        return self._joint_args(prefix, units)
+
+    @property
+    def _expanded_targets(self):
+        prefix = "task"
+        units = ["content", "structure", "tokens", "lines"]
+        return self._joint_args(prefix, units)
 
     def _build_parser(self):
         self._parser = ArgumentParser(description="run specified analysis type")
@@ -72,14 +77,14 @@ class CLI:
         self._parser.add_argument(
             "-f",
             "--feature",
-            choices=[self._default] + self._features,
-            default=self._default,
+            choices=[self._default_arg] + self._features,
+            default=self._default_arg,
         )
         self._parser.add_argument(
             "-t",
             "--target",
-            choices=[self._default] + self._targets,
-            default=self._default,
+            choices=[self._default_arg] + self._targets,
+            default=self._default_arg,
         )
         self._parser.add_argument("-s", "--score_only", action="store_true")
         self._parser.add_argument("-d", "--code_model_dim", default="")
@@ -99,31 +104,35 @@ class CLI:
                 f"{self._args.analysis.upper()} only accepts '{match}' arguments for '{input}'."
             )
 
-    def _prep_analyses(self):
-        if not hasattr(self, "_args"):
-            raise RuntimeError("CLI args not set. Need to parse first.")
-        if self._args.feature != self._default:
+    def _prep_args(self):
+        if self._args.feature != self._default_arg:
             self._features = [self._args.feature]
-        if self._args.target != self._default:
+        if self._args.target != self._default_arg:
             self._targets = [self._args.target]
         if self._args.analysis in ["rsa", "mvpa", "nlea"]:
             self._features = self._clean_arg(self._features, "brain-", "-f")
-            if self._args.analysis in ["mvpa", "rsa"]:
-                self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
-            if self._args.analysis in ["nlea", "rsa"]:
-                self._features = self._clean_arg(self._features, "+", "-f", keep=False)
-            if self._args.analysis == "rsa":
-                self._targets = self._clean_arg(self._targets, "code-", "-t")
-        elif self._args.analysis == "prda":
+        if self._args.analysis in ["rsa", "mvpa", "prda"]:
+            self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
+        if self._args.analysis in ["rsa", "nlea"]:
+            self._features = self._clean_arg(self._features, "+", "-f", keep=False)
+        if self._args.analysis == "rsa":
+            self._targets = self._clean_arg(self._targets, "code-", "-t")
+        if self._args.analysis == "prda":
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")
-        else:
-            raise ValueError("Invalid argument for analysis.")
+
+    def _prep_kwargs(self):
         self._kwargs = {
             "base_path": self._args.base_path,
             "score_only": self._args.score_only,
             "code_model_dim": self._args.code_model_dim,
         }
+
+    def _prep_analyses(self):
+        if not hasattr(self, "_args"):
+            raise RuntimeError("CLI args not set. Need to parse first.")
+        self._prep_args()
+        self._prep_kwargs()
         self._params = list(
             itertools.product(self._features, self._targets, [self._kwargs])
         )
