@@ -149,7 +149,7 @@ class CLI:
             raise RuntimeError("Analysis parameters not set. Need to prep first.")
         n_jobs = min(multiprocessing.cpu_count(), len(self._params))
         self._logger.info(
-            f"Running {self._analysis.__name__} for each set of {len(self._params)} analysis parameters using {n_jobs} CPUs."
+            f"Running {self._analysis.__name__} for each set of {len(self._params)} analysis configurations using {n_jobs} CPUs."
         )
         with parallel_backend("loky", n_jobs=n_jobs):
             Parallel()(delayed(self._run_analysis)(param) for param in self._params)
