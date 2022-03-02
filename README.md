@@ -103,9 +103,11 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 **Sample calls**
 
 ```bash
-python braincode mvpa -f brain-MD -t task-structure
-python braincode rsa -f brain-lang -t code-gpt2
-python braincode prda -f code-bert -t task-tokens
+python braincode mvpa -f brain-MD -t task-structure # brain -> {task, model}
+python braincode rsa -f brain-lang -t code-gpt2 # brain <-> model
+python braincode vwea -f brain-vis -t code-bow # brain <- {task, model}
+python braincode nlea -f brain-lang -t test-code # brain <- {task, model}
+python braincode prda -f code-bert -t task-tokens # model -> task
 ```
 
 ## Citation
