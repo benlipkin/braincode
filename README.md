@@ -2,14 +2,16 @@
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
 
-This pipeline supports two major functions.
+This pipeline supports several major functions.
 
--   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**. RSA (representational similarity analysis) is also supported as an alternative to MVPA. Only MVPA was used for the core analyses of this present work, but we allow the flexibility for the user.
+-   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**.
+-   **RSA** (representational similarity analysis) is also supported as an alternative to MVPA. Only MVPA was used for the core analyses of this present work, but we allow the flexibility for the user.
 -   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
 
-Under development (coming soon):
+Under development (in beta):
 
--   **VWEA** (voxel-wise encoding analysis) evaluates variance explained in single voxels using **code properties** and **code model** representations as features.
+-   **VWEA** (voxel-wise encoding analysis) evaluates prediction of voxel-level activation patterns using **code properties** and **code model** representations as features.
+-   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
 
 To run all experiments from the paper, the following commands will suffice after setup:
 
@@ -31,7 +33,6 @@ source run.sh # pulls scores, runs stats, generates plots and tables
 -   Multiple Demand (MD)
 -   Visual
 -   Auditory
--   MD+L, MD+V, L+V (combinations of critical networks)
 
 ### Supported Code Features
 
@@ -78,20 +79,20 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 
 ```bash
 usage:  [-h]
-        [-f {all,brain-MD+lang,brain-MD+vis,brain-MD+aud,brain-lang+vis,brain-lang+aud,brain-vis+aud,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}]
-        [-t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}]
+        [-f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}]
+        [-t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta}]
         [-s] [-d CODE_MODEL_DIM] [-p BASE_PATH]
-        {rsa,mvpa,prda}
+        {mvpa,rsa,vwea,nlea,prda}
 
 run specified analysis type
 
 positional arguments:
-  {rsa,mvpa,prda}
+  {mvpa,rsa,vwea,nlea,prda}
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-MD+lang,brain-MD+vis,brain-MD+aud,brain-lang+vis,brain-lang+aud,brain-vis+aud,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}, --feature {all,brain-MD+lang,brain-MD+vis,brain-MD+aud,brain-lang+vis,brain-lang+aud,brain-vis+aud,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}
-  -t {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}, --target {all,test-code,test-lang,task-content,task-structure,task-lines,task-bytes,task-nodes,task-tokens,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-transformer,code-xlnet,code-bert,code-gpt2,code-roberta}
+  -f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}, --feature {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}
+  -t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta}, --target {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta}
   -s, --score_only
   -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
   -p BASE_PATH, --base_path BASE_PATH
@@ -99,76 +100,12 @@ optional arguments:
 
 note: BASE_PATH must be specified to match setup.sh if changed from default.
 
-### MVPA (or RSA)
-
-**Supported features**
-
--   brain-MD
--   brain-lang
--   brain-vis
--   brain-aud
-
-**Supported targets**
-
--   test-code
--   test-lang
--   task-content
--   task-structure
--   task-lines
--   task-bytes
--   task-tokens
--   task-nodes
--   task-halstead
--   task-cyclomatic
--   code-projection
--   code-bow
--   code-tfidf
--   code-seq2seq
--   code-transformer
--   code-xlnet
--   code-bert
--   code-gpt2
--   code-roberta
-
-**Sample run**
-
-To decode a TF-IDF model from MD region representations:
+**Sample calls**
 
 ```bash
-python braincode mvpa -f brain-MD -t code-tfidf
-```
-
-### PRDA
-
-**Supported features**
-
--   code-projection
--   code-bow
--   code-tfidf
--   code-seq2seq
--   code-transformer
--   code-xlnet
--   code-bert
--   code-gpt2
--   code-roberta
-
-**Supported targets**
-
--   task-content
--   task-structure
--   task-lines
--   task-bytes
--   task-tokens
--   task-nodes
--   task-halstead
--   task-cyclomatic
-
-**Sample run**
-
-To decode node count from the CodeBERT program representations:
-
-```bash
-python braincode prda -f code-bert -t task-nodes
+python braincode mvpa -f brain-MD -t task-structure
+python braincode rsa -f brain-lang -t code-gpt2
+python braincode prda -f code-bert -t task-tokens
 ```
 
 ## Citation
