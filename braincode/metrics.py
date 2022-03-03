@@ -101,8 +101,8 @@ class RankAccuracy(MatrixMetric):
         self._distance = distance
         super().__init__()
 
-    def _score(self, y_pred, y_true):
-        distances = pairwise_distances(y_pred, y_true, metric=self._distance)
+    def _score(self, Y_pred, Y_true):
+        distances = pairwise_distances(Y_pred, Y_true, metric=self._distance)
         scores = (distances.T > np.diag(distances)).sum(axis=0) / (
             distances.shape[1] - 1
         )

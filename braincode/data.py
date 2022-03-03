@@ -92,14 +92,14 @@ class DataLoader:
             ["sent" if i == "sent" else "code" for i in self._formatcell(lang)]
         )
         if self._target == "test-code":
-            y = code
+            Y = code
             mask = np.ones(code.size, dtype="bool")
         else:
             mask = code == "code"
             if self._target in ["task-content", "test-lang", "task-structure"]:
-                y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
+                Y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             else:
-                y, fnames = self._load_select_programs(
+                Y, fnames = self._load_select_programs(
                     self._formatcell(lang)[mask], self._formatcell(id)[mask]
                 )
                 if "code-" in self._target:
@@ -110,7 +110,7 @@ class DataLoader:
                     encoder = ProgramBenchmark(self._target, self._base_path, fnames)
                 else:
                     raise ValueError("Target not recognized. Select valid target.")
-        return encoder.fit_transform(y), mask
+        return encoder.fit_transform(Y), mask
 
     def _prep_brain_reps(self, data, parc, mask):
         data = data[:, np.flatnonzero(parc)]
@@ -143,33 +143,33 @@ class DataLoader:
 
     def _prep_data_mvpa(self, subject, code_model_dim):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
+        Y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
         X = self._prep_brain_reps(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
-        return X, y, runs
+        return X, Y, runs
 
     def _prep_data_vwea(self, subject, code_model_dim):
-        y, X, runs = self._prep_data_mvpa(subject, code_model_dim)
+        Y, X, runs = self._prep_data_mvpa(subject, code_model_dim)
         if X.ndim == 1:
             X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
-        return X, y, runs
+        return X, Y, runs
 
     def _prep_data_nlea(self, subject, code_model_dim):
-        X, y, runs = self._prep_data_vwea(subject, code_model_dim)
-        y = y.mean(axis=1).reshape(-1, 1)
-        return X, y, runs
+        X, Y, runs = self._prep_data_vwea(subject, code_model_dim)
+        Y = Y.mean(axis=1).reshape(-1, 1)
+        return X, Y, runs
 
     def _prep_data_prda(self, k=5):
         programs, content, lang, structure, fnames = self._load_all_programs()
         if self._target in ["task-content", "task-structure"]:
-            y = locals()[self._target.split("-")[1]]
+            Y = locals()[self._target.split("-")[1]]
         else:
-            y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
+            Y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
                 programs
             )
         X = ProgramEmbedder(self._feature, self._base_path, "").fit_transform(programs)
-        runs = self._prep_runs(k, (y.size // k + 1))[: y.size]  # kfold CV
-        return X, y, runs
+        runs = self._prep_runs(k, (Y.size // k + 1))[: Y.size]  # kfold CV
+        return X, Y, runs
 
     def _get_fname(self, analysis, subject="", code_model_dim=""):
         if subject != "":
@@ -198,13 +198,13 @@ class DataLoader:
             return data["X"], data["y"], data["runs"]
         else:
             if analysis in ["mvpa", "rsa"]:
-                X, y, runs = self._prep_data_mvpa(subject, code_model_dim)
+                X, Y, runs = self._prep_data_mvpa(subject, code_model_dim)
             elif analysis == "vwea":
-                X, y, runs = self._prep_data_vwea(subject, code_model_dim)
+                X, Y, runs = self._prep_data_vwea(subject, code_model_dim)
             elif analysis == "nlea":
-                X, y, runs = self._prep_data_nlea(subject, code_model_dim)
+                X, Y, runs = self._prep_data_nlea(subject, code_model_dim)
             elif analysis == "prda":
-                X, y, runs = self._prep_data_prda()
+                X, Y, runs = self._prep_data_prda()
             with open(fname, "wb") as f:
-                pkl.dump({"X": X, "y": y, "runs": runs}, f)
-            return X, y, runs
+                pkl.dump({"X": X, "y": Y, "runs": runs}, f)
+            return X, Y, runs
