@@ -5,9 +5,9 @@ from pathlib import Path
 
 import numpy as np
 from data import DataLoader
+from metrics import ClassificationAccuracy, PearsonR, RankAccuracy
 from plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
-from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
 
@@ -111,31 +111,25 @@ class Mapping(Analysis):
         return y_out
 
     @staticmethod
-    def _rank_accuracy(pred, true, metric="euclidean"):
-        distances = pairwise_distances(pred, true, metric=metric)
-        scores = (distances.T > np.diag(distances)).sum(axis=0) / (
-            distances.shape[1] - 1
-        )
-        return scores.mean()
-
-    @staticmethod
-    def _pearsonr(pred, true):
-        if not (pred.shape[1] == 1 and true.shape[1] == 1):
-            raise TypeError("Only supports singleton 2D arrays.")
-        return np.corrcoef(pred.squeeze(), true.squeeze())[1, 0]
+    def _get_metric(y):
+        if y.ndim == 1:
+            metric = ClassificationAccuracy()
+        elif y.ndim == 2:
+            if y.shape[1] == 1:
+                metric = PearsonR()
+            else:
+                metric = RankAccuracy()
+        else:
+            raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
+        return metric
 
     def _cross_validate_model(self, X, y, runs):
         model_class = RidgeClassifierCV if y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
         for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, y, runs)):
             model = model_class(alphas=np.logspace(-2, 2, 9)).fit(X[train], y[train])
-            if y.ndim == 1:
-                scores[idx] = model.score(X[test], y[test])
-            else:
-                if y.shape[1] == 1:
-                    scores[idx] = self._pearsonr(model.predict(X[test]), y[test])
-                else:
-                    scores[idx] = self._rank_accuracy(model.predict(X[test]), y[test])
+            metric = self._get_metric(y)
+            scores[idx] = metric(model.predict(X[test]), y[test])
         return scores.mean()
 
 
