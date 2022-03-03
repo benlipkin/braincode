@@ -85,7 +85,7 @@ class DataLoader:
                 programs.append(f.read())
         return np.array(programs), np.array(fnames)
 
-    def _prep_y(
+    def _prep_code_reps(
         self, content, lang, structure, id, code_model_dim, encoder=LabelEncoder()
     ):
         code = np.array(
@@ -112,7 +112,7 @@ class DataLoader:
                     raise ValueError("Target not recognized. Select valid target.")
         return encoder.fit_transform(y), mask
 
-    def _prep_x(self, data, parc, mask):
+    def _prep_brain_reps(self, data, parc, mask):
         data = data[:, np.flatnonzero(parc)]
         for i in range(self._runs):
             idx = np.arange(i, self.samples, self._runs)
@@ -143,8 +143,8 @@ class DataLoader:
 
     def _prep_data_mvpa(self, subject, code_model_dim):
         data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        y, mask = self._prep_y(content, lang, structure, id, code_model_dim)
-        X = self._prep_x(data, parc, mask)
+        y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
+        X = self._prep_brain_reps(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, y, runs
 
