@@ -67,13 +67,12 @@ class ProgramEmbedder:
             raise NotImplementedError(
                 f"{self._embedder.__class__.__name__} must implement 'fit_transform' method."
             )
-        encoding = self._embedder.fit_transform(programs)
+        embedding = self._embedder.fit_transform(programs)
         if self._code_model_dim != "":
-            return GaussianRandomProjection(
+            embedding = GaussianRandomProjection(
                 n_components=int(self._code_model_dim), random_state=0
-            ).fit_transform(encoding)
-        else:
-            return encoding
+            ).fit_transform(embedding)
+        return embedding
 
 
 class TokenProjection:

@@ -1,6 +1,7 @@
 import logging
 import os
 from abc import ABC, abstractmethod
+from itertools import combinations
 from pathlib import Path
 
 import numpy as np
@@ -154,6 +155,8 @@ class Mapping(Analysis):
         return metric
 
     def _cross_validate_model(self, X, Y, runs):
+        if any(a.shape[0] != b.shape[0] for a, b in combinations([X, Y, runs], 2)):
+            raise ValueError("X Y and runs must all have the same number of samples.")
         model_class = RidgeClassifierCV if Y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
         for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, Y, runs)):
@@ -174,6 +177,8 @@ class BrainMapping(BrainAnalysis, Mapping):
         return X, Y, runs
 
     def _shuffle(Y_in, runs):
+        if Y_in.shape[0] != runs.shape[0]:
+            raise ValueError("Y and runs must have the same number of samples.")
         Y_out = np.zeros(Y_in.shape)
         for run in np.unique(runs):
             Y_out[runs == run] = np.random.permutation(Y_in[runs == run])
