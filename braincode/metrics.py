@@ -116,6 +116,9 @@ class RepresentationalSimilarity(MatrixMetric):
     def _score(self, X, Y):
         X_rdm = pairwise_distances(X, metric=self._distance)
         Y_rdm = pairwise_distances(Y, metric=self._distance)
+        if any([m.shape[1] == 1 for m in (X, Y)]):  # can't calc 1D corr dists
+            X_rdm[np.isnan(X_rdm)] = 0
+            Y_rdm[np.isnan(Y_rdm)] = 0
         indices = np.triu_indices(X_rdm.shape[0], k=1)
         score = self._comparison(X_rdm[indices], Y_rdm[indices])
         return score

@@ -148,10 +148,14 @@ class DataLoader:
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, Y, runs
 
+    def _prep_data_rsa(self, subject, code_model_dim):
+        X, Y, runs = self._prep_data_mvpa(subject, code_model_dim)
+        if Y.ndim == 1:
+            Y = OneHotEncoder(sparse=False).fit_transform(Y.reshape(-1, 1))
+        return X, Y, runs
+
     def _prep_data_vwea(self, subject, code_model_dim):
-        Y, X, runs = self._prep_data_mvpa(subject, code_model_dim)
-        if X.ndim == 1:
-            X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
+        Y, X, runs = self._prep_data_rsa(subject, code_model_dim)
         return X, Y, runs
 
     def _prep_data_nlea(self, subject, code_model_dim):
@@ -197,8 +201,10 @@ class DataLoader:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
         else:
-            if analysis in ["mvpa", "rsa"]:
+            if analysis == "mvpa":
                 X, Y, runs = self._prep_data_mvpa(subject, code_model_dim)
+            elif analysis == "rsa":
+                X, Y, runs = self._prep_data_rsa(subject, code_model_dim)
             elif analysis == "vwea":
                 X, Y, runs = self._prep_data_vwea(subject, code_model_dim)
             elif analysis == "nlea":

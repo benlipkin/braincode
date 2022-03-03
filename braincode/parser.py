@@ -116,7 +116,7 @@ class CLI:
         if self._args.analysis in ["rsa", "vwea", "nlea"]:
             self._features = self._clean_arg(self._features, "+", "-f", keep=False)
         if self._args.analysis == "rsa":
-            self._targets = self._clean_arg(self._targets, "code-", "-t")
+            self._targets = self._clean_arg(self._targets, "test-", "-t", keep=False)
         if self._args.analysis == "prda":
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")
