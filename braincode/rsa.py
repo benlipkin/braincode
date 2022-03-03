@@ -1,5 +1,5 @@
 import numpy as np
-from decoding import BrainAnalysis
+from analyses import BrainAnalysis
 from scipy.stats import pearsonr
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-from decoding import BrainMapping
+from analyses import BrainMapping
 
 
 class VWEA(BrainMapping):
