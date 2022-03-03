@@ -99,23 +99,53 @@ class Analysis(ABC):
         return self
 
 
+class BrainAnalysis(Analysis):
+    def __init__(self, feature, target, **kwargs):
+        super().__init__(feature, target, **kwargs)
+
+    @property
+    def subjects(self):
+        return [
+            s
+            for s in sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
+            if "737" not in str(s)  # remove this subject as in Ivanova et al (2020)
+        ]
+
+    @abstractmethod
+    def _load_subject(self, subject):
+        raise NotImplementedError("Handled by subclass.")
+
+    @abstractmethod
+    def _shuffle(Y, runs):
+        raise NotImplementedError("Handled by subclass.")
+
+    @abstractmethod
+    def _score(self, X, Y, runs):
+        raise NotImplementedError("Handled by subclass.")
+
+    def _run_mapping(self, mode, cache_subject_scores=True):
+        scores = np.zeros(len(self.subjects))
+        for idx, subject in enumerate(self.subjects):
+            X, Y, runs = self._load_subject(subject)
+            if mode == "null":
+                self._shuffle(Y, runs)
+            scores[idx] = self._score(X, Y, runs)
+        if mode == "score" and cache_subject_scores:
+            temp_mode = "subjects"
+            self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
+        return scores.mean()
+
+
 class Mapping(Analysis):
-    def __init__(self, feature, target, kwargs):
+    def __init__(self, feature, target, **kwargs):
         super().__init__(feature, target, **kwargs)
 
     @staticmethod
-    def _shuffle_within_runs(y_in, runs):
-        y_out = np.zeros(y_in.shape)
-        for run in np.unique(runs):
-            y_out[runs == run] = np.random.permutation(y_in[runs == run])
-        return y_out
-
-    @staticmethod
-    def _get_metric(y):
-        if y.ndim == 1:
+    def _get_metric(Y):
+        if Y.ndim == 1:
             metric = ClassificationAccuracy()
-        elif y.ndim == 2:
-            if y.shape[1] == 1:
+        elif Y.ndim == 2:
+            if Y.shape[1] == 1:
                 metric = PearsonR()
             else:
                 metric = RankAccuracy()
@@ -123,50 +153,48 @@ class Mapping(Analysis):
             raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
         return metric
 
-    def _cross_validate_model(self, X, y, runs):
-        model_class = RidgeClassifierCV if y.ndim == 1 else RidgeCV
+    def _cross_validate_model(self, X, Y, runs):
+        model_class = RidgeClassifierCV if Y.ndim == 1 else RidgeCV
         scores = np.zeros(np.unique(runs).size)
-        for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, y, runs)):
-            model = model_class(alphas=np.logspace(-2, 2, 9)).fit(X[train], y[train])
-            metric = self._get_metric(y)
-            scores[idx] = metric(model.predict(X[test]), y[test])
+        for idx, (train, test) in enumerate(LeaveOneGroupOut().split(X, Y, runs)):
+            model = model_class(alphas=np.logspace(-2, 2, 9)).fit(X[train], Y[train])
+            metric = self._get_metric(Y)
+            scores[idx] = metric(model.predict(X[test]), Y[test])
         return scores.mean()
 
 
-class BrainMapping(Mapping):
-    def __init__(self, feature, target, kwargs):
-        super().__init__(feature, target, kwargs)
+class BrainMapping(BrainAnalysis, Mapping):
+    def __init__(self, feature, target, **kwargs):
+        super().__init__(feature, target, **kwargs)
 
-    def _run_mapping(self, mode, cache_subject_scores=True):
-        subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
-        subjects = [
-            s for s in subjects if "737" not in str(s)
-        ]  # remove this subject as in Ivanova et al (2020)
-        scores = np.zeros(len(subjects))
-        for idx, subject in enumerate(subjects):
-            X, y, runs = self._loader.get_data(
-                self.__class__.__name__.lower(), subject, self._code_model_dim
-            )
-            if mode == "null":
-                y = self._shuffle_within_runs(y, runs)
-            scores[idx] = self._cross_validate_model(X, y, runs)
-        if mode == "score" and cache_subject_scores:
-            temp_mode = "subjects"
-            self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
-        return scores.mean()
+    def _load_subject(self, subject):
+        X, Y, runs = self._loader.get_data(
+            self.__class__.__name__.lower(), subject, self._code_model_dim
+        )
+        return X, Y, runs
+
+    def _shuffle(Y_in, runs):
+        Y_out = np.zeros(Y_in.shape)
+        for run in np.unique(runs):
+            Y_out[runs == run] = np.random.permutation(Y_in[runs == run])
+        return Y_out
+
+    def _score(self, X, Y, runs):
+        score = self._cross_validate_model(X, Y, runs)
+        return score
 
 
 class MVPA(BrainMapping):
     def __init__(self, feature, target, kwargs):
-        super().__init__(feature, target, kwargs)
+        super().__init__(feature, target, **kwargs)
 
 
 class PRDA(Mapping):
     def __init__(self, feature, target, kwargs):
-        super().__init__(feature, target, kwargs)
+        super().__init__(feature, target, **kwargs)
 
     def _run_mapping(self, mode):
-        X, y, runs = self._loader.get_data(self.__class__.__name__.lower())
+        X, Y, runs = self._loader.get_data(self.__class__.__name__.lower())
         if mode == "null":
-            np.random.shuffle(y)
-        return self._cross_validate_model(X, y, runs)
+            np.random.shuffle(Y)
+        return self._cross_validate_model(X, Y, runs)

@@ -1,9 +1,9 @@
 import numpy as np
-from decoding import Analysis
+from decoding import BrainAnalysis
 from scipy.stats import pearsonr
 
 
-class RSA(Analysis):
+class RSA(BrainAnalysis):
     def __init__(self, feature, target, kwargs):
         super().__init__(feature, target, **kwargs)
 
@@ -15,21 +15,17 @@ class RSA(Analysis):
         score, pval = pearsonr(brain_rdm.matrix[indices], model_rdm.matrix[indices])
         return score
 
-    def _run_mapping(self, mode, cache_subject_scores=True):
-        subjects = sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
-        subjects = [
-            s for s in subjects if "737" not in str(s)
-        ]  # remove this subject as in Ivanova et al (2020)
-        scores = np.zeros(len(subjects))
-        for idx, subject in enumerate(subjects):
-            X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)
-            if mode == "null":
-                np.random.shuffle(Y)
-            scores[idx] = self._calc_rsa(RDM(self._feature, X), RDM(self._target, Y))
-        if mode == "score" and cache_subject_scores:
-            temp_mode = "subjects"
-            self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
-        return scores.mean()
+    def _load_subject(self, subject):
+        X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)
+        return X, Y, _
+
+    def _shuffle(self, Y, _):
+        np.random.shuffle(Y)
+        return Y
+
+    def _score(self, X, Y, _):
+        score = self._calc_rsa(RDM(self._feature, X), RDM(self._target, Y))
+        return score
 
 
 class RDM:
