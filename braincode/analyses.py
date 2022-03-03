@@ -129,7 +129,7 @@ class BrainAnalysis(Analysis):
         for idx, subject in enumerate(self.subjects):
             X, Y, runs = self._load_subject(subject)
             if mode == "null":
-                self._shuffle(Y, runs)
+                Y = self._shuffle(Y, runs)
             scores[idx] = self._score(X, Y, runs)
         if mode == "score" and cache_subject_scores:
             temp_mode = "subjects"
