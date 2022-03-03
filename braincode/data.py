@@ -1,6 +1,6 @@
 import os
 import pickle as pkl
-from functools import lru_cache
+from functools import lru_cache, partial
 from pathlib import Path
 
 import numpy as np
@@ -193,6 +193,16 @@ class DataLoader:
             fname.parent.mkdir(parents=True, exist_ok=True)
         return fname
 
+    def _get_loader(self, analysis, subject, code_model_dim):
+        loaders = {
+            "mvpa": partial(self._prep_data_mvpa, subject, code_model_dim),
+            "rsa": partial(self._prep_data_rsa, subject, code_model_dim),
+            "vwea": partial(self._prep_data_vwea, subject, code_model_dim),
+            "nlea": partial(self._prep_data_nlea, subject, code_model_dim),
+            "prda": partial(self._prep_data_prda),
+        }
+        return loaders[analysis]
+
     @lru_cache(maxsize=None)
     def get_data(self, analysis, subject="", code_model_dim=""):
         fname = self._get_fname(analysis, subject, code_model_dim)
@@ -201,16 +211,8 @@ class DataLoader:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
         else:
-            if analysis == "mvpa":
-                X, Y, runs = self._prep_data_mvpa(subject, code_model_dim)
-            elif analysis == "rsa":
-                X, Y, runs = self._prep_data_rsa(subject, code_model_dim)
-            elif analysis == "vwea":
-                X, Y, runs = self._prep_data_vwea(subject, code_model_dim)
-            elif analysis == "nlea":
-                X, Y, runs = self._prep_data_nlea(subject, code_model_dim)
-            elif analysis == "prda":
-                X, Y, runs = self._prep_data_prda()
+            load_data = self._get_loader(analysis, subject, code_model_dim)
+            X, Y, runs = load_data()
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": Y, "runs": runs}, f)
             return X, Y, runs
