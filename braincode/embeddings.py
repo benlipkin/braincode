@@ -36,31 +36,24 @@ os.environ["DATASETS_VERBOSITY"] = "error"
 
 class ProgramEmbedder:
     def __init__(self, embedder, base_path, code_model_dim):
-        if embedder == "code-projection":
-            self._embedder = TokenProjection(base_path)
-        elif embedder == "code-bow":
-            self._embedder = BagOfWords(base_path)
-        elif embedder == "code-tfidf":
-            self._embedder = TFIDF(base_path)
-        elif embedder == "code-seq2seq":
-            self._embedder = CodeSeq2Seq(base_path)
-        elif embedder == "code-transformer":
-            self._embedder = CodeTransformer(base_path)
-        elif embedder == "code-xlnet":
-            self._embedder = CodeXLNet(base_path)
-        elif embedder == "code-bert":
-            self._embedder = CodeBERT(base_path)
-        elif embedder == "code-gpt2":
-            self._embedder = CodeGPT2(base_path)
-        elif embedder == "code-roberta":
-            self._embedder = CodeBERTa(base_path)
-        elif embedder == "code-ada":
-            self._embedder = AdaGPT3(base_path)
-        elif embedder == "code-babbage":
-            self._embedder = BabbageGPT3(base_path)
-        else:
-            raise ValueError("Embedder not recognized. Select valid embedding model.")
+        self._embedder = self._embedding_models[embedder](base_path)
         self._code_model_dim = code_model_dim
+
+    @property
+    def _embedding_models(self):
+        return {
+            "code-projection": TokenProjection,
+            "code-bow": BagOfWords,
+            "code-tfidf": TFIDF,
+            "code-seq2seq": CodeSeq2Seq,
+            "code-transformer": CodeTransformer,
+            "code-xlnet": CodeXLNet,
+            "code-bert": CodeBERT,
+            "code-gpt2": CodeGPT2,
+            "code-roberta": CodeBERTa,
+            "code-ada": AdaGPT3,
+            "code-babbage": BabbageGPT3,
+        }
 
     def fit_transform(self, programs):
         if not callable(getattr(self._embedder, "fit_transform", None)):
