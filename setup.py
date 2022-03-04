@@ -7,7 +7,7 @@ with open("requirements.txt") as reqs_file:
     requirements = reqs_file.read().split("\n")
 
 setup(
-    name="BrainCode",
+    name="braincode",
     version="0.1.0",
     description="an investigation of computer program representations.",
     long_description=readme,

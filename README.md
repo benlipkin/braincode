@@ -110,6 +110,14 @@ python braincode nlea -f brain-lang -t test-code # brain <- {task, model}
 python braincode prda -f code-bert -t task-tokens # model -> task
 ```
 
+## Make
+
+This package also provides an automated build using [GNU Make](https://www.gnu.org/software/make/manual/make.html). A single pipeline is provided, which starts from an empty environment, and proceeds through to the creation of paper tables and figures.
+
+```bash
+make paper # see 'make help' for more info
+```
+
 ## Citation
 
 If you use this work, please cite XXX (under review)
