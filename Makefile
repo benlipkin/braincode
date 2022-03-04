@@ -14,7 +14,8 @@ help : Makefile
 env : $(PACKAGE).egg-info/
 $(PACKAGE).egg-info/ : setup.py
 	$(ACTIVATE) ; pip install -e .
-setup.py :
+setup.py : conda
+conda :
 ifeq "$(shell conda info --envs | grep $(PACKAGE) | wc -l)" "0"
 	@conda create -yn $(PACKAGE) python=3.7
 endif
@@ -41,3 +42,11 @@ $(PACKAGE)/outputs/ : $(PACKAGE)/inputs/ $(PACKAGE)/*.py
 paper : paper/plots/
 paper/plots/ : $(PACKAGE)/outputs/ paper/scripts/*.py $(PACKAGE)/.cache/scores/**
 	$(ACTIVATE) ; cd paper/scripts ; bash run.sh
+
+## docker    : build docker image and spin up container.
+.PHONY : docker
+docker :
+ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
+	@docker built -t $(PACKAGE)
+endif
+	@docker run -it $(PACKAGE)
