@@ -50,6 +50,7 @@ else
         wget -O $TAR_NAME.tar.gz https://www.dropbox.com/s/zi9i8ictstsh9bx/codenet-python.tar.gz?dl=0
         mkdir $TAR_NAME
         tar -xvzf $TAR_NAME.tar.gz -C $TAR_NAME --strip-components 1
+        rm $TAR_NAME.tar.gz
     fi
 
     if [ $SPLIT_DATA == "True" ]; then

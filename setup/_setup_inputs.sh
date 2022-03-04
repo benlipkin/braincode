@@ -8,8 +8,10 @@ conda install -yc conda-forge unzip
 HOME_DIR=$1/braincode/
 cd $HOME_DIR
 
-wget -O inputs.zip https://www.dropbox.com/s/63b16bx3hrx0rar/inputs.zip?dl=0
-unzip inputs.zip -d inputs
+ZIP_NAME=inputs.zip
+wget -O $ZIP_NAME https://www.dropbox.com/s/hxnxdhygk9b05rj/inputs.zip?dl=0
+unzip $ZIP_NAME -d inputs
+rm $ZIP_NAME
 
 # Process and populate benchmark metrics on input files
 python -m braincode.utils $HOME_DIR 2
