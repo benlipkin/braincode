@@ -47,6 +47,6 @@ paper/plots/ : $(PACKAGE)/outputs/ paper/scripts/*.py $(PACKAGE)/.cache/scores/*
 .PHONY : docker
 docker :
 ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
-	@docker built -t $(PACKAGE)
+	@docker build -t $(PACKAGE)
 endif
 	@docker run -it $(PACKAGE)
