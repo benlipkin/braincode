@@ -13,11 +13,10 @@ Under development (in beta):
 -   **VWEA** (voxel-wise encoding analysis) evaluates prediction of voxel-level activation patterns using **code properties** and **code model** representations as features.
 -   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
 
-To run all experiments from the paper, the following commands will suffice after setup:
+To run all core experiments from the paper, the following command will suffice after setup:
 
 ```bash
 python braincode mvpa # runs all core MVPA analyses in parallel
-python braincode prda # runs all supplemental PRDA analyses in parallel
 ```
 
 To regenerate tables and figures from the paper, run the following after completing the analyses:

@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 PACKAGE = braincode
-ACTIVATE = @source activate $(PACKAGE)
+ACTIVATE = source activate $(PACKAGE)
 PIPELINE = python $(PACKAGE)
 .DEFAULT_GOAL := help
 
@@ -13,7 +13,7 @@ help : Makefile
 .PHONY : env
 env : $(PACKAGE).egg-info/
 $(PACKAGE).egg-info/ : setup.py
-	$(ACTIVATE) ; pip install -e .
+	@$(ACTIVATE) ; pip install -e .
 setup.py : conda
 conda :
 ifeq "$(shell conda info --envs | grep $(PACKAGE) | wc -l)" "0"
@@ -24,24 +24,20 @@ endif
 .PHONY : setup
 setup : $(PACKAGE)/inputs/
 $(PACKAGE)/inputs/ : $(PACKAGE).egg-info/ setup/setup.sh
-	$(ACTIVATE) ; cd setup/ ; bash setup.sh
+	@$(ACTIVATE) ; cd setup/ ; bash setup.sh
 
 
 ## analysis  : run core analyses to replicate paper.
 .PHONY : analysis
 analysis : $(PACKAGE)/outputs/
 $(PACKAGE)/outputs/ : $(PACKAGE)/inputs/ $(PACKAGE)/*.py
-	$(ACTIVATE) ; $(PIPELINE) mvpa
-	$(ACTIVATE) ; $(PIPELINE) rsa
-	$(ACTIVATE) ; $(PIPELINE) vwea
-	$(ACTIVATE) ; $(PIPELINE) nlea
-	$(ACTIVATE) ; $(PIPELINE) prda
+	@$(ACTIVATE) ; $(PIPELINE) mvpa
 
 ## paper     : run scripts to generate final plots and tables.
 .PHONY : paper
 paper : paper/plots/
 paper/plots/ : $(PACKAGE)/outputs/ paper/scripts/*.py $(PACKAGE)/.cache/scores/**
-	$(ACTIVATE) ; cd paper/scripts ; bash run.sh
+	@$(ACTIVATE) ; cd paper/scripts ; bash run.sh
 
 ## docker    : build docker image and spin up container.
 .PHONY : docker
