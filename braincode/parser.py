@@ -8,7 +8,7 @@ from pathlib import Path
 from decoding import MVPA, PRDA
 from encoding import NLEA, VWEA
 from joblib import Parallel, delayed, parallel_backend
-from rsa import RSA
+from similarity import CKA, RSA
 
 
 class CLI:
@@ -109,14 +109,16 @@ class CLI:
             self._features = [self._args.feature]
         if self._args.target != self._default_arg:
             self._targets = [self._args.target]
-        if self._args.analysis in ["rsa", "mvpa", "vwea", "nlea"]:
+        if self._args.analysis != "prda":
             self._features = self._clean_arg(self._features, "brain-", "-f")
-        if self._args.analysis in ["rsa", "mvpa", "prda"]:
+        if self._args.analysis not in ["vwea", "nlea"]:
             self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
-        if self._args.analysis in ["rsa", "vwea", "nlea"]:
+        if self._args.analysis not in ["mvpa", "prda"]:
             self._features = self._clean_arg(self._features, "+", "-f", keep=False)
         if self._args.analysis == "rsa":
             self._targets = self._clean_arg(self._targets, "test-", "-t", keep=False)
+        if self._args.analysis == "cka":
+            self._targets = self._clean_arg(self._targets, "code-", "-t")
         if self._args.analysis == "prda":
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")

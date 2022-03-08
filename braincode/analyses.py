@@ -187,3 +187,24 @@ class BrainMapping(BrainAnalysis, Mapping):
     def _score(self, X, Y, runs):
         score = self._cross_validate_model(X, Y, runs)
         return score
+
+
+class BrainSimilarity(BrainAnalysis):
+    def __init__(self, feature, target, **kwargs):
+        super().__init__(feature, target, **kwargs)
+
+    def _load_subject(self, subject):
+        X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)
+        return X, Y, _
+
+    def _shuffle(self, Y, _):
+        np.random.shuffle(Y)
+        return Y
+
+    def _score(self, X, Y, _):
+        score = self._similarity_metric(X, Y)
+        return score
+
+    @abstractmethod
+    def _similarity_metric(self):
+        raise NotImplementedError("Handled by subclass.")

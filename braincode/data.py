@@ -197,6 +197,7 @@ class DataLoader:
         loaders = {
             "mvpa": partial(self._prep_data_mvpa, subject, code_model_dim),
             "rsa": partial(self._prep_data_rsa, subject, code_model_dim),
+            "cka": partial(self._prep_data_rsa, subject, code_model_dim),
             "vwea": partial(self._prep_data_vwea, subject, code_model_dim),
             "nlea": partial(self._prep_data_nlea, subject, code_model_dim),
             "prda": partial(self._prep_data_prda),

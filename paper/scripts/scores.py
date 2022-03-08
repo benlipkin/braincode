@@ -316,6 +316,66 @@ def make_table11():
     make_subjects_table(name, analysis, features, targets)
 
 
+def make_table12():
+    name = "nlea"
+    analysis = "nlea_all"
+    features = [
+        "MD",
+        "lang",
+        "vis",
+        "aud",
+    ]
+    targets = [
+        "code",
+        "lang",
+        "content",
+        "structure",
+        "tokens",
+        "lines",
+        "projection",
+        "bow",
+        "tfidf",
+        "seq2seq",
+        "xlnet",
+        "bert",
+        "gpt2",
+        "roberta",
+        "transformer",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
+def make_table13():
+    name = "vwea"
+    analysis = "vwea_all"
+    features = [
+        "MD",
+        "lang",
+        "vis",
+        "aud",
+    ]
+    targets = [
+        "code",
+        "lang",
+        "content",
+        "structure",
+        "tokens",
+        "lines",
+        "projection",
+        "bow",
+        "tfidf",
+        "seq2seq",
+        "xlnet",
+        "bert",
+        "gpt2",
+        "roberta",
+        "transformer",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
 if __name__ == "__main__":
     make_table0()
     make_table1()
@@ -329,3 +389,5 @@ if __name__ == "__main__":
     make_table9()
     make_table10()
     make_table11()
+    make_table12()
+    make_table13()

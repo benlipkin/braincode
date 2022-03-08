@@ -13,7 +13,8 @@ class Plotter:
         self._type = self._analysis.__class__.__name__
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def plot(self, show=False):
+    @property
+    def _fname(self):
         fname = Path(
             os.path.join(
                 self._analysis._base_path,
@@ -25,9 +26,12 @@ class Plotter:
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
+        return fname
+
+    def plot(self, show=False):
         plt.hist(self._analysis.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self._analysis.score, color="black", linewidth=3)
         plt.xlim([-1, 1])
-        plt.savefig(fname)
+        plt.savefig(self._fname)
         plt.show() if show else plt.clf()
-        self._logger.info(f"Plotting '{fname.name}'.")
+        self._logger.info(f"Plotting '{self._fname.name}'.")
