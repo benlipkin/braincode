@@ -337,8 +337,6 @@ def make_table_nlea_all():
     features = [
         "MD",
         "lang",
-        "vis",
-        "aud",
     ]
     targets = [
         "code",
@@ -361,31 +359,23 @@ def make_table_nlea_all():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table_vwea_all():
+def make_table_vwea_models():
     name = "vwea"
-    analysis = "vwea_all"
+    analysis = "vwea_models"
     features = [
         "MD",
         "lang",
-        "vis",
-        "aud",
     ]
     targets = [
-        "code",
-        "lang",
-        "content",
-        "structure",
-        "tokens",
-        "lines",
         "projection",
+        "transformer",
+        "roberta",
+        "gpt2",
+        "bert",
+        "xlnet",
+        "seq2seq",
         "bow",
         "tfidf",
-        "seq2seq",
-        "xlnet",
-        "bert",
-        "gpt2",
-        "roberta",
-        "transformer",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -409,7 +399,7 @@ def make_supplemental_analyses():
     make_table_rsa_models()
     make_table_rsa_properties()
     make_table_nlea_all()
-    make_table_vwea_all()
+    make_table_vwea_models()
 
 
 if __name__ == "__main__":

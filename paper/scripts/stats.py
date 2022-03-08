@@ -89,7 +89,7 @@ def main():
         "mvpa_models_ablation",
         "rsa_models",
         "rsa_properties",
-        "vwea_all",
+        "vwea_models",
         "nlea_all",
     ]
     for dataset in datasets:
