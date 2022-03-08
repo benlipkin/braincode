@@ -146,9 +146,13 @@ def main():
         "prda_properties",
         "mvpa_properties_supplemental",
         "rsa_models",
+        "rsa_properties",
     ]
     for dataset in datasets:
-        make_table(dataset)
+        try:
+            make_table(dataset)
+        except:
+            print("not making all supplemental tables:", dataset)
     datasets_stats = [
         "mvpa_properties_all_subjects",
         "mvpa_models_subjects",
@@ -157,10 +161,15 @@ def main():
         "mvpa_models_ablation_subjects",
         "rsa_models_subjects",
         "rsa_models_subjects_crossed",
+        "rsa_properties_subjects",
+        "rsa_properties_subjects_crossed",
     ]
     for dataset in datasets_stats:
-        make_latex_table(dataset, "")
-        make_latex_table(dataset, "anova_")
+        try:
+            make_latex_table(dataset, "")
+            make_latex_table(dataset, "anova_")
+        except:
+            print("not making all supplemental tables:", dataset)
     make_latex_table("mvpa_properties_rgr_subjects_crossed", "")
 
 

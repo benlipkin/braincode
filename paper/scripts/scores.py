@@ -57,7 +57,7 @@ def make_subjects_table(name, analysis, features, targets):
     table.to_csv(f"../tables/raw/{analysis}_subjects.csv", index=False)
 
 
-def make_table0():
+def make_table_prda_properties():
     name = "prda"
     analysis = "prda_properties"
     features = [
@@ -80,7 +80,7 @@ def make_table0():
     make_table(name, analysis, features, targets)
 
 
-def make_table1():
+def make_table_mvpa_properties_cls():
     name = "mvpa"
     analysis = "mvpa_properties_cls"
     features = [
@@ -99,7 +99,7 @@ def make_table1():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table2():
+def make_table_mvpa_properties_rgr():
     name = "mvpa"
     analysis = "mvpa_properties_rgr"
     features = [
@@ -116,7 +116,7 @@ def make_table2():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table3():
+def make_table_mvpa_models():
     name = "mvpa"
     analysis = "mvpa_models"
     features = [
@@ -140,7 +140,7 @@ def make_table3():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table4():
+def make_table_mvpa_properties_cls_ablation():
     name = "mvpa"
     analysis = "mvpa_properties_cls_ablation"
     features = [
@@ -161,7 +161,7 @@ def make_table4():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table5():
+def make_table_mvpa_properties_rgr_ablation():
     name = "mvpa"
     analysis = "mvpa_properties_rgr_ablation"
     features = [
@@ -180,7 +180,7 @@ def make_table5():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table6():
+def make_table_mvpa_models_ablation():
     name = "mvpa"
     analysis = "mvpa_models_ablation"
     features = [
@@ -206,7 +206,7 @@ def make_table6():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table7():
+def make_table_mvpa_properties_all():
     name = "mvpa"
     analysis = "mvpa_properties_all"
     features = [
@@ -227,7 +227,7 @@ def make_table7():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table8():
+def make_table_mvpa_properties_all_ablation():
     name = "mvpa"
     analysis = "mvpa_properties_all_ablation"
     features = [
@@ -250,7 +250,7 @@ def make_table8():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table9():
+def make_table_mvpa_properties_supplemental():
     name = "mvpa"
     analysis = "mvpa_properties_supplemental"
     features = [
@@ -271,7 +271,7 @@ def make_table9():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table10():
+def make_table_mvpa_properties_supplemental_ablation():
     name = "mvpa"
     analysis = "mvpa_properties_supplemental_ablation"
     features = [
@@ -294,7 +294,7 @@ def make_table10():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table11():
+def make_table_rsa_models():
     name = "rsa"
     analysis = "rsa_models"
     features = [
@@ -316,7 +316,22 @@ def make_table11():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table12():
+def make_table_rsa_properties():
+    name = "rsa"
+    analysis = "rsa_properties"
+    features = [
+        "MD",
+        "lang",
+    ]
+    targets = [
+        "content",
+        "structure",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
+def make_table_nlea_all():
     name = "nlea"
     analysis = "nlea_all"
     features = [
@@ -346,7 +361,7 @@ def make_table12():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table13():
+def make_table_vwea_all():
     name = "vwea"
     analysis = "vwea_all"
     features = [
@@ -376,18 +391,30 @@ def make_table13():
     make_subjects_table(name, analysis, features, targets)
 
 
+def make_core_analyses():
+    make_table_mvpa_properties_cls()
+    make_table_mvpa_properties_rgr()
+    make_table_mvpa_models()
+    make_table_mvpa_properties_cls_ablation()
+    make_table_mvpa_properties_rgr_ablation()
+    make_table_mvpa_models_ablation()
+    make_table_mvpa_properties_all()
+    make_table_mvpa_properties_all_ablation()
+    make_table_mvpa_properties_supplemental()
+    make_table_mvpa_properties_supplemental_ablation()
+
+
+def make_supplemental_analyses():
+    make_table_prda_properties()
+    make_table_rsa_models()
+    make_table_rsa_properties()
+    make_table_nlea_all()
+    make_table_vwea_all()
+
+
 if __name__ == "__main__":
-    make_table0()
-    make_table1()
-    make_table2()
-    make_table3()
-    make_table4()
-    make_table5()
-    make_table6()
-    make_table7()
-    make_table8()
-    make_table9()
-    make_table10()
-    make_table11()
-    make_table12()
-    make_table13()
+    make_core_analyses()
+    try:
+        make_supplemental_analyses()
+    except:
+        print("not making all supplemental analyses")
