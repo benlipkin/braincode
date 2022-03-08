@@ -19,7 +19,7 @@ class Metric(ABC):
             raise ValueError("X and Y must be 1D or 2D arrays.")
         if X.shape[0] != Y.shape[0]:
             raise ValueError("X and Y must have the same number of samples.")
-        if self.__class__.__name__ != "RepresentationalSimilarity":
+        if self.__class__.__name__ not in ["RepresentationalSimilarity", "LinearCKA"]:
             if X.shape[1] != Y.shape[1]:
                 raise ValueError("X and Y must have the same number of dimensions.")
         return self._apply_metric(X, Y)
@@ -30,16 +30,18 @@ class Metric(ABC):
 
 
 class VectorMetric(Metric):
-    def __init__(self, reduce=True):
-        self._reduce = reduce
+    def __init__(self, reduction=np.mean):
+        self._reduction = reduction
         super().__init__()
 
     def _apply_metric(self, X, Y):
         scores = np.zeros(X.shape[1])
         for i in range(scores.size):
             scores[i] = self._score(X[:, i], Y[:, i])
-        if self._reduce:
-            return scores.mean()
+        if self._reduction:
+            if not callable(self._reduction):
+                raise TypeError("Reduction argument must be callable.")
+            return self._reduction(scores)
         return scores
 
     @abstractmethod
@@ -112,6 +114,7 @@ class RepresentationalSimilarity(MatrixMetric):
     def __init__(self, distance="correlation", comparison=PearsonR()):
         self._distance = distance
         self._comparison = comparison
+        super().__init__()
 
     def _score(self, X, Y):
         X_rdm = pairwise_distances(X, metric=self._distance)
@@ -121,4 +124,31 @@ class RepresentationalSimilarity(MatrixMetric):
             Y_rdm[np.isnan(Y_rdm)] = 0
         indices = np.triu_indices(X_rdm.shape[0], k=1)
         score = self._comparison(X_rdm[indices], Y_rdm[indices])
+        return score
+
+
+class LinearCKA(MatrixMetric):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def _center(K):
+        N = K.shape[0]
+        U = np.ones([N, N])
+        I = np.eye(N)
+        H = I - U / N
+        centered = np.dot(np.dot(H, K), H)
+        return centered
+
+    def _HSIC(self, A, B):
+        L_A = np.dot(A, A.T)
+        L_B = np.dot(B, B.T)
+        HSIC = np.sum(self._center(L_A) * self._center(L_B))
+        return HSIC
+
+    def _score(self, X, Y):
+        HSIC_XY = self._HSIC(X, Y)
+        HSIC_XX = self._HSIC(X, X)
+        HSIC_YY = self._HSIC(Y, Y)
+        score = HSIC_XY / (np.sqrt(HSIC_XX) * np.sqrt(HSIC_YY))
         return score
