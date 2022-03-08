@@ -121,7 +121,7 @@ class BrainAnalysis(Analysis):
         raise NotImplementedError("Handled by subclass.")
 
     @abstractmethod
-    def _score(self, X, Y, runs):
+    def _calc_score(self, X, Y, runs):
         raise NotImplementedError("Handled by subclass.")
 
     def _run_mapping(self, mode, cache_subject_scores=True):
@@ -130,7 +130,7 @@ class BrainAnalysis(Analysis):
             X, Y, runs = self._load_subject(subject)
             if mode == "null":
                 Y = self._shuffle(Y, runs)
-            scores[idx] = self._score(X, Y, runs)
+            scores[idx] = self._calc_score(X, Y, runs)
         if mode == "score" and cache_subject_scores:
             temp_mode = "subjects"
             self._set_and_save(temp_mode, scores, self._get_fname(temp_mode))
@@ -184,7 +184,7 @@ class BrainMapping(BrainAnalysis, Mapping):
             Y_out[runs == run] = np.random.permutation(Y_in[runs == run])
         return Y_out
 
-    def _score(self, X, Y, runs):
+    def _calc_score(self, X, Y, runs):
         score = self._cross_validate_model(X, Y, runs)
         return score
 
@@ -201,7 +201,7 @@ class BrainSimilarity(BrainAnalysis):
         np.random.shuffle(Y)
         return Y
 
-    def _score(self, X, Y, _):
+    def _calc_score(self, X, Y, _):
         score = self._similarity_metric(X, Y)
         return score
 
