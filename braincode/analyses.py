@@ -92,11 +92,12 @@ class Analysis(ABC):
     def _plot(self):
         Plotter(self).plot()
 
-    def run(self, iters=1000):
+    def run(self, iters=1000, plot=False):
         self._run_pipeline("score")
         if not self._score_only:
             self._run_pipeline("null", iters)
-            self._plot()
+            if plot:
+                self._plot()
         return self
 
 
