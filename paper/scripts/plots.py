@@ -167,7 +167,7 @@ def filter_data(data):
 
 
 def make_inline_plot(data, dataset):
-    ax = plt.subplot(111)
+    ax = plt.subplot(111, label=dataset)
     for i, network in enumerate(data.Feature.unique()):
         samples = data[data.Feature == network]
         if "model" in dataset:
