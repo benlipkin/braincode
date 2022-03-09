@@ -34,7 +34,6 @@ def make_figure(data):
         else:
             r = np.array([x + bar_width for x in r])
         color = color = [
-            "tab:brown",
             "tab:red",
             "tab:orange",
             "tab:olive",
@@ -43,6 +42,7 @@ def make_figure(data):
             "tab:blue",
             "tab:purple",
             "tab:pink",
+            "tab:brown",
         ][i]
         ax.bar(
             r,
@@ -64,10 +64,11 @@ def make_figure(data):
     ax.yaxis.set_ticks_position("left")
     ax.xaxis.set_ticks_position("bottom")
     ax.plot([-0.35, 1.65], [0, 0], "--", color="0.25")
+    plt.title("RSA")
     plt.xlabel("Brain Network", fontweight="bold")
     plt.ylabel("Representational Similarity (Pearson R)", fontweight="bold")
     plt.ylim([0, 0.1])
-    plt.legend(loc="center left", bbox_to_anchor=[0.80, 0.95])
+    plt.legend(loc="center left", bbox_to_anchor=[1.00, 0.50])
     plt.gcf().set_size_inches([8, 4])
     x_start = -3 * bar_width - 0.015
     for target in data.Feature.unique():

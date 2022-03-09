@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def load_data():
-    return pd.read_csv(f"../../../tables/raw/vwea_models.csv")
+    return pd.read_csv(f"../../../tables/raw/mvpa_models_mdls.csv")
 
 
 def update_names(data):
@@ -64,7 +64,7 @@ def make_figure(data):
     ax.yaxis.set_ticks_position("left")
     ax.xaxis.set_ticks_position("bottom")
     ax.plot([-0.35, 1.65], [0, 0], "--", color="0.25")
-    plt.title("VWEA")
+    plt.title("MVPA")
     plt.xlabel("Brain Network", fontweight="bold")
     plt.ylabel("Rank Accuracy (%)", fontweight="bold")
     plt.ylim([0.48, 0.64])
@@ -86,7 +86,7 @@ def main():
     data = load_data()
     data = update_names(data)
     ax = make_figure(data)
-    plt.savefig(f"vwea_models.png", bbox_inches="tight", dpi=600)
+    plt.savefig(f"mvpa_models.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 

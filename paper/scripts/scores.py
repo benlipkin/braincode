@@ -302,15 +302,15 @@ def make_table_rsa_models():
         "lang",
     ]
     targets = [
-        "projection",
         "transformer",
         "roberta",
         "gpt2",
         "bert",
         "xlnet",
         "seq2seq",
-        "bow",
         "tfidf",
+        "bow",
+        "projection",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -367,15 +367,37 @@ def make_table_vwea_models():
         "lang",
     ]
     targets = [
-        "projection",
         "transformer",
         "roberta",
         "gpt2",
         "bert",
         "xlnet",
         "seq2seq",
-        "bow",
         "tfidf",
+        "bow",
+        "projection",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
+def make_table_mvpa_models_mdls():
+    name = "mvpa"
+    analysis = "mvpa_models_mdls"
+    features = [
+        "MD",
+        "lang",
+    ]
+    targets = [
+        "transformer",
+        "roberta",
+        "gpt2",
+        "bert",
+        "xlnet",
+        "seq2seq",
+        "tfidf",
+        "bow",
+        "projection",
     ]
     make_table(name, analysis, features, targets)
     make_subjects_table(name, analysis, features, targets)
@@ -395,6 +417,7 @@ def make_core_analyses():
 
 
 def make_supplemental_analyses():
+    make_table_mvpa_models_mdls()
     make_table_prda_properties()
     make_table_rsa_models()
     make_table_rsa_properties()
