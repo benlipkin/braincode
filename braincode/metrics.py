@@ -137,12 +137,12 @@ class LinearCKA(MatrixMetric):
         U = np.ones([N, N])
         I = np.eye(N)
         H = I - U / N
-        centered = np.dot(np.dot(H, K), H)
+        centered = H @ K @ H
         return centered
 
     def _HSIC(self, A, B):
-        L_A = np.dot(A, A.T)
-        L_B = np.dot(B, B.T)
+        L_A = A @ A.T
+        L_B = B @ B.T
         HSIC = np.sum(self._center(L_A) * self._center(L_B))
         return HSIC
 
