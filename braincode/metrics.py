@@ -127,6 +127,7 @@ class RepresentationalSimilarity(MatrixMetric):
         return score
 
 
+# inspired by https://github.com/yuanli2333/CKA-Centered-Kernel-Alignment/blob/master/CKA.py
 class LinearCKA(MatrixMetric):
     def __init__(self):
         super().__init__()
