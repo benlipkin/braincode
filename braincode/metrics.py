@@ -31,6 +31,9 @@ class Metric(ABC):
 
 class VectorMetric(Metric):
     def __init__(self, reduction=np.mean):
+        if reduction:
+            if not callable(reduction):
+                raise TypeError("Reduction argument must be callable.")
         self._reduction = reduction
         super().__init__()
 
@@ -39,8 +42,6 @@ class VectorMetric(Metric):
         for i in range(scores.size):
             scores[i] = self._score(X[:, i], Y[:, i])
         if self._reduction:
-            if not callable(self._reduction):
-                raise TypeError("Reduction argument must be callable.")
             return self._reduction(scores)
         return scores
 
