@@ -4,20 +4,24 @@ import json
 import os
 import pickle as pkl
 import subprocess
+import typing
 from io import BytesIO
+from pathlib import Path
 from tokenize import tok_name, tokenize
 
 import numpy as np
 
 
 class ProgramBenchmark:
-    def __init__(self, benchmark, basepath, fnames):
+    def __init__(
+        self, benchmark: str, basepath: Path, fnames: typing.List[str]
+    ) -> None:
         self._benchmark = benchmark
         self._base_path = basepath
         self._fnames = fnames
         self._metrics = self.load_all_benchmarks(self._base_path)
 
-    def load_all_benchmarks(self, basepath):
+    def load_all_benchmarks(self, basepath: Path) -> dict:
         # Populate all benchmarks needs to be setup before calling this method
         metrics = {}
         inpath = os.path.join(basepath, ".cache", "profiler")
@@ -27,7 +31,7 @@ class ProgramBenchmark:
                     metrics[f.split(".")[0]] = json.load(fp)
         return metrics
 
-    def fit_transform(self, programs):
+    def fit_transform(self, _) -> np.ndarray:
         # Pre-requisite -- the programs list and self._fnames list are sorted in the same order
         # Using results stored in cache instead of processing each program again.
         # Hence, the input `programs` to this function is unused.
@@ -60,13 +64,13 @@ class ProgramBenchmark:
 
 
 class ProgramMetrics:
-    def __init__(self, program, path, base_path):
+    def __init__(self, program: str, path: str, base_path: Path) -> None:
         self.program = program
         self.fname = "_".join(path.split(os.sep)[-2:])
         self.base_path = base_path
         self.outpath = os.path.join(self.base_path, ".cache", "profiler")
 
-    def get_token_counts(self):
+    def get_token_counts(self) -> int:
         exclude_tokens_types = [
             "NEWLINE",
             "NL",
@@ -85,7 +89,7 @@ class ProgramMetrics:
                     token_count += 1
         return token_count
 
-    def get_ast_node_counts(self):
+    def get_ast_node_counts(self) -> int:
         root = ast.parse(self.program)
         ast_node_count = 0
         for _ in ast.walk(root):
@@ -136,7 +140,7 @@ class ProgramMetrics:
         # print(json.dumps(metrics, indent=2))
         return metrics
 
-    def get_number_of_runtime_steps(self, sec=30):
+    def get_number_of_runtime_steps(self, sec: int = 30) -> int:
         """
         Requires the package line_profiler to be installed.
         Picks up the # hits for every line from the output of this profiler.
@@ -183,7 +187,7 @@ class ProgramMetrics:
                         sum_hits += i[1]
         return sum_hits
 
-    def get_byte_counts(self):
+    def get_byte_counts(self) -> int:
         with open(os.path.join(self.outpath, self.fname)) as fp:
             src = fp.read()
         byte_code = compile(src, os.path.join(self.outpath, self.fname), "exec")

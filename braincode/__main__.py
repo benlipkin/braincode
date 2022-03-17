@@ -1,7 +1,8 @@
 import logging
 import sys
 from datetime import datetime
-from parser import CLI
+
+from braincode.parser import CLI
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)

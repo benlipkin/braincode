@@ -12,7 +12,7 @@ help : Makefile
 ## env       : setup environment and install dependencies.
 .PHONY : env
 env : $(PACKAGE).egg-info/
-$(PACKAGE).egg-info/ : setup.py
+$(PACKAGE).egg-info/ : setup.py requirements.txt
 	@$(ACTIVATE) ; pip install -e .
 setup.py : conda
 conda :
@@ -24,7 +24,8 @@ endif
 .PHONY : setup
 setup : $(PACKAGE)/inputs/
 $(PACKAGE)/inputs/ : $(PACKAGE).egg-info/ setup/setup.sh
-	@$(ACTIVATE) ; cd setup/ ; bash setup.sh
+	@$(ACTIVATE) ; cd setup/ ; bash setup.sh ; cd ..
+	@$(ACTIVATE) ; python -m $(PACKAGE).utils $(PACKAGE) 2
 
 
 ## analysis  : run core analyses to replicate paper.
@@ -46,3 +47,8 @@ ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
 	@docker build -t $(PACKAGE)
 endif
 	@docker run -it $(PACKAGE)
+
+## test      : run static testing
+.PHONY : test
+test :
+	@$(ACTIVATE) ; mypy --ignore-missing-imports */*.py

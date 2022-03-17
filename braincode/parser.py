@@ -2,17 +2,18 @@ import itertools
 import logging
 import multiprocessing
 import sys
+import typing
 from argparse import ArgumentParser
 from pathlib import Path
 
-from decoding import MVPA, PRDA
-from encoding import NLEA, VWEA
+from braincode.decoding import MVPA, PRDA
+from braincode.encoding import NLEA, VWEA
+from braincode.similarity import CKA, RSA
 from joblib import Parallel, delayed, parallel_backend
-from similarity import CKA, RSA
 
 
 class CLI:
-    def __init__(self):
+    def __init__(self) -> None:
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
         self._analyses = ["mvpa", "rsa", "vwea", "nlea", "prda"]
@@ -25,21 +26,21 @@ class CLI:
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
-    def _base_args(prefix, units):
+    def _base_args(prefix: str, units: typing.List[str]) -> typing.List[str]:
         return [f"{prefix}-{i}" for i in units]
 
     @staticmethod
-    def _joint_args(prefix, units):
+    def _joint_args(prefix: str, units: typing.List[str]) -> typing.List[str]:
         return [f"{prefix}-{i}+{j}" for i, j in list(itertools.combinations(units, 2))]
 
     @property
-    def _brain_networks(self):
+    def _brain_networks(self) -> typing.List[str]:
         prefix = "brain"
         units = ["MD", "lang", "vis", "aud"]
         return self._base_args(prefix, units)
 
     @property
-    def _code_models(self):
+    def _code_models(self) -> typing.List[str]:
         prefix = "code"
         base_models = ["projection", "bow", "tfidf", "seq2seq"]
         transformers = ["xlnet", "bert", "gpt2", "transformer", "roberta"]
@@ -47,7 +48,7 @@ class CLI:
         return self._base_args(prefix, units)
 
     @property
-    def _code_benchmarks(self):
+    def _code_benchmarks(self) -> typing.List[str]:
         prefix = ("test", "task")
         test_tasks = ["code", "lang"]
         base_tasks = ["content", "structure", "tokens", "lines"]
@@ -60,18 +61,18 @@ class CLI:
         )
 
     @property
-    def _expanded_features(self):
+    def _expanded_features(self) -> typing.List[str]:
         prefix = "brain"
         units = ["MD", "lang", "vis"]
         return self._joint_args(prefix, units)
 
     @property
-    def _expanded_targets(self):
+    def _expanded_targets(self) -> typing.List[str]:
         prefix = "task"
         units = ["content", "structure", "tokens", "lines"]
         return self._joint_args(prefix, units)
 
-    def _build_parser(self):
+    def _build_parser(self) -> None:
         self._parser = ArgumentParser(description="run specified analysis type")
         self._parser.add_argument("analysis", choices=self._analyses)
         self._parser.add_argument(
@@ -90,12 +91,12 @@ class CLI:
         self._parser.add_argument("-d", "--code_model_dim", default="")
         self._parser.add_argument("-p", "--base_path", default=self._default_path)
 
-    def _parse_args(self):
+    def _parse_args(self) -> None:
         if not hasattr(self, "_parser"):
             raise RuntimeError("CLI parser not set. Need to build first.")
         self._args = self._parser.parse_args()
 
-    def _clean_arg(self, arg, match, input, keep=True):
+    def _clean_arg(self, arg, match, input, keep=True) -> typing.List[str]:
         arg = [opt for opt in arg if ((match in opt) == keep)]
         if len(arg) > 0:
             return arg
@@ -104,7 +105,7 @@ class CLI:
                 f"{self._args.analysis.upper()} only accepts '{match}' arguments for '{input}'."
             )
 
-    def _prep_args(self):
+    def _prep_args(self) -> None:
         if self._args.feature != self._default_arg:
             self._features = [self._args.feature]
         if self._args.target != self._default_arg:
@@ -123,14 +124,14 @@ class CLI:
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")
 
-    def _prep_kwargs(self):
+    def _prep_kwargs(self) -> None:
         self._kwargs = {
             "base_path": self._args.base_path,
             "score_only": self._args.score_only,
             "code_model_dim": self._args.code_model_dim,
         }
 
-    def _prep_analyses(self):
+    def _prep_analyses(self) -> None:
         if not hasattr(self, "_args"):
             raise RuntimeError("CLI args not set. Need to parse first.")
         self._prep_args()
@@ -140,13 +141,13 @@ class CLI:
         )
         self._analysis = globals()[self._args.analysis.upper()]
 
-    def _run_analysis(self, param):
+    def _run_analysis(self, param: typing.Tuple[str, str, dict]) -> None:
         if not hasattr(self, "_analysis"):
             raise RuntimeError("Analysis type not set. Need to prep first.")
         logging.basicConfig(stream=sys.stdout, level=logging.INFO)
         self._analysis(*param).run()
 
-    def _run_parallel_analyses(self):
+    def _run_parallel_analyses(self) -> None:
         if not hasattr(self, "_params"):
             raise RuntimeError("Analysis parameters not set. Need to prep first.")
         n_jobs = min(multiprocessing.cpu_count(), len(self._params))
@@ -156,7 +157,7 @@ class CLI:
         with parallel_backend("loky", n_jobs=n_jobs):
             Parallel()(delayed(self._run_analysis)(param) for param in self._params)
 
-    def run_main(self):
+    def run_main(self) -> None:
         self._build_parser()
         self._parse_args()
         self._prep_analyses()

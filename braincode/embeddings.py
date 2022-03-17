@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import pickle as pkl
 import random
+import typing
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -34,13 +35,22 @@ os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 os.environ["DATASETS_VERBOSITY"] = "error"
 
 
+class CodeModel(ABC):
+    def __init__(self, base_path: Path) -> None:
+        self._base_path = base_path
+
+    @abstractmethod
+    def fit_transform(self, programs: np.ndarray) -> np.ndarray:
+        raise NotImplementedError()
+
+
 class ProgramEmbedder:
-    def __init__(self, embedder, base_path, code_model_dim):
+    def __init__(self, embedder: str, base_path: Path, code_model_dim: str) -> None:
         self._embedder = self._embedding_models[embedder](base_path)
         self._code_model_dim = code_model_dim
 
     @property
-    def _embedding_models(self):
+    def _embedding_models(self) -> typing.Dict[str, typing.Type[CodeModel]]:
         return {
             "code-projection": TokenProjection,
             "code-bow": BagOfWords,
@@ -55,7 +65,7 @@ class ProgramEmbedder:
             "code-babbage": BabbageGPT3,
         }
 
-    def fit_transform(self, programs):
+    def fit_transform(self, programs: np.ndarray) -> np.ndarray:
         if not callable(getattr(self._embedder, "fit_transform", None)):
             raise NotImplementedError(
                 f"{self._embedder.__class__.__name__} must implement 'fit_transform' method."
@@ -68,9 +78,9 @@ class ProgramEmbedder:
         return embedding
 
 
-class TokenProjection:
-    def __init__(self, base_path):
-        self._base_path = base_path
+class TokenProjection(CodeModel):
+    def __init__(self, base_path: Path) -> None:
+        super().__init__(base_path)
         seq2seq_cfg = CodeSeq2Seq(base_path)
         self._vocab = seq2seq_cfg._vocab
         self._vocab_size = len(self._vocab)
@@ -79,35 +89,36 @@ class TokenProjection:
             (self._vocab_size, self._embedding_size)
         )
 
-    def _get_rep(self, program):
+    def _get_rep(self, program: str) -> np.ndarray:
         rep = np.zeros(self._embedding_size)
         for token in (tokenize_programs([program])[0]).split():
             rep += self._random_matrix[self._vocab[token], :]
         return rep
 
-    def fit_transform(self, programs):
+    def fit_transform(self, programs: np.ndarray) -> np.ndarray:
         outputs = []
         for program in programs:
             outputs.append(self._get_rep(program))
         return np.array(outputs)
 
 
-class CountVectorizer(ABC):
+class CountVectorizer(CodeModel):
     def __init__(self, base_path):
+        super().__init__(base_path)
         cache_dir = Path(os.path.join(base_path, ".cache", "datasets", "huggingface"))
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
         self._dataset = load_dataset(
-            "code_search_net", "python", split="validation", cache_dir=cache_dir
+            "code_search_net", "python", split="validation", cache_dir=str(cache_dir)
         )["func_code_string"]
         self._model = Tokenizer(num_words=TokenProjection(base_path)._vocab_size)
 
     @property
     @abstractmethod
-    def _mode(self):
+    def _mode(self) -> str:
         raise NotImplementedError("Handled by subclass.")
 
-    def fit_transform(self, programs):
+    def fit_transform(self, programs: np.ndarray) -> np.ndarray:
         self._model.fit_on_texts(tokenize_programs(self._dataset))
         outputs = self._model.texts_to_matrix(
             tokenize_programs(programs), mode=self._mode
@@ -116,39 +127,39 @@ class CountVectorizer(ABC):
 
 
 class BagOfWords(CountVectorizer):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _mode(self):
+    def _mode(self) -> str:
         return "count"
 
 
 class TFIDF(CountVectorizer):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _mode(self):
+    def _mode(self) -> str:
         return "tfidf"
 
 
-class DNN(ABC):
-    def __init__(self, base_path):
-        self._base_path = base_path
+class DNN(CodeModel):
+    def __init__(self, base_path: Path) -> None:
+        super().__init__(base_path)
 
     @staticmethod
-    def _get_rep(forward_output):
+    def _get_rep(forward_output) -> np.ndarray:
         rep = forward_output[0].mean(axis=1)
         if rep.device != "cpu":
             rep = rep.cpu()
         return rep.detach().numpy().squeeze()
 
     @abstractmethod
-    def _forward_pipeline(program):
+    def _forward_pipeline(self, program: str) -> torch.Tensor:
         raise NotImplementedError()
 
-    def fit_transform(self, programs):
+    def fit_transform(self, programs: np.ndarray) -> np.ndarray:
         outputs = []
         for program in programs:
             outputs.append(self._get_rep(self._forward_pipeline(program)))
@@ -156,19 +167,19 @@ class DNN(ABC):
 
 
 class CodeSeq2Seq(DNN):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
         cache_dir = Path(
             os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
         )
         if torch.cuda.is_available():
-            device_count = torch.torch.cuda.device_count()
+            device_count = torch.cuda.device_count()
             if device_count > 0:
                 device_id = random.randrange(device_count)
                 self._device = torch.device("cuda:" + str(device_id))
                 torch.cuda.set_device(self._device)
         else:
-            self._device = "cpu"
+            self._device = torch.device("cpu")
         with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
             self._model = torch.load(fp, map_location=self._device)
         with open(cache_dir.joinpath("vocab_code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
@@ -176,12 +187,12 @@ class CodeSeq2Seq(DNN):
         self._max_seq_len = params["max_len"]
 
     @staticmethod
-    def _get_rep(rep):
+    def _get_rep(rep: torch.Tensor) -> np.ndarray:
         if rep.device != "cpu":
             rep = rep.cpu()
         return rep.detach().numpy().squeeze()
 
-    def _forward_pipeline(self, program):
+    def _forward_pipeline(self, program: str) -> torch.Tensor:
         return get_representation(
             self._model,
             tokenize_programs([program])[0],
@@ -192,7 +203,7 @@ class CodeSeq2Seq(DNN):
 
 
 class ZuegnerModel(DNN):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
         model_manager = get_model_manager(self._model_type)
         self._model_config = model_manager.load_config(self._run_id)
@@ -208,15 +219,15 @@ class ZuegnerModel(DNN):
 
     @property
     @abstractmethod
-    def _model_type(self):
+    def _model_type(self) -> str:
         raise NotImplementedError()
 
     @property
     @abstractmethod
-    def _run_id(self):
+    def _run_id(self) -> str:
         raise NotImplementedError()
 
-    def _build_distances_transformer(self):
+    def _build_distances_transformer(self) -> typing.Callable:
         distances_config = self._data_config["distances"]
         binning_config = self._data_config["binning"]
         return DistancesTransformer(
@@ -252,14 +263,14 @@ class ZuegnerModel(DNN):
         )
 
     @staticmethod
-    def _prep_program(program):
+    def _prep_program(program: str) -> str:
         return f"def f():\n{program}".replace("\n", "\n    ")
 
     @abstractmethod
     def _forward(self, batch):
         raise NotImplementedError()
 
-    def _forward_pipeline(self, program):
+    def _forward_pipeline(self, program: str) -> torch.Tensor:
         stage1_sample = CTStage1Preprocessor("python").process(
             [("f", "", self._prep_program(program))],
             multiprocessing.current_process().pid,
@@ -276,18 +287,18 @@ class ZuegnerModel(DNN):
 
 
 class CodeXLNet(ZuegnerModel):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _model_type(self):
+    def _model_type(self) -> str:
         return "xl_net"
 
     @property
-    def _run_id(self):
+    def _run_id(self) -> str:
         return "XL-1"
 
-    def _forward(self, batch):
+    def _forward(self, batch) -> torch.Tensor:
         return self._model.lm_encoder.forward(
             input_ids=batch.tokens,
             pad_mask=batch.pad_mask,
@@ -300,23 +311,23 @@ class CodeXLNet(ZuegnerModel):
 
 
 class CodeTransformer(ZuegnerModel):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _model_type(self):
+    def _model_type(self) -> str:
         return "code_transformer"
 
     @property
-    def _run_id(self):
+    def _run_id(self) -> str:
         return "CT-5"
 
-    def _forward(self, batch):
+    def _forward(self, batch) -> torch.Tensor:
         return self._model.lm_encoder.forward_batch(batch, need_all_embeddings=True)
 
 
 class HFModel(DNN):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
         cache_dir = Path(
             os.path.join(
@@ -334,48 +345,48 @@ class HFModel(DNN):
 
     @property
     @abstractmethod
-    def _spec(self):
+    def _spec(self) -> str:
         raise NotImplementedError()
 
-    def _forward_pipeline(self, program):
+    def _forward_pipeline(self, program: str) -> torch.Tensor:
         return self._model.forward(self._tokenizer.encode(program, return_tensors="pt"))
 
 
 class CodeBERT(HFModel):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _spec(self):
+    def _spec(self) -> str:
         return "microsoft/codebert-base-mlm"
 
 
 class CodeGPT2(HFModel):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _spec(self):
+    def _spec(self) -> str:
         return "microsoft/CodeGPT-small-py"
 
 
 class CodeBERTa(HFModel):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _spec(self):
+    def _spec(self) -> str:
         return "huggingface/CodeBERTa-small-v1"
 
 
-class OpenAiGPT3:
+class OpenAiGPT3(CodeModel):
     def __init__(self, base_path):
-        self._base_path = base_path
+        super().__init__(base_path)
         openai.api_key_path = Path(os.path.join(self._base_path, ".openai_api_key"))
 
     @property
     @abstractmethod
-    def _engine(self):
+    def _engine(self) -> str:
         raise NotImplementedError()
 
     def _get_rep(self, program):
@@ -383,7 +394,7 @@ class OpenAiGPT3:
             input=[program.replace("\n", " ")]
         )["data"][0]["embedding"]
 
-    def fit_transform(self, programs):
+    def fit_transform(self, programs: np.ndarray) -> np.ndarray:
         outputs = []
         for program in programs:
             outputs.append(self._get_rep(program))
@@ -391,18 +402,18 @@ class OpenAiGPT3:
 
 
 class AdaGPT3(OpenAiGPT3):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _engine(self):
+    def _engine(self) -> str:
         return "ada-code-search-code"
 
 
 class BabbageGPT3(OpenAiGPT3):
-    def __init__(self, base_path):
+    def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
 
     @property
-    def _engine(self):
+    def _engine(self) -> str:
         return "babbage-code-search-code"

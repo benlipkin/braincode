@@ -1,3 +1,4 @@
+import typing
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -7,10 +8,12 @@ from sklearn.metrics import (accuracy_score, mean_squared_error,
 
 
 class Metric(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def __call__(self, X, Y):
+    def __call__(
+        self, X: np.ndarray, Y: np.ndarray
+    ) -> typing.Union[np.float, np.ndarray]:
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         if Y.ndim == 1:
@@ -25,19 +28,23 @@ class Metric(ABC):
         return self._apply_metric(X, Y)
 
     @abstractmethod
-    def _apply_metric(self, X, Y):
+    def _apply_metric(
+        self, X: np.ndarray, Y: np.ndarray
+    ) -> typing.Union[np.float, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
 
 class VectorMetric(Metric):
-    def __init__(self, reduction=np.mean):
+    def __init__(self, reduction: typing.Callable = np.mean) -> None:
         if reduction:
             if not callable(reduction):
                 raise TypeError("Reduction argument must be callable.")
         self._reduction = reduction
         super().__init__()
 
-    def _apply_metric(self, X, Y):
+    def _apply_metric(
+        self, X: np.ndarray, Y: np.ndarray
+    ) -> typing.Union[np.float, np.ndarray]:
         scores = np.zeros(X.shape[1])
         for i in range(scores.size):
             scores[i] = self._score(X[:, i], Y[:, i])
@@ -46,12 +53,12 @@ class VectorMetric(Metric):
         return scores
 
     @abstractmethod
-    def _score(self, X, Y):
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
         raise NotImplementedError("Handled by subclass.")
 
 
 class MatrixMetric(Metric):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def _apply_metric(self, X, Y):
@@ -59,51 +66,51 @@ class MatrixMetric(Metric):
         return score
 
     @abstractmethod
-    def _score(self, X, Y):
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
         raise NotImplementedError("Handled by subclass.")
 
 
 class PearsonR(VectorMetric):
     @staticmethod
-    def _score(x, y):
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         r, p = pearsonr(x, y)
         return r
 
 
 class SpearmanRho(VectorMetric):
     @staticmethod
-    def _score(x, y):
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         rho, p = spearmanr(x, y)
         return rho
 
 
 class KendallTau(VectorMetric):
     @staticmethod
-    def _score(x, y):
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         tau, p = kendalltau(x, y)
         return tau
 
 
 class RMSE(VectorMetric):
     @staticmethod
-    def _score(x, y):
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         loss = mean_squared_error(x, y, squared=False)
         return loss
 
 
 class ClassificationAccuracy(VectorMetric):
     @staticmethod
-    def _score(x, y):
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         score = accuracy_score(x, y, normalize=True)
         return score
 
 
 class RankAccuracy(MatrixMetric):
-    def __init__(self, distance="euclidean"):
+    def __init__(self, distance: str = "euclidean") -> None:
         self._distance = distance
         super().__init__()
 
-    def _score(self, X, Y):
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
         distances = pairwise_distances(X, Y, metric=self._distance)
         scores = (distances.T > np.diag(distances)).sum(axis=0) / (
             distances.shape[1] - 1
@@ -112,12 +119,14 @@ class RankAccuracy(MatrixMetric):
 
 
 class RepresentationalSimilarity(MatrixMetric):
-    def __init__(self, distance="correlation", comparison=PearsonR()):
+    def __init__(
+        self, distance: str = "correlation", comparison: VectorMetric = PearsonR()
+    ) -> None:
         self._distance = distance
         self._comparison = comparison
         super().__init__()
 
-    def _score(self, X, Y):
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
         X_rdm = pairwise_distances(X, metric=self._distance)
         Y_rdm = pairwise_distances(Y, metric=self._distance)
         if any([m.shape[1] == 1 for m in (X, Y)]):  # can't calc 1D corr dists
@@ -130,11 +139,11 @@ class RepresentationalSimilarity(MatrixMetric):
 
 # inspired by https://github.com/yuanli2333/CKA-Centered-Kernel-Alignment/blob/master/CKA.py
 class LinearCKA(MatrixMetric):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @staticmethod
-    def _center(K):
+    def _center(K: np.ndarray) -> np.ndarray:
         N = K.shape[0]
         U = np.ones([N, N])
         I = np.eye(N)
@@ -142,13 +151,13 @@ class LinearCKA(MatrixMetric):
         centered = H @ K @ H
         return centered
 
-    def _HSIC(self, A, B):
+    def _HSIC(self, A: np.ndarray, B: np.ndarray) -> np.float:
         L_A = A @ A.T
         L_B = B @ B.T
         HSIC = np.sum(self._center(L_A) * self._center(L_B))
         return HSIC
 
-    def _score(self, X, Y):
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
         HSIC_XY = self._HSIC(X, Y)
         HSIC_XX = self._HSIC(X, X)
         HSIC_YY = self._HSIC(Y, Y)

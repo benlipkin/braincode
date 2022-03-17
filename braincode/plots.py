@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 class Plotter:
-    def __init__(self, analysis):
+    def __init__(self, analysis) -> None:
         self._analysis = analysis
         self._feature = self._analysis.feature.split("-")[1]
         self._target = self._analysis.target.split("-")[1]
@@ -14,7 +14,7 @@ class Plotter:
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @property
-    def _fname(self):
+    def _fname(self) -> Path:
         fname = Path(
             os.path.join(
                 self._analysis._base_path,
@@ -28,7 +28,7 @@ class Plotter:
             fname.parent.mkdir(parents=True, exist_ok=True)
         return fname
 
-    def plot(self, show=False):
+    def plot(self, show: bool = False) -> None:
         plt.hist(self._analysis.null, bins=25, color="turquoise", edgecolor="black")
         plt.axvline(self._analysis.score, color="black", linewidth=3)
         plt.xlim([-1, 1])

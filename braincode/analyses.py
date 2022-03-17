@@ -1,20 +1,29 @@
 import logging
 import os
+import typing
 from abc import ABC, abstractmethod
 from itertools import combinations
 from pathlib import Path
 
 import numpy as np
-from data import DataLoader
-from metrics import ClassificationAccuracy, PearsonR, RankAccuracy
-from plots import Plotter
+from braincode.data import DataLoader
+from braincode.metrics import (ClassificationAccuracy, MatrixMetric, Metric,
+                               PearsonR, RankAccuracy)
+from braincode.plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
 
 
 class Analysis(ABC):
-    def __init__(self, feature, target, base_path, score_only, code_model_dim):
+    def __init__(
+        self,
+        feature: str,
+        target: str,
+        base_path: Path,
+        score_only: bool,
+        code_model_dim: str,
+    ) -> None:
         self._feature = feature
         self._target = target
         self._base_path = base_path
@@ -24,32 +33,34 @@ class Analysis(ABC):
             self._code_model_dim = ""
         self._loader = DataLoader(self._base_path, self.feature, self.target)
         self._logger = logging.getLogger(self.__class__.__name__)
+        self._score = None
+        self._null = None
 
     @property
-    def feature(self):
+    def feature(self) -> str:
         return self._feature
 
     @property
-    def target(self):
+    def target(self) -> str:
         return self._target
 
     @property
-    def score(self):
-        if not hasattr(self, "_score"):
+    def score(self) -> np.float:
+        if not self._score:
             raise RuntimeError("Score not set. Need to run.")
         return self._score
 
     @property
-    def null(self):
-        if not hasattr(self, "_null"):
+    def null(self) -> np.ndarray:
+        if not self._null:
             raise RuntimeError("Null not set. Need to run.")
         return self._null
 
     @property
-    def pval(self):
+    def pval(self) -> np.float:
         return (self.score < self.null).sum() / self.null.size
 
-    def _get_fname(self, mode):
+    def _get_fname(self, mode: str) -> Path:
         return Path(
             os.path.join(
                 self._base_path,
@@ -60,13 +71,15 @@ class Analysis(ABC):
             )
         )
 
-    def _set_and_save(self, mode, val, fname):
+    def _set_and_save(
+        self, mode: str, val: typing.Union[np.float, np.ndarray], fname: Path
+    ) -> None:
         setattr(self, f"_{mode}", val)
         np.save(fname, val)
         tag = f": {val:.3f}" if mode == "score" else ""
         self._logger.info(f"Caching '{fname.name}'{tag}.")
 
-    def _run_pipeline(self, mode, iters=1):
+    def _run_pipeline(self, mode: str, iters: int = 1) -> None:
         if mode not in ["score", "null"]:
             raise RuntimeError("Mode set incorrectly. Must be 'score' or 'null'")
         fname = self._get_fname(mode)
@@ -86,13 +99,13 @@ class Analysis(ABC):
         self._set_and_save(mode, samples, fname)
 
     @abstractmethod
-    def _run_mapping(self, mode):
+    def _run_mapping(self, mode: str) -> typing.Union[np.float, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
-    def _plot(self):
+    def _plot(self) -> None:
         Plotter(self).plot()
 
-    def run(self, iters=1000, plot=False):
+    def run(self, iters: int = 1000, plot: bool = False):
         self._run_pipeline("score")
         if not self._score_only:
             self._run_pipeline("null", iters)
@@ -102,11 +115,11 @@ class Analysis(ABC):
 
 
 class BrainAnalysis(Analysis):
-    def __init__(self, feature, target, **kwargs):
+    def __init__(self, feature: str, target: str, **kwargs) -> None:
         super().__init__(feature, target, **kwargs)
 
     @property
-    def subjects(self):
+    def subjects(self) -> typing.List[Path]:
         return [
             s
             for s in sorted(self._loader.datadir.joinpath("neural_data").glob("*.mat"))
@@ -114,18 +127,20 @@ class BrainAnalysis(Analysis):
         ]
 
     @abstractmethod
-    def _load_subject(self, subject):
+    def _load_subject(
+        self, subject: Path
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
     @abstractmethod
-    def _shuffle(Y, runs):
+    def _shuffle(self, Y: np.ndarray, runs: np.ndarray) -> np.ndarray:
         raise NotImplementedError("Handled by subclass.")
 
     @abstractmethod
-    def _calc_score(self, X, Y, runs):
+    def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float:
         raise NotImplementedError("Handled by subclass.")
 
-    def _run_mapping(self, mode, cache_subject_scores=True):
+    def _run_mapping(self, mode: str, cache_subject_scores: bool = True) -> np.float:
         scores = np.zeros(len(self.subjects))
         for idx, subject in enumerate(self.subjects):
             X, Y, runs = self._load_subject(subject)
@@ -139,23 +154,24 @@ class BrainAnalysis(Analysis):
 
 
 class Mapping(Analysis):
-    def __init__(self, feature, target, **kwargs):
+    def __init__(self, feature: str, target: str, **kwargs) -> None:
         super().__init__(feature, target, **kwargs)
 
     @staticmethod
-    def _get_metric(Y):
+    def _get_metric(Y: np.ndarray) -> Metric:
         if Y.ndim == 1:
-            metric = ClassificationAccuracy()
+            return ClassificationAccuracy()
         elif Y.ndim == 2:
             if Y.shape[1] == 1:
-                metric = PearsonR()
+                return PearsonR()
             else:
-                metric = RankAccuracy()
+                return RankAccuracy()
         else:
             raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
-        return metric
 
-    def _cross_validate_model(self, X, Y, runs):
+    def _cross_validate_model(
+        self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray
+    ) -> np.float:
         if any(a.shape[0] != b.shape[0] for a, b in combinations([X, Y, runs], 2)):
             raise ValueError("X Y and runs must all have the same number of samples.")
         model_class = RidgeClassifierCV if Y.ndim == 1 else RidgeCV
@@ -168,16 +184,19 @@ class Mapping(Analysis):
 
 
 class BrainMapping(BrainAnalysis, Mapping):
-    def __init__(self, feature, target, **kwargs):
+    def __init__(self, feature: str, target: str, **kwargs) -> None:
         super().__init__(feature, target, **kwargs)
 
-    def _load_subject(self, subject):
+    def _load_subject(
+        self, subject: Path
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         X, Y, runs = self._loader.get_data(
             self.__class__.__name__.lower(), subject, self._code_model_dim
         )
         return X, Y, runs
 
-    def _shuffle(Y_in, runs):
+    @staticmethod
+    def _shuffle(Y_in: np.ndarray, runs: np.ndarray) -> np.ndarray:
         if Y_in.shape[0] != runs.shape[0]:
             raise ValueError("Y and runs must have the same number of samples.")
         Y_out = np.zeros(Y_in.shape)
@@ -185,27 +204,31 @@ class BrainMapping(BrainAnalysis, Mapping):
             Y_out[runs == run] = np.random.permutation(Y_in[runs == run])
         return Y_out
 
-    def _calc_score(self, X, Y, runs):
+    def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float:
         score = self._cross_validate_model(X, Y, runs)
         return score
 
 
 class BrainSimilarity(BrainAnalysis):
-    def __init__(self, feature, target, **kwargs):
+    def __init__(self, feature: str, target: str, **kwargs) -> None:
         super().__init__(feature, target, **kwargs)
 
-    def _load_subject(self, subject):
+    def _load_subject(
+        self, subject: Path
+    ) -> typing.Tuple[np.ndarray, np.ndarray, typing.Any]:
         X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)
         return X, Y, _
 
-    def _shuffle(self, Y, _):
+    @staticmethod
+    def _shuffle(Y: np.ndarray, _: np.ndarray) -> np.ndarray:
         np.random.shuffle(Y)
         return Y
 
-    def _calc_score(self, X, Y, _):
+    def _calc_score(self, X: np.ndarray, Y: np.ndarray, _: np.ndarray) -> np.float:
         score = self._similarity_metric(X, Y)
         return score
 
+    @property
     @abstractmethod
-    def _similarity_metric(self):
+    def _similarity_metric(self) -> MatrixMetric:
         raise NotImplementedError("Handled by subclass.")
