@@ -16,3 +16,4 @@ line_profiler==3.3.0
 radon==5.1.0
 mne==0.24.1
 mypy==0.941
+lxml==4.8.0
