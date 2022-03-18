@@ -50,5 +50,6 @@ endif
 
 ## test      : run static testing
 .PHONY : test
-test :
-	@$(ACTIVATE) ; mypy --ignore-missing-import -p braincode --html-report html/mypy
+test : html/mypy/index.html
+html/mypy/index.html : $(PACKAGE)/*.py
+	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report html/mypy
