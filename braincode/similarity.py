@@ -1,10 +1,12 @@
+import typing
+
 from braincode.analyses import BrainSimilarity
 from braincode.metrics import LinearCKA, RepresentationalSimilarity
 
 
 class RSA(BrainSimilarity):
-    def __init__(self, feature: str, target: str, kwargs: dict) -> None:
-        super().__init__(feature, target, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def _similarity_metric(self):
@@ -12,8 +14,8 @@ class RSA(BrainSimilarity):
 
 
 class CKA(BrainSimilarity):
-    def __init__(self, feature: str, target: str, kwargs: dict) -> None:
-        super().__init__(feature, target, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def _similarity_metric(self):

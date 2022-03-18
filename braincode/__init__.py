@@ -1,11 +1,3 @@
-import braincode.analyses
-import braincode.benchmarks
-import braincode.data
-import braincode.decoding
-import braincode.embeddings
-import braincode.encoding
-import braincode.metrics
-import braincode.parser
-import braincode.plots
-import braincode.similarity
-import braincode.utils
+from braincode.decoding import *
+from braincode.encoding import *
+from braincode.similarity import *

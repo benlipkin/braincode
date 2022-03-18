@@ -20,9 +20,9 @@ class Analysis(ABC):
         self,
         feature: str,
         target: str,
-        base_path: Path,
-        score_only: bool,
-        code_model_dim: str,
+        base_path: Path = Path("braincode"),
+        score_only: bool = True,
+        code_model_dim: str = "",
     ) -> None:
         self._feature = feature
         self._target = target
@@ -105,18 +105,17 @@ class Analysis(ABC):
     def _plot(self) -> None:
         Plotter(self).plot()
 
-    def run(self, iters: int = 1000, plot: bool = False):
+    def run(self, iters: int = 1000, plot: bool = False) -> None:
         self._run_pipeline("score")
         if not self._score_only:
             self._run_pipeline("null", iters)
             if plot:
                 self._plot()
-        return self
 
 
 class BrainAnalysis(Analysis):
-    def __init__(self, feature: str, target: str, **kwargs) -> None:
-        super().__init__(feature, target, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def subjects(self) -> typing.List[Path]:
@@ -154,8 +153,8 @@ class BrainAnalysis(Analysis):
 
 
 class Mapping(Analysis):
-    def __init__(self, feature: str, target: str, **kwargs) -> None:
-        super().__init__(feature, target, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     @staticmethod
     def _get_metric(Y: np.ndarray) -> Metric:
@@ -184,8 +183,8 @@ class Mapping(Analysis):
 
 
 class BrainMapping(BrainAnalysis, Mapping):
-    def __init__(self, feature: str, target: str, **kwargs) -> None:
-        super().__init__(feature, target, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     def _load_subject(
         self, subject: Path
@@ -210,8 +209,8 @@ class BrainMapping(BrainAnalysis, Mapping):
 
 
 class BrainSimilarity(BrainAnalysis):
-    def __init__(self, feature: str, target: str, **kwargs) -> None:
-        super().__init__(feature, target, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     def _load_subject(
         self, subject: Path

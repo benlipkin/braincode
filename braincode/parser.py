@@ -136,16 +136,14 @@ class CLI:
             raise RuntimeError("CLI args not set. Need to parse first.")
         self._prep_args()
         self._prep_kwargs()
-        self._params = list(
-            itertools.product(self._features, self._targets, [self._kwargs])
-        )
+        self._params = list(itertools.product(self._features, self._targets))
         self._analysis = globals()[self._args.analysis.upper()]
 
-    def _run_analysis(self, param: typing.Tuple[str, str, dict]) -> None:
+    def _run_analysis(self, args: typing.Tuple[str, str], kwargs: dict) -> None:
         if not hasattr(self, "_analysis"):
             raise RuntimeError("Analysis type not set. Need to prep first.")
         logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-        self._analysis(*param).run()
+        self._analysis(*args, **kwargs).run()
 
     def _run_parallel_analyses(self) -> None:
         if not hasattr(self, "_params"):
@@ -155,7 +153,9 @@ class CLI:
             f"Running {self._analysis.__name__} for each set of {len(self._params)} analysis configurations using {n_jobs} CPUs."
         )
         with parallel_backend("loky", n_jobs=n_jobs):
-            Parallel()(delayed(self._run_analysis)(param) for param in self._params)
+            Parallel()(
+                delayed(self._run_analysis)(args, self._kwargs) for args in self._params
+            )
 
     def run_main(self) -> None:
         self._build_parser()
