@@ -10,7 +10,7 @@ class Plotter:
         self._analysis = analysis
         self._feature = self._analysis.feature.split("-")[1]
         self._target = self._analysis.target.split("-")[1]
-        self._type = self._analysis.__class__.__name__
+        self._type = self._analysis._name
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @property

@@ -14,7 +14,7 @@ class PRDA(Mapping):
         super().__init__(*args, **kwargs)
 
     def _run_mapping(self, mode: str) -> np.float:
-        X, Y, runs = self._loader.get_data(self.__class__.__name__.lower())
+        X, Y, runs = self._loader.get_data(self._name.lower())
         if mode == "null":
             np.random.shuffle(Y)
         return self._cross_validate_model(X, Y, runs)

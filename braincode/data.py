@@ -1,6 +1,7 @@
 import os
 import pickle as pkl
 import typing
+from abc import ABC, abstractmethod
 from functools import lru_cache, partial
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
 
-class DataLoader:
+class DataLoader(ABC):
     def __init__(self, base_path: Path, feature: str, target: str) -> None:
         self._datadir = Path(os.path.join(base_path, "inputs"))
         self._events = (12, 6)  # nruns, nblocks
@@ -158,50 +159,6 @@ class DataLoader:
             np.array(fnames),
         )
 
-    def _prep_data_mvpa(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        Y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
-        X = self._prep_brain_reps(data, parc, mask)
-        runs = self._prep_runs(self._runs, self._blocks)[mask]
-        return X, Y, runs
-
-    def _prep_data_rsa(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = self._prep_data_mvpa(subject, code_model_dim)
-        if Y.ndim == 1:
-            Y = OneHotEncoder(sparse=False).fit_transform(Y.reshape(-1, 1))
-        return X, Y, runs
-
-    def _prep_data_vwea(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        Y, X, runs = self._prep_data_rsa(subject, code_model_dim)
-        return X, Y, runs
-
-    def _prep_data_nlea(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = self._prep_data_vwea(subject, code_model_dim)
-        Y = Y.mean(axis=1).reshape(-1, 1)
-        return X, Y, runs
-
-    def _prep_data_prda(
-        self, k: int = 5
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        programs, content, lang, structure, fnames = self._load_all_programs()
-        if self._target in ["task-content", "task-structure"]:
-            Y = locals()[self._target.split("-")[1]]
-        else:
-            Y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
-                programs
-            )
-        X = ProgramEmbedder(self._feature, self._base_path, "").fit_transform(programs)
-        runs = self._prep_runs(k, (Y.size // k + 1))[: Y.size]  # kfold CV
-        return X, Y, runs
-
     def _get_fname(
         self, analysis: str, subject: str = "", code_model_dim: str = ""
     ) -> Path:
@@ -223,15 +180,7 @@ class DataLoader:
         return fname
 
     def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
-        loaders = {
-            "mvpa": partial(self._prep_data_mvpa, subject, code_model_dim),
-            "rsa": partial(self._prep_data_rsa, subject, code_model_dim),
-            "cka": partial(self._prep_data_rsa, subject, code_model_dim),
-            "vwea": partial(self._prep_data_vwea, subject, code_model_dim),
-            "nlea": partial(self._prep_data_nlea, subject, code_model_dim),
-            "prda": partial(self._prep_data_prda),
-        }
-        return loaders[analysis]
+        return partial(self._prep_data, subject, code_model_dim)  # type: ignore
 
     @lru_cache(maxsize=None)
     def get_data(
@@ -248,3 +197,64 @@ class DataLoader:
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": Y, "runs": runs}, f)
             return X, Y, runs
+
+
+class DataLoaderMVPA(DataLoader):
+    def _prep_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        data, parc, content, lang, structure, id = self._load_brain_data(subject)
+        Y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
+        X = self._prep_brain_reps(data, parc, mask)
+        runs = self._prep_runs(self._runs, self._blocks)[mask]
+        return X, Y, runs
+
+
+class DataLoaderPRDA(DataLoader):
+    def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
+        return partial(self._prep_data)
+
+    def _prep_data(
+        self, k: int = 5
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        programs, content, lang, structure, fnames = self._load_all_programs()
+        if self._target in ["task-content", "task-structure"]:
+            Y = locals()[self._target.split("-")[1]]
+        else:
+            Y = ProgramBenchmark(self._target, self._base_path, fnames).fit_transform(
+                programs
+            )
+        X = ProgramEmbedder(self._feature, self._base_path, "").fit_transform(programs)
+        runs = self._prep_runs(k, (Y.size // k + 1))[: Y.size]  # kfold CV
+        return X, Y, runs
+
+
+class DataLoaderRSA(DataLoaderMVPA):
+    def _prep_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        X, Y, runs = super()._prep_data(subject, code_model_dim)
+        if Y.ndim == 1:
+            Y = OneHotEncoder(sparse=False).fit_transform(Y.reshape(-1, 1))
+        return X, Y, runs
+
+
+class DataLoaderVWEA(DataLoaderRSA):
+    def _prep_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        Y, X, runs = super()._prep_data(subject, code_model_dim)
+        return X, Y, runs
+
+
+class DataLoaderNLEA(DataLoaderVWEA):
+    def _prep_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        X, Y, runs = super()._prep_data(subject, code_model_dim)
+        Y = Y.mean(axis=1).reshape(-1, 1)
+        return X, Y, runs
+
+
+class DataLoaderCKA(DataLoaderRSA):
+    pass

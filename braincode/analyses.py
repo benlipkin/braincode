@@ -6,9 +6,8 @@ from itertools import combinations
 from pathlib import Path
 
 import numpy as np
-from braincode.data import DataLoader
-from braincode.metrics import (ClassificationAccuracy, MatrixMetric, Metric,
-                               PearsonR, RankAccuracy)
+from braincode.data import *
+from braincode.metrics import *
 from braincode.plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.model_selection import LeaveOneGroupOut
@@ -31,8 +30,11 @@ class Analysis(ABC):
         self._code_model_dim = code_model_dim
         if "code-" not in self.target:
             self._code_model_dim = ""
-        self._loader = DataLoader(self._base_path, self.feature, self.target)
-        self._logger = logging.getLogger(self.__class__.__name__)
+        self._name = self.__class__.__name__
+        self._loader = globals()[f"DataLoader{self._name}"](
+            self._base_path, self.feature, self.target
+        )
+        self._logger = logging.getLogger(self._name)
         self._score = None
         self._null = None
 
@@ -66,7 +68,7 @@ class Analysis(ABC):
                 self._base_path,
                 ".cache",
                 "scores",
-                self.__class__.__name__.lower(),
+                self._name.lower(),
                 f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}{self._code_model_dim}.npy",
             )
         )
@@ -190,7 +192,7 @@ class BrainMapping(BrainAnalysis, Mapping):
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         X, Y, runs = self._loader.get_data(
-            self.__class__.__name__.lower(), subject, self._code_model_dim
+            self._name.lower(), subject, self._code_model_dim
         )
         return X, Y, runs
 
@@ -215,7 +217,7 @@ class BrainSimilarity(BrainAnalysis):
     def _load_subject(
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, typing.Any]:
-        X, Y, _ = self._loader.get_data(self.__class__.__name__.lower(), subject)
+        X, Y, _ = self._loader.get_data(self._name.lower(), subject)
         return X, Y, _
 
     @staticmethod
