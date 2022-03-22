@@ -172,14 +172,7 @@ class CodeSeq2Seq(DNN):
         cache_dir = Path(
             os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
         )
-        if torch.cuda.is_available():
-            device_count = torch.cuda.device_count()
-            if device_count > 0:
-                device_id = random.randrange(device_count)
-                self._device = torch.device("cuda:" + str(device_id))
-                torch.cuda.set_device(self._device)
-        else:
-            self._device = torch.device("cpu")
+        self._device = torch.device("cpu")
         with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
             self._model = torch.load(fp, map_location=self._device)
         with open(cache_dir.joinpath("vocab_code_seq2seq_py8kcodenet.pkl"), "rb") as fp:
@@ -198,7 +191,7 @@ class CodeSeq2Seq(DNN):
             tokenize_programs([program])[0],
             self._max_seq_len,
             self._vocab,
-            self._device,
+            self._device.type,
         )
 
 
