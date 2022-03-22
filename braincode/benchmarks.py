@@ -37,10 +37,10 @@ class ProgramBenchmark:
         # Hence, the input `programs` to this function is unused.
         outputs = []
         for f in self._fnames:
-            f = str(f).split(".")[0]  # remove .py
             f = "_".join(
                 f.split(os.sep)[-2:]
             )  # retain only `en/filename` and rename to `en_filename`
+            f = str(f).split(".")[0]  # remove .py
             if self._benchmark == "task-lines":
                 metric = self._metrics[f]["number_of_runtime_steps"]
             elif self._benchmark == "task-bytes":
