@@ -22,7 +22,7 @@ class CLI:
         )
         self._targets = (
             self._code_benchmarks + self._code_models
-        )  # + self._expanded_targets
+        ) + self._expanded_targets
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod

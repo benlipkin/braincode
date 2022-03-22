@@ -240,10 +240,28 @@ class DataLoaderRSA(DataLoaderMVPA):
 
 
 class DataLoaderVWEA(DataLoaderRSA):
+    def _prep_joint_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        temp = self._target
+        parts = temp.split("-")
+        prefix, vars = parts[0], parts[1].split("+")
+        X = []
+        for var in vars:
+            self._target = f"{prefix}-{var}"
+            Y, x, runs = super()._prep_data(subject, code_model_dim)
+            X.append(x)
+        self._target = temp
+        X = np.concatenate(X, axis=1)
+        return X, Y, runs
+
     def _prep_data(
         self, subject: Path, code_model_dim: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        Y, X, runs = super()._prep_data(subject, code_model_dim)
+        if "+" in self._target:
+            X, Y, runs = self._prep_joint_data(subject, code_model_dim)
+        else:
+            Y, X, runs = super()._prep_data(subject, code_model_dim)
         return X, Y, runs
 
 
