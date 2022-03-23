@@ -359,6 +359,39 @@ def make_table_nlea_all():
     make_subjects_table(name, analysis, features, targets)
 
 
+def make_table_nlea_properties():
+    name = "nlea"
+    analysis = "nlea_properties"
+    features = [
+        "MD",
+        "lang",
+    ]
+    targets = [
+        "content",
+        "structure",
+        "tokens",
+        "lines",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
+def make_table_nlea_properties_max():
+    name = "nlea"
+    analysis = "nlea_properties_max"
+    features = [
+        "MD",
+        "lang",
+        "vis",
+        "aud",
+    ]
+    targets = [
+        "content+structure+tokens+lines",
+    ]
+    make_table(name, analysis, features, targets)
+    make_subjects_table(name, analysis, features, targets)
+
+
 def make_table_vwea_models():
     name = "vwea"
     analysis = "vwea_models"
@@ -419,9 +452,10 @@ def make_core_analyses():
 def make_supplemental_analyses():
     make_table_mvpa_models_mdls()
     make_table_prda_properties()
-    make_table_rsa_models()
     make_table_rsa_properties()
-    make_table_nlea_all()
+    make_table_rsa_models()
+    make_table_nlea_properties()
+    make_table_nlea_properties_max()
     make_table_vwea_models()
 
 
