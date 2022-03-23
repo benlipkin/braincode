@@ -23,8 +23,8 @@ endif
 ## setup     : download prerequisite files, e.g. neural data, models.
 .PHONY : setup
 setup : $(PACKAGE)/inputs/
-$(PACKAGE)/inputs/ : $(PACKAGE).egg-info/ setup/setup.sh
-	@$(ACTIVATE) ; cd setup/ ; bash setup.sh ; cd ..
+$(PACKAGE)/inputs/ : setup/setup.sh $(PACKAGE).egg-info/
+	@$(ACTIVATE) ; cd $(<D) ; bash $(<F)
 	@$(ACTIVATE) ; python -m $(PACKAGE).utils $(PACKAGE) 2
 
 
@@ -37,8 +37,8 @@ $(PACKAGE)/outputs/ : $(PACKAGE)/inputs/ $(PACKAGE)/*.py
 ## paper     : run scripts to generate final plots and tables.
 .PHONY : paper
 paper : paper/plots/
-paper/plots/ : $(PACKAGE)/outputs/ paper/scripts/*.py $(PACKAGE)/.cache/scores/**
-	@$(ACTIVATE) ; cd paper/scripts ; bash run.sh
+paper/plots/ : paper/scripts/*.py $(PACKAGE)/outputs/ $(PACKAGE)/.cache/scores/**
+	@$(ACTIVATE) ; cd $(<D) ; bash run.sh
 
 ## docker    : build docker image and spin up container.
 .PHONY : docker
@@ -52,4 +52,4 @@ endif
 .PHONY : test
 test : html/mypy/index.html
 html/mypy/index.html : $(PACKAGE)/*.py
-	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report html/mypy
+	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
