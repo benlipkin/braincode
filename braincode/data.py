@@ -36,16 +36,6 @@ class DataLoader(ABC):
     def samples(self) -> int:
         return np.prod(self._events)
 
-    @staticmethod
-    def _get_joint_network_indices(network: str, mat: dict) -> np.ndarray:
-        networks = network.split("+")
-        if len(networks) == 2:
-            network_indices = mat[f"{networks[0]}_tags"] + mat[f"{networks[1]}_tags"]
-        else:
-            raise ValueError("Network not supported. Select valid network.")
-        network_indices[network_indices > 1] = 1
-        return network_indices
-
     def _load_brain_data(
         self, subject: Path
     ) -> typing.Tuple[
@@ -57,10 +47,7 @@ class DataLoader(ABC):
             )
         mat = loadmat(subject)
         network = self._feature.split("-")[1]
-        if "+" in network:
-            network_indices = self._get_joint_network_indices(network, mat)
-        else:
-            network_indices = mat[f"{network}_tags"]
+        network_indices = mat[f"{network}_tags"]
         return (
             mat["data"],
             network_indices,
@@ -179,8 +166,14 @@ class DataLoader(ABC):
             fname.parent.mkdir(parents=True, exist_ok=True)
         return fname
 
+    @abstractmethod
+    def _prep_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        raise NotImplementedError("Handled by subclass.")
+
     def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
-        return partial(self._prep_data, subject, code_model_dim)  # type: ignore
+        return partial(self._prep_data, subject, code_model_dim)
 
     @lru_cache(maxsize=None)
     def get_data(
@@ -194,29 +187,20 @@ class DataLoader(ABC):
         else:
             load_data = self._get_loader(analysis, subject, code_model_dim)
             X, Y, runs = load_data()
+            print(X.shape, Y.shape, runs.shape)
+            print(X)
+            raise NotImplementedError("testing")
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": Y, "runs": runs}, f)
             return X, Y, runs
 
 
-class DataLoaderMVPA(DataLoader):
-    def _prep_data(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        Y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
-        X = self._prep_brain_reps(data, parc, mask)
-        runs = self._prep_runs(self._runs, self._blocks)[mask]
-        return X, Y, runs
-
-
 class DataLoaderPRDA(DataLoader):
-    def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
-        return partial(self._prep_data)
-
-    def _prep_data(
+    def _prep_data(  # type: ignore
         self, k: int = 5
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        if "+" in self._feature or "+" in self._target:
+            raise RuntimeError("PRDA does not support joint variables.")
         programs, content, lang, structure, fnames = self._load_all_programs()
         if self._target in ["task-content", "task-structure"]:
             Y = locals()[self._target.split("-")[1]]
@@ -227,6 +211,70 @@ class DataLoaderPRDA(DataLoader):
         X = ProgramEmbedder(self._feature, self._base_path, "").fit_transform(programs)
         runs = self._prep_runs(k, (Y.size // k + 1))[: Y.size]  # kfold CV
         return X, Y, runs
+
+    def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
+        return partial(self._prep_data)
+
+
+class DataLoaderMVPA(DataLoader):
+    def _prep_xyr(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        data, parc, content, lang, structure, id = self._load_brain_data(subject)
+        Y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
+        X = self._prep_brain_reps(data, parc, mask)
+        runs = self._prep_runs(self._runs, self._blocks)[mask]
+        return X, Y, runs
+
+    def _prep_joint_features(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        temp = self._feature
+        parts = temp.split("-")
+        prefix, vars = parts[0], parts[1].split("+")
+        X = []
+        for var in vars:
+            self._feature = f"{prefix}-{var}"
+            x, Y, runs = self._prep_xyr(subject, code_model_dim)
+            X.append(x)
+        self._feature = temp
+        X = np.concatenate(X, axis=1)
+        return X, Y, runs
+
+    def _prep_joint_targets(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        temp = self._target
+        parts = temp.split("-")
+        prefix, vars = parts[0], parts[1].split("+")
+        Y = []
+        for var in vars:
+            self._target = f"{prefix}-{var}"
+            X, y, runs = self._prep_xyr(subject, code_model_dim)
+            if y.ndim == 1:
+                y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
+            Y.append(y)
+        self._target = temp
+        Y = np.concatenate(Y, axis=1)
+        return X, Y, runs
+
+    def _prep_data(
+        self, subject: Path, code_model_dim: str
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        joint_feature = "+" in self._feature
+        joint_target = "+" in self._target
+        if joint_feature and joint_target:
+            raise RuntimeError("Should only be using one set of joint variables.")
+        if joint_feature:
+            if "MVPA" not in self.__class__.__name__:
+                raise RuntimeError("Only MVPA supports joint features.")
+            return self._prep_joint_features(subject, code_model_dim)
+        elif joint_target:
+            if "EA" not in self.__class__.__name__:
+                raise RuntimeError("Only encoding analyses support joint targets.")
+            return self._prep_joint_targets(subject, code_model_dim)
+        else:
+            return self._prep_xyr(subject, code_model_dim)
 
 
 class DataLoaderRSA(DataLoaderMVPA):
@@ -240,28 +288,10 @@ class DataLoaderRSA(DataLoaderMVPA):
 
 
 class DataLoaderVWEA(DataLoaderRSA):
-    def _prep_joint_data(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        temp = self._target
-        parts = temp.split("-")
-        prefix, vars = parts[0], parts[1].split("+")
-        X = []
-        for var in vars:
-            self._target = f"{prefix}-{var}"
-            Y, x, runs = super()._prep_data(subject, code_model_dim)
-            X.append(x)
-        self._target = temp
-        X = np.concatenate(X, axis=1)
-        return X, Y, runs
-
     def _prep_data(
         self, subject: Path, code_model_dim: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        if "+" in self._target:
-            X, Y, runs = self._prep_joint_data(subject, code_model_dim)
-        else:
-            Y, X, runs = super()._prep_data(subject, code_model_dim)
+        Y, X, runs = super()._prep_data(subject, code_model_dim)
         return X, Y, runs
 
 

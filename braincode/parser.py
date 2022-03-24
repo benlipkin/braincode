@@ -18,13 +18,7 @@ class CLI:
         self._default_arg = "all"
         self._analyses = ["mvpa", "rsa", "vwea", "nlea", "prda"]
         self._features = self._brain_networks + self._code_models + self._joint_networks
-        self._targets = (
-            self._code_benchmarks
-            + self._code_models
-            + self._joint_benchmarks
-            + self._maximal_benchmarks
-            + self._maximal_models
-        )
+        self._targets = self._code_benchmarks + self._code_models + self._max_benchmarks
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
@@ -76,23 +70,9 @@ class CLI:
         return self._joint_args(prefix, units)
 
     @property
-    def _joint_benchmarks(self) -> typing.List[str]:
+    def _max_benchmarks(self) -> typing.List[str]:
         prefix = "task"
         units = ["content", "structure", "tokens", "lines"]
-        return self._joint_args(prefix, units)
-
-    @property
-    def _maximal_benchmarks(self) -> typing.List[str]:
-        prefix = "task"
-        units = ["content", "structure", "tokens", "lines"]
-        return self._max_arg(prefix, units)
-
-    @property
-    def _maximal_models(self) -> typing.List[str]:
-        prefix = "code"
-        base_models = ["projection", "bow", "tfidf", "seq2seq"]
-        transformers = ["xlnet", "bert", "gpt2", "transformer", "roberta"]
-        units = base_models + transformers
         return self._max_arg(prefix, units)
 
     def _build_parser(self) -> None:
