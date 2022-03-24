@@ -187,9 +187,6 @@ class DataLoader(ABC):
         else:
             load_data = self._get_loader(analysis, subject, code_model_dim)
             X, Y, runs = load_data()
-            print(X.shape, Y.shape, runs.shape)
-            print(X)
-            raise NotImplementedError("testing")
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": Y, "runs": runs}, f)
             return X, Y, runs
@@ -226,7 +223,7 @@ class DataLoaderMVPA(DataLoader):
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, Y, runs
 
-    def _prep_joint_features(
+    def _prep_xyr_jf(
         self, subject: Path, code_model_dim: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         temp = self._feature
@@ -241,7 +238,7 @@ class DataLoaderMVPA(DataLoader):
         X = np.concatenate(X, axis=1)
         return X, Y, runs
 
-    def _prep_joint_targets(
+    def _prep_xyr_jt(
         self, subject: Path, code_model_dim: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         temp = self._target
@@ -268,11 +265,11 @@ class DataLoaderMVPA(DataLoader):
         if joint_feature:
             if "MVPA" not in self.__class__.__name__:
                 raise RuntimeError("Only MVPA supports joint features.")
-            return self._prep_joint_features(subject, code_model_dim)
+            return self._prep_xyr_jf(subject, code_model_dim)
         elif joint_target:
             if "EA" not in self.__class__.__name__:
                 raise RuntimeError("Only encoding analyses support joint targets.")
-            return self._prep_joint_targets(subject, code_model_dim)
+            return self._prep_xyr_jt(subject, code_model_dim)
         else:
             return self._prep_xyr(subject, code_model_dim)
 
