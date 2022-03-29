@@ -21,12 +21,14 @@ class Analysis(ABC):
         target: str,
         base_path: Path = Path("braincode"),
         score_only: bool = True,
+        debug: bool = False,
         code_model_dim: str = "",
     ) -> None:
         self._feature = feature
         self._target = target
         self._base_path = base_path
         self._score_only = score_only
+        self._debug = debug
         self._code_model_dim = code_model_dim
         if "code-" not in self.target:
             self._code_model_dim = ""
@@ -77,7 +79,8 @@ class Analysis(ABC):
         self, mode: str, val: typing.Union[np.float, np.ndarray], fname: Path
     ) -> None:
         setattr(self, f"_{mode}", val)
-        np.save(fname, val)
+        if not self._debug:
+            np.save(fname, val)
         tag = f": {val:.3f}" if mode == "score" else ""
         self._logger.info(f"Caching '{fname.name}'{tag}.")
 
@@ -87,7 +90,7 @@ class Analysis(ABC):
         fname = self._get_fname(mode)
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
-        if fname.exists():
+        if fname.exists() and not self._debug:
             setattr(self, f"_{mode}", np.load(fname, allow_pickle=True))
             self._logger.info(f"Loading '{fname.name}' from cache.")
             return
@@ -192,7 +195,7 @@ class BrainMapping(BrainAnalysis, Mapping):
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         X, Y, runs = self._loader.get_data(
-            self._name.lower(), subject, self._code_model_dim
+            self._name.lower(), subject, self._debug, self._code_model_dim
         )
         return X, Y, runs
 
@@ -217,7 +220,7 @@ class BrainSimilarity(BrainAnalysis):
     def _load_subject(
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, typing.Any]:
-        X, Y, _ = self._loader.get_data(self._name.lower(), subject)
+        X, Y, _ = self._loader.get_data(self._name.lower(), subject, self._debug)
         return X, Y, _
 
     @staticmethod

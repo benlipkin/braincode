@@ -91,6 +91,7 @@ class CLI:
             default=self._default_arg,
         )
         self._parser.add_argument("-s", "--score_only", action="store_true")
+        self._parser.add_argument("-b", "--debug", action="store_true")
         self._parser.add_argument("-d", "--code_model_dim", default="")
         self._parser.add_argument("-p", "--base_path", default=self._default_path)
 
@@ -131,6 +132,7 @@ class CLI:
         self._kwargs = {
             "base_path": self._args.base_path,
             "score_only": self._args.score_only,
+            "debug": self._args.debug,
             "code_model_dim": self._args.code_model_dim,
         }
 

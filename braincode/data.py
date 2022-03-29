@@ -177,18 +177,23 @@ class DataLoader(ABC):
 
     @lru_cache(maxsize=None)
     def get_data(
-        self, analysis: str, subject: Path = Path(""), code_model_dim: str = ""
+        self,
+        analysis: str,
+        subject: Path = Path(""),
+        debug: bool = False,
+        code_model_dim: str = "",
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fname = self._get_fname(analysis, subject.name, code_model_dim)
-        if fname.exists():
+        if fname.exists() and not debug:
             with open(fname, "rb") as f:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
         else:
             load_data = self._get_loader(analysis, subject, code_model_dim)
             X, Y, runs = load_data()
-            with open(fname, "wb") as f:
-                pkl.dump({"X": X, "y": Y, "runs": runs}, f)
+            if not debug:
+                with open(fname, "wb") as f:
+                    pkl.dump({"X": X, "y": Y, "runs": runs}, f)
             return X, Y, runs
 
 
