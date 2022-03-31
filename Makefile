@@ -53,3 +53,8 @@ endif
 test : html/mypy/index.html
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
+
+## update    : update repo with latest version from GitHub
+.PHONY : update
+update :
+	@git pull origin main
