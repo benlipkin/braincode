@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 import tqdm
+
 from braincode.benchmarks import ProgramMetrics
 
 

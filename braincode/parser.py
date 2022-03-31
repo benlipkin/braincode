@@ -6,10 +6,11 @@ import typing
 from argparse import ArgumentParser
 from pathlib import Path
 
-from braincode.decoding import MVPA, PRDA
-from braincode.encoding import NLEA, VWEA
-from braincode.similarity import CKA, RSA
 from joblib import Parallel, delayed, parallel_backend
+
+from braincode.decoding import *
+from braincode.encoding import *
+from braincode.similarity import *
 
 
 class CLI:

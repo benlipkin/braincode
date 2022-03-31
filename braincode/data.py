@@ -6,10 +6,11 @@ from functools import lru_cache, partial
 from pathlib import Path
 
 import numpy as np
-from braincode.benchmarks import ProgramBenchmark
-from braincode.embeddings import ProgramEmbedder
 from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+
+from braincode.benchmarks import ProgramBenchmark
+from braincode.embeddings import ProgramEmbedder
 
 
 class DataLoader(ABC):

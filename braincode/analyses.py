@@ -6,12 +6,13 @@ from itertools import combinations
 from pathlib import Path
 
 import numpy as np
-from braincode.data import *
-from braincode.metrics import *
-from braincode.plots import Plotter
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.model_selection import LeaveOneGroupOut
 from tqdm import tqdm
+
+from braincode.data import *
+from braincode.metrics import *
+from braincode.plots import Plotter
 
 
 class Analysis(ABC):
