@@ -14,6 +14,7 @@ help : Makefile
 env : $(PACKAGE).egg-info/
 $(PACKAGE).egg-info/ : setup.py requirements.txt
 	@$(ACTIVATE) ; pip install -e .
+	@$(ACTIVATE) ; cd setup ; pip install -e .
 setup.py : conda
 conda :
 ifeq "$(shell conda info --envs | grep $(PACKAGE) | wc -l)" "0"
@@ -57,7 +58,7 @@ html/pylint/index.html : html/pylint/index.json
 	@$(ACTIVATE) ; pylint-json2html -o $@ -e utf-8 $<
 html/pylint/index.json : $(PACKAGE)/*.py
 	@mkdir -p $(@D)
-	@$(ACTIVATE) ; pylint $(PACKAGE) --output-format=colorized:$(shell tty),json:$@ || pylint-exit $$?
+	@$(ACTIVATE) ; pylint $(PACKAGE) --output-format=colorized,json:$@ || pylint-exit $$?
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
 
