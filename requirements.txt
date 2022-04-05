@@ -1,3 +1,4 @@
+code-transformer @ git+https://github.com/danielzuegner/code-transformer.git
 numpy==1.18.1
 scipy==1.4.1
 scikit_learn==0.24.1
@@ -8,7 +9,6 @@ datasets==1.9.0
 matplotlib==3.3.4
 joblib==0.14.1
 tqdm==4.43.0
-code-transformer @ git+https://github.com/danielzuegner/code-transformer.git
 torchtext==0.5.0
 dill==0.3.4
 astor==0.8.1
@@ -19,3 +19,4 @@ mypy==0.941
 lxml==4.8.0
 pylint==2.13.4
 pylint-json2html==0.3.0
+pylint-exit==1.2.0

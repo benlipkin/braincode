@@ -50,14 +50,16 @@ endif
 
 ## test      : run static testing
 .PHONY : test
-test : mypy pylint
-mypy : env html/mypy/index.html
+test : pylint mypy
 pylint : env html/pylint/index.html
+mypy : env html/mypy/index.html
+html/pylint/index.html : html/pylint/index.json
+	@$(ACTIVATE) ; pylint-json2html -o $@ -e utf-8 $<
+html/pylint/index.json : $(PACKAGE)/*.py
+	@mkdir -p $(@D)
+	@$(ACTIVATE) ; pylint $(PACKAGE) --output-format=colorized:$(shell tty),json:$@ || pylint-exit $$?
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
-html/pylint/index.html : $(PACKAGE)/*.py
-	@mkdir -p $(@D)
-	@$(ACTIVATE) ; pylint $(PACKAGE) --output-format=colorized:$(shell tty),json | pylint-json2html -o $@
 
 ## update    : update repo with latest version from GitHub
 .PHONY : update
