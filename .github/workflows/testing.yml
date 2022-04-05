@@ -8,12 +8,19 @@ on:
 
 jobs:
   run_tests:
+
     runs-on:              ubuntu-latest
+
     steps:
-      - uses:             actions/checkout@v3.0.0
+      - name:             checkout repo
+        uses:             actions/checkout@v3.0.0
         with:
           fetch-depth:    1
-      - uses:             s-weigand/setup-conda@v1.1.0
+
+      - name:             setup conda
+        uses:             s-weigand/setup-conda@v1.1.0
         with:
           python-version: 3.7
-      - run:              make test
+
+      - name:             run testing pipeline
+        run:              make test
