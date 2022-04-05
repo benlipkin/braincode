@@ -17,3 +17,5 @@ radon==5.1.0
 mne==0.24.1
 mypy==0.941
 lxml==4.8.0
+pylint==2.13.4
+pylint-json2html==0.3.0
