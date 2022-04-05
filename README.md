@@ -1,3 +1,5 @@
+[![Tests](https://github.com/benlipkin/braincode/actions/workflows/testing.yml/badge.svg)](https://github.com/benlipkin/braincode/actions/workflows/testing.yml)
+
 # BrainCode
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
@@ -130,4 +132,4 @@ If you use this work, please cite XXX (under review)
 
 ## License
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)

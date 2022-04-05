@@ -28,7 +28,6 @@ $(PACKAGE)/inputs/ : setup/setup.sh $(PACKAGE).egg-info/
 	@$(ACTIVATE) ; cd $(<D) ; bash $(<F)
 	@$(ACTIVATE) ; python -m $(PACKAGE).utils $(PACKAGE) 2
 
-
 ## analysis  : run core analyses to replicate paper.
 .PHONY : analysis
 analysis : $(PACKAGE)/outputs/
