@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 import pandas as pd
 import scipy.stats as st
+from mne.stats import fdr_correction
 
 
 def make_table(name, analysis, features, targets):
@@ -35,8 +36,8 @@ def make_table(name, analysis, features, targets):
     table["Null Mean"] = np.array(null_mu)
     table["Null SD"] = np.array(null_std)
     table["z"] = (table["Score"] - table["Null Mean"]) / table["Null SD"]
-    table["p (corrected)"] = st.norm.sf(table["z"]) * table.shape[0]  # bonferroni
-    table["h (corrected)"] = (table["p (corrected)"] < 1e-3).astype(int)
+    pvals = st.norm.sf(table["z"])
+    table["h (corrected)"], table["p (corrected)"] = fdr_correction(pvals, alpha=0.001)
     table.to_csv(f"../tables/raw/{analysis}.csv", index=False)
 
 
