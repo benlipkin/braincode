@@ -35,8 +35,8 @@ def make_table(name, analysis, features, targets):
     table["Null Mean"] = np.array(null_mu)
     table["Null SD"] = np.array(null_std)
     table["z"] = (table["Score"] - table["Null Mean"]) / table["Null SD"]
-    table["p (corrected)"] = st.norm.sf(table["z"]) * table.shape[0]
-    table["h (corrected)"] = (table["p (corrected)"] < 1e-2).astype(int)
+    table["p (corrected)"] = st.norm.sf(table["z"]) * table.shape[0]  # bonferroni
+    table["h (corrected)"] = (table["p (corrected)"] < 1e-3).astype(int)
     table.to_csv(f"../tables/raw/{analysis}.csv", index=False)
 
 

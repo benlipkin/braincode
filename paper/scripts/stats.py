@@ -27,13 +27,13 @@ def calc_stats(dataset, reverse_grouping=False):
                     continue
             s1 = samples[samples["Feature"] == p1].iloc[0, 2:].values
             s2 = samples[samples["Feature"] == p2].iloc[0, 2:].values
-            t, p = st.ttest_ind(s1, s2, equal_var=False)
+            t, p = st.ttest_rel(s1, s2, alternative="two-sided")
             groupings.append(grouping)
             S1.append(p1)
             S2.append(p2)
             tval.append(t)
             pval.append(p)
-    h_corrected, pval_corrected = fdr_correction(pval)
+    h_corrected, pval_corrected = fdr_correction(pval, alpha=0.05)
     stats = pd.DataFrame(
         {
             "Grouping": groupings,
