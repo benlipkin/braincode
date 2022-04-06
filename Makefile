@@ -1,7 +1,9 @@
 SHELL := /usr/bin/env bash
+EXEC = python
 PACKAGE = braincode
+INSTALL = pip install -e .
 ACTIVATE = source activate $(PACKAGE)
-PIPELINE = python $(PACKAGE)
+PIPELINE = $(EXEC) $(PACKAGE)
 .DEFAULT_GOAL := help
 
 ## help      : print available build commands.
@@ -9,46 +11,36 @@ PIPELINE = python $(PACKAGE)
 help : Makefile
 	@sed -n 's/^##//p' $<
 
+## update    : update repo with latest version from GitHub.
+.PHONY : update
+update :
+	@git pull origin main
+
 ## env       : setup environment and install dependencies.
 .PHONY : env
-env : $(PACKAGE).egg-info/
+env : module seq2seq
+module: conda $(PACKAGE).egg-info/
+seq2seq: conda setup/code_seq2seq.egg-info
 $(PACKAGE).egg-info/ : setup.py requirements.txt
-	@$(ACTIVATE) ; pip install -e .
-	@$(ACTIVATE) ; cd setup ; pip install -e .
-setup.py : conda
+	@$(ACTIVATE) ; $(INSTALL)
+setup/code_seq2seq.egg-info : setup/setup.py
+	@$(ACTIVATE) ; cd $(<D) ; $(INSTALL)
 conda :
 ifeq "$(shell conda info --envs | grep $(PACKAGE) | wc -l)" "0"
-	@conda create -yn $(PACKAGE) python=3.7
+	@conda create -yn $(PACKAGE) $(EXEC)=3.7
 endif
 
 ## setup     : download prerequisite files, e.g. neural data, models.
 .PHONY : setup
-setup : $(PACKAGE)/inputs/
-$(PACKAGE)/inputs/ : setup/setup.sh $(PACKAGE).egg-info/
+setup : inputs benchmarks
+inputs : env $(PACKAGE)/inputs/
+benchmarks : env $(PACKAGE)/.cache/profiler/
+$(PACKAGE)/inputs/ : setup/setup.sh
 	@$(ACTIVATE) ; cd $(<D) ; bash $(<F)
-	@$(ACTIVATE) ; python -m $(PACKAGE).utils $(PACKAGE) 2
+$(PACKAGE)/.cache/profiler/ : $(PACKAGE)/utils.py
+	@$(ACTIVATE) ; $(EXEC) -m $(PACKAGE).utils $(PACKAGE) 2
 
-## analysis  : run core analyses to replicate paper.
-.PHONY : analysis
-analysis : $(PACKAGE)/outputs/
-$(PACKAGE)/outputs/ : $(PACKAGE)/inputs/ $(PACKAGE)/*.py
-	@$(ACTIVATE) ; $(PIPELINE) mvpa
-
-## paper     : run scripts to generate final plots and tables.
-.PHONY : paper
-paper : paper/plots/
-paper/plots/ : paper/scripts/*.py $(PACKAGE)/outputs/ $(PACKAGE)/.cache/scores/**
-	@$(ACTIVATE) ; cd $(<D) ; bash run.sh
-
-## docker    : build docker image and spin up container.
-.PHONY : docker
-docker :
-ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
-	@docker build -t $(PACKAGE)
-endif
-	@docker run -it $(PACKAGE)
-
-## test      : run static testing
+## test      : run testing pipeline.
 .PHONY : test
 test : pylint mypy
 pylint : env html/pylint/index.html
@@ -61,7 +53,22 @@ html/pylint/index.json : $(PACKAGE)/*.py
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
 
-## update    : update repo with latest version from GitHub
-.PHONY : update
-update :
-	@git pull origin main
+## docker    : build docker image and spin up container.
+.PHONY : docker
+docker :
+ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
+	@docker build -t $(PACKAGE)
+endif
+	@docker run -it $(PACKAGE)
+
+## analysis  : run core analyses to replicate paper.
+.PHONY : analysis
+analysis : setup $(PACKAGE)/outputs/
+$(PACKAGE)/outputs/ : $(PACKAGE)/*.py
+	@$(ACTIVATE) ; $(PIPELINE) mvpa
+
+## paper     : run scripts to generate final plots and tables.
+.PHONY : paper
+paper : analysis paper/plots/
+paper/plots/ : paper/scripts/*.py
+	@$(ACTIVATE) ; cd $(<D) ; bash run.sh
