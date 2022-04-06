@@ -76,11 +76,11 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ## Run
 
 ```bash
-usage: braincode [-h]
-                 [-f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}]
-                 [-t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}]
-                 [-s] [-d CODE_MODEL_DIM] [-p BASE_PATH]
-                 {mvpa,rsa,vwea,nlea,prda}
+usage:  [-h]
+        [-f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}]
+        [-t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}]
+        [-s] [-b] [-d CODE_MODEL_DIM] [-p BASE_PATH]
+        {mvpa,rsa,vwea,nlea,prda}
 
 run specified analysis type
 
@@ -92,6 +92,7 @@ optional arguments:
   -f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}, --feature {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}
   -t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}, --target {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}
   -s, --score_only
+  -b, --debug
   -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
   -p BASE_PATH, --base_path BASE_PATH
 ```
