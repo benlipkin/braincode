@@ -3,7 +3,6 @@ EXEC = python
 PACKAGE = braincode
 INSTALL = pip install -e .
 ACTIVATE = source activate $(PACKAGE)
-PIPELINE = $(EXEC) $(PACKAGE)
 .DEFAULT_GOAL := help
 
 ## help      : print available build commands.
@@ -65,7 +64,7 @@ endif
 .PHONY : analysis
 analysis : setup $(PACKAGE)/outputs/
 $(PACKAGE)/outputs/ : $(PACKAGE)/*.py
-	@$(ACTIVATE) ; $(PIPELINE) mvpa
+	@$(ACTIVATE) ; $(EXEC) $(PACKAGE) mvpa
 
 ## paper     : run scripts to generate final plots and tables.
 .PHONY : paper
