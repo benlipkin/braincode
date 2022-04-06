@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.stats import kendalltau, pearsonr, spearmanr
-from sklearn.metrics import (accuracy_score, mean_squared_error,
-                             pairwise_distances)
+from sklearn.metrics import accuracy_score, mean_squared_error, pairwise_distances
 
 
 class Metric(ABC):
@@ -89,6 +88,14 @@ class KendallTau(VectorMetric):
     def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         tau, p = kendalltau(x, y)
         return tau
+
+
+class FisherCorr(VectorMetric):
+    @staticmethod
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+        r, p = pearsonr(x, y)
+        corr = np.arctanh(r)
+        return corr
 
 
 class RMSE(VectorMetric):
