@@ -62,19 +62,20 @@ class DataLoader(ABC):
     def _formatcell(matcellarray: np.ndarray) -> np.ndarray:
         if isinstance(matcellarray[0][0], np.ndarray):
             return np.array([i[0][0] for i in matcellarray])
-        elif isinstance(matcellarray[0][0], np.uint8):
+        if isinstance(matcellarray[0][0], np.uint8):
             return np.array([i[0] for i in matcellarray])
-        else:
-            raise TypeError("MATLAB cell array type not handled.")
+        raise TypeError("MATLAB cell array type not handled.")
 
     def _load_select_programs(
-        self, lang: np.ndarray, id: np.ndarray
+        self, lang: np.ndarray, ident: np.ndarray
     ) -> typing.Tuple[np.ndarray, np.ndarray]:
         programs, fnames = [], []
-        for i in range(id.size):
+        for i in range(ident.size):
             fnames.append(
                 list(
-                    self.datadir.joinpath("python_programs", lang[i]).glob(f"{id[i]}_*")
+                    self.datadir.joinpath("python_programs", lang[i]).glob(
+                        f"{ident[i]}_*"
+                    )
                 )[0].as_posix()
             )
             with open(fnames[-1], "r") as f:
@@ -86,7 +87,7 @@ class DataLoader(ABC):
         content: np.ndarray,
         lang: np.ndarray,
         structure: np.ndarray,
-        id: np.ndarray,
+        ident: np.ndarray,
         code_model_dim: str,
         encoder=LabelEncoder(),
     ) -> typing.Tuple[np.ndarray, np.ndarray]:
@@ -102,7 +103,7 @@ class DataLoader(ABC):
                 Y = self._formatcell(locals()[self._target.split("-")[1]])[mask]
             else:
                 Y, fnames = self._load_select_programs(
-                    self._formatcell(lang)[mask], self._formatcell(id)[mask]
+                    self._formatcell(lang)[mask], self._formatcell(ident)[mask]
                 )
                 if "code-" in self._target:
                     encoder = ProgramEmbedder(
@@ -123,7 +124,8 @@ class DataLoader(ABC):
             data[idx, :] = StandardScaler().fit_transform(data[idx, :])
         return data[mask]
 
-    def _prep_runs(self, runs: int, blocks: int) -> np.ndarray:
+    @staticmethod
+    def _prep_runs(runs: int, blocks: int) -> np.ndarray:
         return np.tile(np.arange(runs), blocks)
 
     def _load_all_programs(
@@ -189,13 +191,12 @@ class DataLoader(ABC):
             with open(fname, "rb") as f:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
-        else:
-            load_data = self._get_loader(analysis, subject, code_model_dim)
-            X, Y, runs = load_data()
-            if not debug:
-                with open(fname, "wb") as f:
-                    pkl.dump({"X": X, "y": Y, "runs": runs}, f)
-            return X, Y, runs
+        load_data = self._get_loader(analysis, subject, code_model_dim)
+        X, Y, runs = load_data()
+        if not debug:
+            with open(fname, "wb") as f:
+                pkl.dump({"X": X, "y": Y, "runs": runs}, f)
+        return X, Y, runs
 
 
 class DataLoaderPRDA(DataLoader):
@@ -223,8 +224,8 @@ class DataLoaderMVPA(DataLoader):
     def _prep_xyr(
         self, subject: Path, code_model_dim: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        data, parc, content, lang, structure, id = self._load_brain_data(subject)
-        Y, mask = self._prep_code_reps(content, lang, structure, id, code_model_dim)
+        data, parc, content, lang, structure, ident = self._load_brain_data(subject)
+        Y, mask = self._prep_code_reps(content, lang, structure, ident, code_model_dim)
         X = self._prep_brain_reps(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, Y, runs
@@ -234,9 +235,9 @@ class DataLoaderMVPA(DataLoader):
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         temp = self._feature
         parts = temp.split("-")
-        prefix, vars = parts[0], parts[1].split("+")
+        prefix, variables = parts[0], parts[1].split("+")
         X = []
-        for var in vars:
+        for var in variables:
             self._feature = f"{prefix}-{var}"
             x, Y, runs = self._prep_xyr(subject, code_model_dim)
             X.append(x)
@@ -249,9 +250,9 @@ class DataLoaderMVPA(DataLoader):
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         temp = self._target
         parts = temp.split("-")
-        prefix, vars = parts[0], parts[1].split("+")
+        prefix, variables = parts[0], parts[1].split("+")
         Y = []
-        for var in vars:
+        for var in variables:
             self._target = f"{prefix}-{var}"
             X, y, runs = self._prep_xyr(subject, code_model_dim)
             if y.ndim == 1:
@@ -272,12 +273,11 @@ class DataLoaderMVPA(DataLoader):
             if "MVPA" not in self.__class__.__name__:
                 raise RuntimeError("Only MVPA supports joint features.")
             return self._prep_xyr_jf(subject, code_model_dim)
-        elif joint_target:
+        if joint_target:
             if "EA" not in self.__class__.__name__:
                 raise RuntimeError("Only encoding analyses support joint targets.")
             return self._prep_xyr_jt(subject, code_model_dim)
-        else:
-            return self._prep_xyr(subject, code_model_dim)
+        return self._prep_xyr(subject, code_model_dim)
 
 
 class DataLoaderRSA(DataLoaderMVPA):

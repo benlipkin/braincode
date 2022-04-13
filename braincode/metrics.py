@@ -51,8 +51,9 @@ class VectorMetric(Metric):
             return self._reduction(scores)
         return scores
 
+    @staticmethod
     @abstractmethod
-    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
         raise NotImplementedError("Handled by subclass.")
 
 
@@ -72,28 +73,28 @@ class MatrixMetric(Metric):
 class PearsonR(VectorMetric):
     @staticmethod
     def _score(x: np.ndarray, y: np.ndarray) -> np.float:
-        r, p = pearsonr(x, y)
+        r, _ = pearsonr(x, y)
         return r
 
 
 class SpearmanRho(VectorMetric):
     @staticmethod
     def _score(x: np.ndarray, y: np.ndarray) -> np.float:
-        rho, p = spearmanr(x, y)
+        rho, _ = spearmanr(x, y)
         return rho
 
 
 class KendallTau(VectorMetric):
     @staticmethod
     def _score(x: np.ndarray, y: np.ndarray) -> np.float:
-        tau, p = kendalltau(x, y)
+        tau, _ = kendalltau(x, y)
         return tau
 
 
 class FisherCorr(VectorMetric):
     @staticmethod
     def _score(x: np.ndarray, y: np.ndarray) -> np.float:
-        r, p = pearsonr(x, y)
+        r, _ = pearsonr(x, y)
         corr = np.arctanh(r)
         return corr
 
@@ -136,7 +137,7 @@ class RepresentationalSimilarity(MatrixMetric):
     def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
         X_rdm = pairwise_distances(X, metric=self._distance)
         Y_rdm = pairwise_distances(Y, metric=self._distance)
-        if any([m.shape[1] == 1 for m in (X, Y)]):  # can't calc 1D corr dists
+        if any(m.shape[1] == 1 for m in (X, Y)):  # can't calc 1D corr dists
             X_rdm[np.isnan(X_rdm)] = 0
             Y_rdm[np.isnan(Y_rdm)] = 0
         indices = np.triu_indices(X_rdm.shape[0], k=1)

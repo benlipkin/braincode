@@ -21,7 +21,8 @@ class ProgramBenchmark:
         self._fnames = fnames
         self._metrics = self.load_all_benchmarks(self._base_path)
 
-    def load_all_benchmarks(self, basepath: Path) -> dict:
+    @staticmethod
+    def load_all_benchmarks(basepath: Path) -> dict:
         # Populate all benchmarks needs to be setup before calling this method
         metrics = {}
         inpath = os.path.join(basepath, ".cache", "profiler")
@@ -102,17 +103,14 @@ class ProgramMetrics:
 
         local_fname = os.path.join(self.outpath, self.fname)
         cmd = ["radon", "hal", local_fname, "-j"]
-        try:
-            output = subprocess.run(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=sec
-            )
-            out = output.stdout.decode("utf-8")
-            out = json.loads(out)
-            if not out:
-                err = output.stderr.decode("utf-8")
-                print(err)
-        except Exception as e:
-            print(e)
+        output = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=sec
+        )
+        out = output.stdout.decode("utf-8")
+        out = json.loads(out)
+        if not out:
+            err = output.stderr.decode("utf-8")
+            print(err)
 
         metrics = {}
         metrics["number_of_distinct_operators"] = out[local_fname]["total"][0]
@@ -124,17 +122,14 @@ class ProgramMetrics:
         metrics["program_effort"] = out[local_fname]["total"][8]
 
         cmd = ["radon", "cc", local_fname, "-j"]
-        try:
-            output = subprocess.run(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=sec
-            )
-            out = output.stdout.decode("utf-8")
-            out = json.loads(out)
-            if not out:
-                err = output.stderr.decode("utf-8")
-                print(err)
-        except Exception as e:
-            print(e)
+        output = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=sec
+        )
+        out = output.stdout.decode("utf-8")
+        out = json.loads(out)
+        if not out:
+            err = output.stderr.decode("utf-8")
+            print(err)
 
         metrics["cyclomatic_complexity"] = out[local_fname][0]["complexity"]
         # print(json.dumps(metrics, indent=2))
@@ -149,7 +144,7 @@ class ProgramMetrics:
         :param sec: Timeout for subprocess.run
         :return:[# of lines] executed
         """
-        if not self.fname[-3:] == ".py":
+        if self.fname[-3:] != ".py":
             raise ValueError("Unrecognized file type")
 
         if not os.path.exists(os.path.join(self.outpath, self.fname + ".lprof")):
@@ -160,16 +155,13 @@ class ProgramMetrics:
                 "-l",
                 os.path.join(self.outpath, self.fname),
             ]
-            try:
-                output = subprocess.run(
-                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=sec
-                )
-                out = output.stdout.decode("utf-8")
-                if not out:
-                    err = output.stderr.decode("utf-8")
-                    print(err)
-            except Exception as e:
-                print(e)
+            output = subprocess.run(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=sec
+            )
+            out = output.stdout.decode("utf-8")
+            if not out:
+                err = output.stderr.decode("utf-8")
+                print(err)
 
         sum_hits = 0
         with open(os.path.join(self.outpath, self.fname + ".lprof"), "rb") as fp:
@@ -178,13 +170,12 @@ class ProgramMetrics:
                 raise ValueError(
                     "The number of timings cannot be greater than 1 in lprof dump"
                 )
-            else:
-                # obj.timings format - {filename: [(x1, y1, z1), (x2, y2, z2), (x3, y3, z3)]}
-                # x1 - line number, y1 - hits, z1 - time spent on the line
-                for v in obj.timings.values():
-                    for i in v:
-                        # index 1 contains number of hits.
-                        sum_hits += i[1]
+            # obj.timings format - {filename: [(x1, y1, z1), (x2, y2, z2), (x3, y3, z3)]}
+            # x1 - line number, y1 - hits, z1 - time spent on the line
+            for v in obj.timings.values():
+                for i in v:
+                    # index 1 contains number of hits.
+                    sum_hits += i[1]
         return sum_hits
 
     def get_byte_counts(self) -> int:

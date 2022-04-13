@@ -13,8 +13,9 @@ from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import OneHotEncoder
 from tqdm import tqdm
 
-from braincode.data import *
-from braincode.metrics import *
+import braincode.data
+import braincode.metrics
+from braincode.metrics import Metric, MatrixMetric
 from braincode.plots import Plotter
 
 
@@ -27,7 +28,7 @@ class Analysis(ABC):
         if "code-" not in self.target:
             self._code_model_dim = ""
         self._name = self.__class__.__name__
-        self._loader = globals()[f"DataLoader{self._name}"](
+        self._loader = getattr(braincode.data, f"DataLoader{self._name}")(
             self._base_path, self.feature, self.target
         )
         self._logger = logging.getLogger(self._name)
@@ -70,9 +71,9 @@ class Analysis(ABC):
             self._metric,
             self._code_model_dim,
         ]
-        id = re.sub("_+", "_", "_".join(ids).strip("_") + ".npy")
+        name = re.sub("_+", "_", "_".join(ids).strip("_") + ".npy")
         return Path(
-            os.path.join(self._base_path, ".cache", "scores", self._name.lower(), id)
+            os.path.join(self._base_path, ".cache", "scores", self._name.lower(), name)
         )
 
     def _set_and_save(
@@ -141,8 +142,9 @@ class BrainAnalysis(Analysis):
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
+    @staticmethod
     @abstractmethod
-    def _shuffle(self, Y: np.ndarray, runs: np.ndarray) -> np.ndarray:
+    def _shuffle(Y: np.ndarray, runs: np.ndarray) -> np.ndarray:
         raise NotImplementedError("Handled by subclass.")
 
     @abstractmethod
@@ -168,21 +170,20 @@ class Mapping(Analysis):
         super().__init__(*args, **kwargs)
 
     def _get_metric(self, Y: np.ndarray) -> Metric:
-        if self._metric != "":
-            metric = globals()[self._metric]
-            if not issubclass(metric, Metric):
-                raise ValueError("Invalid metric specified.")
-            return metric()
-        else:
+        if not getattr(self, "_metric"):
             if Y.ndim == 1:
-                return ClassificationAccuracy()
+                self._metric = "ClassificationAccuracy"
             elif Y.ndim == 2:
                 if Y.shape[1] == 1:
-                    return PearsonR()
+                    self._metric = "PearsonR"
                 else:
-                    return RankAccuracy()
+                    self._metric = "RankAccuracy"
             else:
                 raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
+        metric = getattr(braincode.metrics, self._metric)
+        if not issubclass(metric, Metric):
+            raise ValueError("Invalid metric specified.")
+        return metric()
 
     def _cross_validate_model(
         self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray
@@ -214,13 +215,13 @@ class BrainMapping(BrainAnalysis, Mapping):
         return X, Y, runs
 
     @staticmethod
-    def _shuffle(Y_in: np.ndarray, runs: np.ndarray) -> np.ndarray:
-        if Y_in.shape[0] != runs.shape[0]:
+    def _shuffle(Y: np.ndarray, runs: np.ndarray) -> np.ndarray:
+        if Y.shape[0] != runs.shape[0]:
             raise ValueError("Y and runs must have the same number of samples.")
-        Y_out = np.zeros(Y_in.shape)
+        Y_shuffled = np.zeros(Y.shape)
         for run in np.unique(runs):
-            Y_out[runs == run] = np.random.permutation(Y_in[runs == run])
-        return Y_out
+            Y_shuffled[runs == run] = np.random.permutation(Y[runs == run])
+        return Y_shuffled
 
     def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float:
         score = self._cross_validate_model(X, Y, runs)

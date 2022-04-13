@@ -8,9 +8,7 @@ from pathlib import Path
 
 from joblib import Parallel, delayed, parallel_backend
 
-from braincode.decoding import *
-from braincode.encoding import *
-from braincode.similarity import *
+import braincode
 
 
 class CLI:
@@ -102,18 +100,17 @@ class CLI:
             raise RuntimeError("CLI parser not set. Need to build first.")
         self._args = self._parser.parse_args()
 
-    def _clean_arg(self, arg, match, input, keep=True) -> typing.List[str]:
-        arg = [opt for opt in arg if ((match in opt) == keep)]
+    def _clean_arg(self, arg, match, flag, keep=True) -> typing.List[str]:
+        arg = [opt for opt in arg if (match in opt) == keep]
         if len(arg) > 0:
             return arg
+        if keep:
+            tag = "only accepts"
         else:
-            if keep:
-                tag = "only accepts"
-            else:
-                tag = "does not accept"
-            raise ValueError(
-                f"{self._args.analysis.upper()} {tag} '{match}' arguments for '{input}'."
-            )
+            tag = "does not accept"
+        raise ValueError(
+            f"{self._args.analysis.upper()} {tag} '{match}' arguments for '{flag}'."
+        )
 
     def _prep_args(self) -> None:
         if self._args.feature != self._default_arg:
@@ -149,7 +146,9 @@ class CLI:
         self._prep_args()
         self._prep_kwargs()
         self._params = list(itertools.product(self._features, self._targets))
-        self._analysis = globals()[self._args.analysis.upper()]
+        self._analysis = getattr(braincode, self._args.analysis.upper())
+        if not issubclass(self._analysis, braincode.analyses.Analysis):
+            raise ValueError("Invalid analysis type.")
 
     def _run_analysis(self, args: typing.Tuple[str, str], kwargs: dict) -> None:
         if not hasattr(self, "_analysis"):
@@ -162,7 +161,9 @@ class CLI:
             raise RuntimeError("Analysis parameters not set. Need to prep first.")
         n_jobs = min(multiprocessing.cpu_count(), len(self._params))
         self._logger.info(
-            f"Running {self._analysis.__name__} for each set of {len(self._params)} analysis configurations using {n_jobs} CPUs."
+            f"Running {self._analysis.__name__} "
+            + f"for each set of {len(self._params)} analysis configurations "
+            + f"using {n_jobs} CPUs."
         )
         with parallel_backend("loky", n_jobs=n_jobs):
             Parallel()(
