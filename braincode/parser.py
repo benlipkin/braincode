@@ -9,6 +9,7 @@ from pathlib import Path
 from joblib import Parallel, delayed, parallel_backend
 
 import braincode
+from braincode.analyses import Analysis
 
 
 class CLI:
@@ -147,7 +148,7 @@ class CLI:
         self._prep_kwargs()
         self._params = list(itertools.product(self._features, self._targets))
         self._analysis = getattr(braincode, self._args.analysis.upper())
-        if not issubclass(self._analysis, braincode.analyses.Analysis):
+        if not issubclass(self._analysis, Analysis):
             raise ValueError("Invalid analysis type.")
 
     def _run_analysis(self, args: typing.Tuple[str, str], kwargs: dict) -> None:
