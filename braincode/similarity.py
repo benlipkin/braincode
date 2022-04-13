@@ -1,7 +1,7 @@
 import typing
 
 from braincode.analyses import BrainSimilarity
-from braincode.metrics import LinearCKA, RepresentationalSimilarity
+from braincode.metrics import *
 
 
 class RSA(BrainSimilarity):
@@ -10,7 +10,13 @@ class RSA(BrainSimilarity):
 
     @property
     def _similarity_metric(self):
-        return RepresentationalSimilarity("correlation")
+        if self._metric:
+            metric = globals()[self._metric]
+            if not issubclass(metric, VectorMetric):
+                raise ValueError("Invalid metric specified.")
+            return RepresentationalSimilarity("correlation", metric())
+        else:
+            return RepresentationalSimilarity("correlation")
 
 
 class CKA(BrainSimilarity):

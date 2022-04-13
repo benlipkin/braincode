@@ -181,8 +181,8 @@ class DataLoader(ABC):
         self,
         analysis: str,
         subject: Path = Path(""),
-        debug: bool = False,
         code_model_dim: str = "",
+        debug: bool = False,
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         fname = self._get_fname(analysis, subject.name, code_model_dim)
         if fname.exists() and not debug:

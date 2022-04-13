@@ -1,5 +1,7 @@
+import itertools
 import logging
 import os
+import re
 import typing
 from abc import ABC, abstractmethod
 from itertools import combinations
@@ -8,6 +10,7 @@ from pathlib import Path
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV, RidgeCV
 from sklearn.model_selection import LeaveOneGroupOut
+from sklearn.preprocessing import OneHotEncoder
 from tqdm import tqdm
 
 from braincode.data import *
@@ -16,21 +19,11 @@ from braincode.plots import Plotter
 
 
 class Analysis(ABC):
-    def __init__(
-        self,
-        feature: str,
-        target: str,
-        base_path: Path = Path("braincode"),
-        score_only: bool = True,
-        debug: bool = False,
-        code_model_dim: str = "",
-    ) -> None:
-        self._feature = feature
-        self._target = target
-        self._base_path = base_path
-        self._score_only = score_only
-        self._debug = debug
-        self._code_model_dim = code_model_dim
+    def __init__(self, *args, **kwargs) -> None:
+        for name, value in itertools.chain(
+            zip(["feature", "target"], args), kwargs.items()
+        ):
+            setattr(self, f"_{name}", value)
         if "code-" not in self.target:
             self._code_model_dim = ""
         self._name = self.__class__.__name__
@@ -38,8 +31,12 @@ class Analysis(ABC):
             self._base_path, self.feature, self.target
         )
         self._logger = logging.getLogger(self._name)
-        self._score = None
-        self._null = None
+
+    def __setattr__(self, name: str, value: typing.Any) -> None:
+        super().__setattr__(name, value)
+
+    def __getattribute__(self, name: str) -> typing.Any:
+        return super().__getattribute__(name)
 
     @property
     def feature(self) -> str:
@@ -66,14 +63,16 @@ class Analysis(ABC):
         return (self.score < self.null).sum() / self.null.size
 
     def _get_fname(self, mode: str) -> Path:
+        ids = [
+            mode,
+            self.feature.split("-")[1],
+            self.target.split("-")[1],
+            self._metric,
+            self._code_model_dim,
+        ]
+        id = re.sub("_+", "_", "_".join(ids).strip("_") + ".npy")
         return Path(
-            os.path.join(
-                self._base_path,
-                ".cache",
-                "scores",
-                self._name.lower(),
-                f"{mode}_{self.feature.split('-')[1]}_{self.target.split('-')[1]}{self._code_model_dim}.npy",
-            )
+            os.path.join(self._base_path, ".cache", "scores", self._name.lower(), id)
         )
 
     def _set_and_save(
@@ -103,6 +102,11 @@ class Analysis(ABC):
                 return
             samples[idx] = score
         self._set_and_save(mode, samples, fname)
+
+    def _check_metric_compatibility(self, Y: np.ndarray) -> np.ndarray:
+        if self._metric not in ["", "ClassificationAccuracy"] and Y.ndim == 1:
+            Y = OneHotEncoder(sparse=False).fit_transform(Y.reshape(-1, 1))
+        return Y
 
     @abstractmethod
     def _run_mapping(self, mode: str) -> typing.Union[np.float, np.ndarray]:
@@ -149,6 +153,7 @@ class BrainAnalysis(Analysis):
         scores = np.zeros(len(self.subjects))
         for idx, subject in enumerate(self.subjects):
             X, Y, runs = self._load_subject(subject)
+            Y = self._check_metric_compatibility(Y)
             if mode == "null":
                 Y = self._shuffle(Y, runs)
             scores[idx] = self._calc_score(X, Y, runs)
@@ -162,17 +167,22 @@ class Mapping(Analysis):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    @staticmethod
-    def _get_metric(Y: np.ndarray) -> Metric:
-        if Y.ndim == 1:
-            return ClassificationAccuracy()
-        elif Y.ndim == 2:
-            if Y.shape[1] == 1:
-                return PearsonR()
-            else:
-                return RankAccuracy()
+    def _get_metric(self, Y: np.ndarray) -> Metric:
+        if self._metric != "":
+            metric = globals()[self._metric]
+            if not issubclass(metric, Metric):
+                raise ValueError("Invalid metric specified.")
+            return metric()
         else:
-            raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
+            if Y.ndim == 1:
+                return ClassificationAccuracy()
+            elif Y.ndim == 2:
+                if Y.shape[1] == 1:
+                    return PearsonR()
+                else:
+                    return RankAccuracy()
+            else:
+                raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
 
     def _cross_validate_model(
         self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray
@@ -196,7 +206,10 @@ class BrainMapping(BrainAnalysis, Mapping):
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         X, Y, runs = self._loader.get_data(
-            self._name.lower(), subject, self._debug, self._code_model_dim
+            self._name.lower(),
+            subject=subject,
+            code_model_dim=self._code_model_dim,
+            debug=self._debug,
         )
         return X, Y, runs
 
@@ -221,7 +234,11 @@ class BrainSimilarity(BrainAnalysis):
     def _load_subject(
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, typing.Any]:
-        X, Y, _ = self._loader.get_data(self._name.lower(), subject, self._debug)
+        X, Y, _ = self._loader.get_data(
+            self._name.lower(),
+            subject=subject,
+            debug=self._debug,
+        )
         return X, Y, _
 
     @staticmethod

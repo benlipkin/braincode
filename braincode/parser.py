@@ -91,10 +91,11 @@ class CLI:
             choices=[self._default_arg] + self._targets,
             default=self._default_arg,
         )
-        self._parser.add_argument("-s", "--score_only", action="store_true")
-        self._parser.add_argument("-b", "--debug", action="store_true")
+        self._parser.add_argument("-m", "--metric", default="")
         self._parser.add_argument("-d", "--code_model_dim", default="")
         self._parser.add_argument("-p", "--base_path", default=self._default_path)
+        self._parser.add_argument("-s", "--score_only", action="store_true")
+        self._parser.add_argument("-b", "--debug", action="store_true")
 
     def _parse_args(self) -> None:
         if not hasattr(self, "_parser"):
@@ -106,8 +107,12 @@ class CLI:
         if len(arg) > 0:
             return arg
         else:
+            if keep:
+                tag = "only accepts"
+            else:
+                tag = "does not accept"
             raise ValueError(
-                f"{self._args.analysis.upper()} only accepts '{match}' arguments for '{input}'."
+                f"{self._args.analysis.upper()} {tag} '{match}' arguments for '{input}'."
             )
 
     def _prep_args(self) -> None:
@@ -131,10 +136,11 @@ class CLI:
 
     def _prep_kwargs(self) -> None:
         self._kwargs = {
+            "metric": self._args.metric,
+            "code_model_dim": self._args.code_model_dim,
             "base_path": self._args.base_path,
             "score_only": self._args.score_only,
             "debug": self._args.debug,
-            "code_model_dim": self._args.code_model_dim,
         }
 
     def _prep_analyses(self) -> None:

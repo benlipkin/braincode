@@ -1,5 +1,3 @@
-import typing
-
 import numpy as np
 
 from braincode.analyses import BrainMapping, Mapping
@@ -15,7 +13,8 @@ class PRDA(Mapping):
         super().__init__(*args, **kwargs)
 
     def _run_mapping(self, mode: str) -> np.float:
-        X, Y, runs = self._loader.get_data(self._name.lower())
+        X, Y, runs = self._loader.get_data(self._name.lower(), debug=self._debug)
+        Y = self._check_metric_compatibility(Y)
         if mode == "null":
             np.random.shuffle(Y)
         return self._cross_validate_model(X, Y, runs)

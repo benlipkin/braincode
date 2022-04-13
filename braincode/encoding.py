@@ -1,5 +1,3 @@
-import typing
-
 from braincode.analyses import BrainMapping
 
 
