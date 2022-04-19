@@ -16,7 +16,7 @@ class CLI:
     def __init__(self) -> None:
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
-        self._analyses = ["mvpa", "rsa", "vwea", "nlea", "prda"]
+        self._analyses = ["mvpa", "prda", "rsa", "vwea", "nlea", "cvwea", "cnlea"]
         self._features = self._brain_networks + self._code_models + self._joint_networks
         self._targets = self._code_benchmarks + self._code_models + self._max_benchmarks
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -131,6 +131,8 @@ class CLI:
         if self._args.analysis == "prda":
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")
+        if self._args.analysis in ["cnlea", "cvwea"]:
+            self._targets = ["test-code"]
 
     def _prep_kwargs(self) -> None:
         self._kwargs = {

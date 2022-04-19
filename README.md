@@ -12,6 +12,8 @@ This pipeline supports several major functions.
 -   **VWEA** (voxel-wise encoding analysis) evaluates prediction of voxel-level activation patterns using **code properties** and **code model** representations as features.
 -   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
 
+_Note: **VWEA** and **NLEA** also support ceiling estimates at the network level, calculated via an identical pipeline but with the features being the representations of other participants to the same stimuli rather than the properties extracted from those stimuli. To invoke a ceiling analysis, prefix the requested analysis type with a "C", e.g., **CNLEA**._
+
 To run all core experiments from the paper, the following command will suffice after setup:
 
 ```bash
@@ -59,6 +61,18 @@ source run.sh # pulls scores, runs stats, generates plots and tables
 -   CodeBERT<sup> [5](https://arxiv.org/pdf/2002.08155.pdf)</sup>
 -   CodeBERTa<sup> [6](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
 
+**Similarity Metrics**
+
+-   PearsonR
+-   SpearmanRho
+-   KendallTau
+-   FisherCorr
+-   RMSE
+-   ClassificationAccuracy
+-   RankAccuracy
+-   RepresentationalSimilarity
+-   LinearCKA
+
 ## Installation
 
 Requirements: [Anaconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
@@ -76,25 +90,26 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ## Run
 
 ```bash
-usage:  [-h]
-        [-f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}]
-        [-t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}]
-        [-s] [-b] [-d CODE_MODEL_DIM] [-p BASE_PATH]
-        {mvpa,rsa,vwea,nlea,prda}
+usage: braincode [-h]
+                 [-f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}]
+                 [-t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}]
+                 [-m METRIC] [-d CODE_MODEL_DIM] [-p BASE_PATH] [-s] [-b]
+                 {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
 
 run specified analysis type
 
 positional arguments:
-  {mvpa,rsa,vwea,nlea,prda}
+  {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
 
 optional arguments:
   -h, --help            show this help message and exit
   -f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}, --feature {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}
   -t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}, --target {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}
-  -s, --score_only
-  -b, --debug
+  -m METRIC, --metric METRIC
   -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
   -p BASE_PATH, --base_path BASE_PATH
+  -s, --score_only
+  -b, --debug
 ```
 
 note: BASE_PATH must be specified to match setup.sh if changed from default.
@@ -102,11 +117,16 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 **Sample calls**
 
 ```bash
+## typical examples
 python braincode mvpa -f brain-MD -t task-structure # brain -> {task, model}
 python braincode rsa -f brain-lang -t code-gpt2 # brain <-> {task, model}
 python braincode vwea -f brain-vis -t code-bow # brain <- {task, model}
 python braincode nlea -f brain-lang -t test-code # brain <- {task, model}
 python braincode prda -f code-bert -t task-tokens # model -> task
+
+## more complex examples
+python braincode cnlea -f all -m FisherCorr --score_only
+python braincode rsa -f brain-MD -t code-projection -d 64 -p $BASE_PATH
 ```
 
 ## Automation

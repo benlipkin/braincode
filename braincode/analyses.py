@@ -255,3 +255,21 @@ class BrainSimilarity(BrainAnalysis):
     @abstractmethod
     def _similarity_metric(self) -> MatrixMetric:
         raise NotImplementedError("Handled by subclass.")
+
+
+class BrainMappingCeiling(BrainMapping):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def _load_subject(
+        self, subject: Path
+    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        _, Y, runs = super()._load_subject(subject)
+        X = []
+        for other in self.subjects:
+            if other != subject:
+                _, x, runs_ = super()._load_subject(other)
+                if np.alltrue(runs == runs_):
+                    X.append(x)
+        X = np.concatenate(X, axis=1)
+        return X, Y, runs

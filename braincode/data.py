@@ -309,3 +309,11 @@ class DataLoaderNLEA(DataLoaderVWEA):
 
 class DataLoaderCKA(DataLoaderRSA):
     pass
+
+
+class DataLoaderCVWEA(DataLoaderVWEA):
+    pass
+
+
+class DataLoaderCNLEA(DataLoaderNLEA):
+    pass
