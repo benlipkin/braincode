@@ -61,18 +61,6 @@ source run.sh # pulls scores, runs stats, generates plots and tables
 -   CodeBERT<sup> [5](https://arxiv.org/pdf/2002.08155.pdf)</sup>
 -   CodeBERTa<sup> [6](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
 
-**Similarity Metrics**
-
--   PearsonR
--   SpearmanRho
--   KendallTau
--   FisherCorr
--   RMSE
--   ClassificationAccuracy
--   RankAccuracy
--   RepresentationalSimilarity
--   LinearCKA
-
 ## Installation
 
 Requirements: [Anaconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
