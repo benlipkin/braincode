@@ -1,4 +1,5 @@
 import os
+import logging
 import pickle as pkl
 import typing
 from abc import ABC, abstractmethod
@@ -20,6 +21,8 @@ class DataLoader(ABC):
         self._feature = feature
         self._target = target
         self._base_path = base_path
+        self._name = self.__class__.__name__
+        self._logger = logging.getLogger(self._name)
 
     @property
     def datadir(self) -> Path:
@@ -153,7 +156,7 @@ class DataLoader(ABC):
         self, analysis: str, subject: str = "", code_model_dim: str = ""
     ) -> Path:
         if subject != "":
-            subject = subject.split(".")[0]
+            subject = f"_sub{subject}".replace(".mat", "")
         if code_model_dim != "":
             code_model_dim = f"_dim{code_model_dim}"
         fname = Path(
@@ -162,7 +165,7 @@ class DataLoader(ABC):
                 ".cache",
                 "representations",
                 analysis,
-                f"{self._feature.split('-')[1]}_{self._target.split('-')[1]}{subject}{code_model_dim}.pkl",
+                f"rep_{self._feature}_{self._target}{subject}{code_model_dim}.pkl",
             )
         )
         if not fname.parent.exists():
@@ -175,7 +178,7 @@ class DataLoader(ABC):
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
-    def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
+    def _get_loader(self, subject: Path, code_model_dim: str) -> partial:
         return partial(self._prep_data, subject, code_model_dim)
 
     @lru_cache(maxsize=None)
@@ -191,11 +194,12 @@ class DataLoader(ABC):
             with open(fname, "rb") as f:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
-        load_data = self._get_loader(analysis, subject, code_model_dim)
+        load_data = self._get_loader(subject, code_model_dim)
         X, Y, runs = load_data()
         if not debug:
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": Y, "runs": runs}, f)
+        self._logger.info(f"Caching '{fname.name}'.")
         return X, Y, runs
 
 
@@ -216,7 +220,7 @@ class DataLoaderPRDA(DataLoader):
         runs = self._prep_runs(k, (Y.size // k + 1))[: Y.size]  # kfold CV
         return X, Y, runs
 
-    def _get_loader(self, analysis: str, subject: Path, code_model_dim: str) -> partial:
+    def _get_loader(self, subject: Path, code_model_dim: str) -> partial:
         return partial(self._prep_data)
 
 
@@ -230,36 +234,33 @@ class DataLoaderMVPA(DataLoader):
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, Y, runs
 
-    def _prep_xyr_jf(
-        self, subject: Path, code_model_dim: str
+    def _prep_xyr_joint(
+        self, subject: Path, code_model_dim: str, comp: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        temp = self._feature
-        parts = temp.split("-")
-        prefix, variables = parts[0], parts[1].split("+")
-        X = []
-        for var in variables:
-            self._feature = f"{prefix}-{var}"
-            x, Y, runs = self._prep_xyr(subject, code_model_dim)
-            X.append(x)
-        self._feature = temp
-        X = np.concatenate(X, axis=1)
-        return X, Y, runs
-
-    def _prep_xyr_jt(
-        self, subject: Path, code_model_dim: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        temp = self._target
-        parts = temp.split("-")
-        prefix, variables = parts[0], parts[1].split("+")
-        Y = []
-        for var in variables:
-            self._target = f"{prefix}-{var}"
-            X, y, runs = self._prep_xyr(subject, code_model_dim)
-            if y.ndim == 1:
-                y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
-            Y.append(y)
-        self._target = temp
-        Y = np.concatenate(Y, axis=1)
+        temp = getattr(self, f"_{comp}")
+        parts = temp.split("+")
+        if comp == "feature":
+            X = []
+        elif comp == "target":
+            Y = []
+        else:
+            raise RuntimeError("Unsupported component.")
+        for part in parts:
+            setattr(self, f"_{comp}", part)
+            x, y, runs = self._prep_xyr(subject, code_model_dim)
+            if comp == "feature":
+                X.append(x)
+            else:
+                if y.ndim == 1:
+                    y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
+                Y.append(y)
+        setattr(self, f"_{comp}", temp)
+        if comp == "feature":
+            X = np.concatenate(X, axis=1)
+            Y = y
+        else:
+            X = x
+            Y = np.concatenate(Y, axis=1)
         return X, Y, runs
 
     def _prep_data(
@@ -270,13 +271,13 @@ class DataLoaderMVPA(DataLoader):
         if joint_feature and joint_target:
             raise RuntimeError("Should only be using one set of joint variables.")
         if joint_feature:
-            if "MVPA" not in self.__class__.__name__:
+            if "MVPA" not in self._name:
                 raise RuntimeError("Only MVPA supports joint features.")
-            return self._prep_xyr_jf(subject, code_model_dim)
+            return self._prep_xyr_joint(subject, code_model_dim, "feature")
         if joint_target:
-            if "EA" not in self.__class__.__name__:
+            if "EA" not in self._name:
                 raise RuntimeError("Only encoding analyses support joint targets.")
-            return self._prep_xyr_jt(subject, code_model_dim)
+            return self._prep_xyr_joint(subject, code_model_dim, "target")
         return self._prep_xyr(subject, code_model_dim)
 
 

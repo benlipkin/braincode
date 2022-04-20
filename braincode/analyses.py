@@ -66,8 +66,8 @@ class Analysis(ABC):
     def _get_fname(self, mode: str) -> Path:
         ids = [
             mode,
-            self.feature.split("-")[1],
-            self.target.split("-")[1],
+            self.feature,
+            self.target,
             self._metric,
             self._code_model_dim,
         ]

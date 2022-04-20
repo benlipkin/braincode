@@ -17,8 +17,8 @@ class CLI:
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
         self._analyses = ["mvpa", "prda", "rsa", "vwea", "nlea", "cvwea", "cnlea"]
-        self._features = self._brain_networks + self._code_models + self._joint_networks
-        self._targets = self._code_benchmarks + self._code_models + self._max_benchmarks
+        self._features = self._brain_networks + self._code_models  # + self._brain_supp
+        self._targets = self._code_benchmarks + self._code_models  # + self._code_supp
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
@@ -27,13 +27,15 @@ class CLI:
 
     @staticmethod
     def _joint_args(prefix: str, units: typing.List[str]) -> typing.List[str]:
-        return [f"{prefix}-{i}+{j}" for i, j in list(itertools.combinations(units, 2))]
+        return [
+            f"{prefix}-{i}+{prefix}-{j}" for i, j in itertools.combinations(units, 2)
+        ]
 
     @staticmethod
     def _max_arg(prefix: str, units: typing.List[str]) -> typing.List[str]:
-        arg = f"{prefix}-"
+        arg = ""
         for unit in units:
-            arg += f"{unit}+"
+            arg += f"{prefix}-{unit}+"
         return [arg.strip("+")]
 
     @property
@@ -64,13 +66,13 @@ class CLI:
         )
 
     @property
-    def _joint_networks(self) -> typing.List[str]:
+    def _brain_supp(self) -> typing.List[str]:
         prefix = "brain"
         units = ["MD", "lang", "vis"]
         return self._joint_args(prefix, units)
 
     @property
-    def _max_benchmarks(self) -> typing.List[str]:
+    def _code_supp(self) -> typing.List[str]:
         prefix = "task"
         units = ["content", "structure", "tokens", "lines"]
         return self._max_arg(prefix, units)
@@ -78,18 +80,8 @@ class CLI:
     def _build_parser(self) -> None:
         self._parser = ArgumentParser(description="run specified analysis type")
         self._parser.add_argument("analysis", choices=self._analyses)
-        self._parser.add_argument(
-            "-f",
-            "--feature",
-            choices=[self._default_arg] + self._features,
-            default=self._default_arg,
-        )
-        self._parser.add_argument(
-            "-t",
-            "--target",
-            choices=[self._default_arg] + self._targets,
-            default=self._default_arg,
-        )
+        self._parser.add_argument("-f", "--feature", default=self._default_arg)
+        self._parser.add_argument("-t", "--target", default=self._default_arg)
         self._parser.add_argument("-m", "--metric", default="")
         self._parser.add_argument("-d", "--code_model_dim", default="")
         self._parser.add_argument("-p", "--base_path", default=self._default_path)
@@ -105,10 +97,7 @@ class CLI:
         arg = [opt for opt in arg if (match in opt) == keep]
         if len(arg) > 0:
             return arg
-        if keep:
-            tag = "only accepts"
-        else:
-            tag = "does not accept"
+        tag = "only accepts" if keep else "does not accept"
         raise ValueError(
             f"{self._args.analysis.upper()} {tag} '{match}' arguments for '{flag}'."
         )
