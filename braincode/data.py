@@ -17,7 +17,7 @@ from braincode.embeddings import ProgramEmbedder
 class DataLoader(Object):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._datadir = Path(os.path.join(self._base_path, "inputs"))
+        self._datadir = self._base_path.joinpath("inputs")
         self._events = (12, 6)  # nruns, nblocks
 
     @property
@@ -153,14 +153,11 @@ class DataLoader(Object):
             subject = f"_sub{subject}".replace(".mat", "")
         if dim != "":
             dim = f"_dim{dim}"
-        fname = Path(
-            os.path.join(
-                self._base_path,
-                ".cache",
-                "representations",
-                analysis,
-                f"rep_{self._feature}_{self._target}{subject}{dim}.pkl",
-            )
+        fname = self._base_path.joinpath(
+            ".cache",
+            "representations",
+            analysis,
+            f"rep_{self._feature}_{self._target}{subject}{dim}.pkl",
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,3 @@
-import os
 import re
 import typing
 from abc import abstractmethod
@@ -60,9 +59,7 @@ class Analysis(Object):
             self._code_model_dim,
         ]
         name = re.sub("_+", "_", "_".join(ids).strip("_") + ".npy")
-        return Path(
-            os.path.join(self._base_path, ".cache", "scores", self._name.lower(), name)
-        )
+        return self._base_path.joinpath(".cache", "scores", self._name.lower(), name)
 
     def _set_and_save(
         self, mode: str, val: typing.Union[np.float, np.ndarray], fname: Path

@@ -87,7 +87,7 @@ class ProgramEmbedder:
 class TokenProjection(CodeModel):
     def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
-        seq2seq_cfg = CodeSeq2Seq(base_path)
+        seq2seq_cfg = CodeSeq2Seq(self._base_path)
         self._vocab = seq2seq_cfg._vocab
         self._vocab_size = len(self._vocab)
         self._embedding_size = seq2seq_cfg._model.encoder.hidden_size
@@ -111,13 +111,13 @@ class TokenProjection(CodeModel):
 class CountVectorizer(CodeModel):
     def __init__(self, base_path):
         super().__init__(base_path)
-        cache_dir = Path(os.path.join(base_path, ".cache", "datasets", "huggingface"))
+        cache_dir = self._base_path.joinpath(".cache", "datasets", "huggingface")
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
         self._dataset = load_dataset(
             "code_search_net", "python", split="validation", cache_dir=str(cache_dir)
         )["func_code_string"]
-        self._model = Tokenizer(num_words=TokenProjection(base_path)._vocab_size)
+        self._model = Tokenizer(num_words=TokenProjection(self._base_path)._vocab_size)
 
     @property
     @abstractmethod
@@ -175,9 +175,7 @@ class DNN(CodeModel):
 class CodeSeq2Seq(DNN):
     def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
-        cache_dir = Path(
-            os.path.join(self._base_path, ".cache", "models", "code_seq2seq")
-        )
+        cache_dir = self._base_path.joinpath(".cache", "models", "code_seq2seq")
         self._device = torch.device("cpu")
         with open(cache_dir.joinpath("code_seq2seq_py8kcodenet.torch"), "rb") as fp:
             self._model = torch.load(fp, map_location=self._device)
@@ -328,14 +326,11 @@ class CodeTransformer(ZuegnerModel):
 class HFModel(DNN):
     def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
-        cache_dir = Path(
-            os.path.join(
-                self._base_path,
-                ".cache",
-                "models",
-                self._spec.split(os.sep)[0],
-                self._spec.split(os.sep)[-1],
-            )
+        cache_dir = self._base_path.joinpath(
+            ".cache",
+            "models",
+            self._spec.split(os.sep)[0],
+            self._spec.split(os.sep)[-1],
         )
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True, exist_ok=True)
@@ -381,7 +376,7 @@ class CodeBERTa(HFModel):
 class OpenAiGPT3(CodeModel):
     def __init__(self, base_path):
         super().__init__(base_path)
-        openai.api_key_path = Path(os.path.join(self._base_path, ".openai_api_key"))
+        openai.api_key_path = self._base_path.joinpath(".openai_api_key")
 
     @property
     @abstractmethod

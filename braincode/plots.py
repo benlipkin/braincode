@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -16,14 +15,11 @@ class Plotter(Object):
 
     @property
     def _fname(self) -> Path:
-        fname = Path(
-            os.path.join(
-                self._analysis._base_path,
-                "outputs",
-                "plots",
-                self._type.lower(),
-                f"{self._feature}_{self._target}.png",
-            )
+        fname = self._analysis._base_path.joinpath(
+            "outputs",
+            "plots",
+            self._type.lower(),
+            f"{self._feature}_{self._target}.png",
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
