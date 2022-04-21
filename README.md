@@ -4,20 +4,18 @@
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
 
+This branch `ICML2022` contains a static version of the broader codebase as necessary to replicate the paper.
+
 This pipeline supports several major functions.
 
 -   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**.
--   **RSA** (representational similarity analysis) is also supported as an alternative to MVPA. Only MVPA was used for the core analyses of this present work, but we allow the flexibility for the user.
 -   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
--   **VWEA** (voxel-wise encoding analysis) evaluates prediction of voxel-level activation patterns using **code properties** and **code model** representations as features.
--   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
-
-_Note: **VWEA** and **NLEA** also support ceiling estimates at the network level, calculated via an identical pipeline but with the features being the representations of other participants to the same stimuli rather than the properties extracted from those stimuli. To invoke a ceiling analysis, prefix the requested analysis type with a "C", e.g., **CNLEA**._
 
 To run all core experiments from the paper, the following command will suffice after setup:
 
 ```bash
 python braincode mvpa # runs all core MVPA analyses in parallel
+python braincoda prda # runs all supplemental PRDA analyses in parallel
 ```
 
 To regenerate tables and figures from the paper, run the following after completing the analyses:
@@ -80,12 +78,12 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ```bash
 usage: braincode [-h] [-f FEATURE] [-t TARGET] [-m METRIC] [-d CODE_MODEL_DIM]
                  [-p BASE_PATH] [-s] [-b]
-                 {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
+                 {mvpa,prda}
 
 run specified analysis type
 
 positional arguments:
-  {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
+  {mvpa,prda}
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -105,16 +103,12 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 ```bash
 # basic examples
 python braincode mvpa -f brain-MD -t task-structure # brain -> {task, model}
-python braincode rsa -f brain-lang -t code-gpt2 # brain <-> {task, model}
-python braincode vwea -f brain-vis -t code-bow # brain <- {task, model}
-python braincode nlea -f brain-lang -t test-code # brain <- {task, model}
 python braincode prda -f code-bert -t task-tokens # model -> task
 
-# more complex examples
-python braincode cnlea -f all -m SpearmanRho --score_only # check metrics module for all options
-python braincode mvpa -f brain-lang+brain-MD -t code-projection -d 64 -p $BASE_PATH
-python braincode vwea -t task-content+task-structure+task-tokens+task-lines
+# more complex example
+python braincode mvpa -f brain-lang+brain-MD -t code-projection -d 64 -m SpearmanRho -p $BASE_PATH --score_only
 # note how `+` operator can be used to join multiple representations via concatenation
+# additional metrics are available in the `metrics.py` module
 ```
 
 ## Automation

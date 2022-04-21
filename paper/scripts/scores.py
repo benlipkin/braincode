@@ -295,169 +295,21 @@ def make_table_mvpa_properties_supplemental_ablation():
     make_subjects_table(name, analysis, features, targets)
 
 
-def make_table_rsa_models():
-    name = "rsa"
-    analysis = "rsa_models"
-    features = [
-        "MD",
-        "lang",
-    ]
-    targets = [
-        "transformer",
-        "roberta",
-        "gpt2",
-        "bert",
-        "xlnet",
-        "seq2seq",
-        "tfidf",
-        "bow",
-        "projection",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
-def make_table_rsa_properties():
-    name = "rsa"
-    analysis = "rsa_properties"
-    features = [
-        "MD",
-        "lang",
-    ]
-    targets = [
-        "content",
-        "structure",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
-def make_table_nlea_all():
-    name = "nlea"
-    analysis = "nlea_all"
-    features = [
-        "MD",
-        "lang",
-    ]
-    targets = [
-        "code",
-        "lang",
-        "content",
-        "structure",
-        "tokens",
-        "lines",
-        "projection",
-        "bow",
-        "tfidf",
-        "seq2seq",
-        "xlnet",
-        "bert",
-        "gpt2",
-        "roberta",
-        "transformer",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
-def make_table_nlea_properties():
-    name = "nlea"
-    analysis = "nlea_properties"
-    features = [
-        "MD",
-        "lang",
-    ]
-    targets = [
-        "content",
-        "structure",
-        "tokens",
-        "lines",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
-def make_table_nlea_properties_max():
-    name = "nlea"
-    analysis = "nlea_properties_max"
-    features = [
-        "MD",
-        "lang",
-        "vis",
-        "aud",
-    ]
-    targets = [
-        "content+structure+tokens+lines",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
-def make_table_vwea_models():
-    name = "vwea"
-    analysis = "vwea_models"
-    features = [
-        "MD",
-        "lang",
-    ]
-    targets = [
-        "transformer",
-        "roberta",
-        "gpt2",
-        "bert",
-        "xlnet",
-        "seq2seq",
-        "tfidf",
-        "bow",
-        "projection",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
-def make_table_mvpa_models_mdls():
-    name = "mvpa"
-    analysis = "mvpa_models_mdls"
-    features = [
-        "MD",
-        "lang",
-    ]
-    targets = [
-        "transformer",
-        "roberta",
-        "gpt2",
-        "bert",
-        "xlnet",
-        "seq2seq",
-        "tfidf",
-        "bow",
-        "projection",
-    ]
-    make_table(name, analysis, features, targets)
-    make_subjects_table(name, analysis, features, targets)
-
-
 def make_core_analyses():
+    make_table_mvpa_properties_all()
     make_table_mvpa_properties_cls()
     make_table_mvpa_properties_rgr()
     make_table_mvpa_models()
-    make_table_mvpa_properties_cls_ablation()
-    make_table_mvpa_properties_rgr_ablation()
-    make_table_mvpa_models_ablation()
-    make_table_mvpa_properties_all()
-    make_table_mvpa_properties_all_ablation()
-    make_table_mvpa_properties_supplemental()
-    make_table_mvpa_properties_supplemental_ablation()
 
 
 def make_supplemental_analyses():
-    make_table_mvpa_models_mdls()
+    make_table_mvpa_properties_supplemental()
+    make_table_mvpa_properties_all_ablation()
+    make_table_mvpa_properties_cls_ablation()
+    make_table_mvpa_properties_rgr_ablation()
+    make_table_mvpa_models_ablation()
+    make_table_mvpa_properties_supplemental_ablation()
     make_table_prda_properties()
-    make_table_rsa_properties()
-    make_table_rsa_models()
-    make_table_nlea_properties()
-    make_table_nlea_properties_max()
-    make_table_vwea_models()
 
 
 if __name__ == "__main__":

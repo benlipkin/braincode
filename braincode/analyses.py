@@ -13,7 +13,7 @@ from tqdm import tqdm
 import braincode.data
 import braincode.metrics
 from braincode.abstract import Object
-from braincode.metrics import Metric, MatrixMetric
+from braincode.metrics import Metric
 from braincode.plots import Plotter
 
 
@@ -53,8 +53,8 @@ class Analysis(Object):
     def _get_fname(self, mode: str) -> Path:
         ids = [
             mode,
-            self.feature,
-            self.target,
+            self.feature.split("-")[1],
+            self.target.split("-")[1],
             self._metric,
             self._code_model_dim,
         ]
@@ -206,46 +206,3 @@ class BrainMapping(BrainAnalysis, Mapping):
     def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float:
         score = self._cross_validate_model(X, Y, runs)
         return score
-
-
-class BrainSimilarity(BrainAnalysis):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    def _load_subject(
-        self, subject: Path
-    ) -> typing.Tuple[np.ndarray, np.ndarray, typing.Any]:
-        X, Y, _ = self._loader.get_data(self._name.lower(), subject=subject)
-        return X, Y, _
-
-    @staticmethod
-    def _shuffle(Y: np.ndarray, _: np.ndarray) -> np.ndarray:
-        np.random.shuffle(Y)
-        return Y
-
-    def _calc_score(self, X: np.ndarray, Y: np.ndarray, _: np.ndarray) -> np.float:
-        score = self._similarity_metric(X, Y)
-        return score
-
-    @property
-    @abstractmethod
-    def _similarity_metric(self) -> MatrixMetric:
-        raise NotImplementedError("Handled by subclass.")
-
-
-class BrainMappingCeiling(BrainMapping):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    def _load_subject(
-        self, subject: Path
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        _, Y, runs = super()._load_subject(subject)
-        X = []
-        for other in self.subjects:
-            if other != subject:
-                _, x, runs_ = super()._load_subject(other)
-                if np.alltrue(runs == runs_):
-                    X.append(x)
-        X = np.concatenate(X, axis=1)
-        return X, Y, runs

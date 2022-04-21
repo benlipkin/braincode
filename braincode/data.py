@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 from scipy.io import loadmat
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 from braincode.abstract import Object
 from braincode.benchmarks import ProgramBenchmark
@@ -157,7 +157,7 @@ class DataLoader(Object):
             ".cache",
             "representations",
             analysis,
-            f"rep_{self._feature}_{self._target}{subject}{dim}.pkl",
+            f"{self._feature.split('-')[1]}_{self._target.split('-')[1]}{subject}{dim}.pkl",
         )
         if not fname.parent.exists():
             fname.parent.mkdir(parents=True, exist_ok=True)
@@ -224,32 +224,18 @@ class DataLoaderMVPA(DataLoader):
         return X, Y, runs
 
     def _prep_xyr_joint(
-        self, subject: Path, comp: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        temp = getattr(self, f"_{comp}")
-        parts = temp.split("+")
-        if comp == "feature":
-            X = []
-        elif comp == "target":
-            Y = []
-        else:
-            raise RuntimeError("Unsupported component.")
-        for part in parts:
-            setattr(self, f"_{comp}", part)
-            x, y, runs = self._prep_xyr(subject)
-            if comp == "feature":
-                X.append(x)
-            else:
-                if y.ndim == 1:
-                    y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
-                Y.append(y)
-        setattr(self, f"_{comp}", temp)
-        if comp == "feature":
-            X = np.concatenate(X, axis=1)
-            Y = y
-        else:
-            X = x
-            Y = np.concatenate(Y, axis=1)
+        temp = getattr(self, "_feature")
+        parts = temp.split("-")
+        prefix, units = parts[0], parts[1]
+        X = []
+        for unit in units.split("+"):
+            setattr(self, "_feature", f"{prefix}-{unit}")
+            x, Y, runs = self._prep_xyr(subject)
+            X.append(x)
+        setattr(self, "_feature", temp)
+        X = np.concatenate(X, axis=1)
         return X, Y, runs
 
     def _prep_data(
@@ -257,53 +243,10 @@ class DataLoaderMVPA(DataLoader):
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         joint_feature = "+" in self._feature
         joint_target = "+" in self._target
-        if joint_feature and joint_target:
-            raise RuntimeError("Should only be using one set of joint variables.")
+        if joint_target:
+            raise RuntimeError("Should only be using joint features.")
         if joint_feature:
             if "MVPA" not in self._name:
                 raise RuntimeError("Only MVPA supports joint features.")
-            return self._prep_xyr_joint(subject, "feature")
-        if joint_target:
-            if "EA" not in self._name:
-                raise RuntimeError("Only encoding analyses support joint targets.")
-            return self._prep_xyr_joint(subject, "target")
+            return self._prep_xyr_joint(subject)
         return self._prep_xyr(subject)
-
-
-class DataLoaderRSA(DataLoaderMVPA):
-    def _prep_data(
-        self, subject: Path
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = super()._prep_data(subject)
-        if Y.ndim == 1:
-            Y = OneHotEncoder(sparse=False).fit_transform(Y.reshape(-1, 1))
-        return X, Y, runs
-
-
-class DataLoaderVWEA(DataLoaderRSA):
-    def _prep_data(
-        self, subject: Path
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        Y, X, runs = super()._prep_data(subject)
-        return X, Y, runs
-
-
-class DataLoaderNLEA(DataLoaderVWEA):
-    def _prep_data(
-        self, subject: Path
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = super()._prep_data(subject)
-        Y = Y.mean(axis=1).reshape(-1, 1)
-        return X, Y, runs
-
-
-class DataLoaderCKA(DataLoaderRSA):
-    pass
-
-
-class DataLoaderCVWEA(DataLoaderVWEA):
-    pass
-
-
-class DataLoaderCNLEA(DataLoaderNLEA):
-    pass

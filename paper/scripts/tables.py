@@ -140,13 +140,11 @@ def main():
         "mvpa_properties_cls",
         "mvpa_properties_rgr",
         "mvpa_models",
+        "mvpa_properties_supplemental",
         "mvpa_properties_cls_ablation",
         "mvpa_properties_rgr_ablation",
         "mvpa_models_ablation",
         "prda_properties",
-        "mvpa_properties_supplemental",
-        "rsa_models",
-        "rsa_properties",
     ]
     for dataset in datasets:
         try:
@@ -159,10 +157,6 @@ def main():
         "mvpa_models_subjects_crossed",
         "mvpa_properties_all_ablation_subjects",
         "mvpa_models_ablation_subjects",
-        "rsa_models_subjects",
-        "rsa_models_subjects_crossed",
-        "rsa_properties_subjects",
-        "rsa_properties_subjects_crossed",
     ]
     for dataset in datasets_stats:
         try:

@@ -18,9 +18,9 @@ class CLI(Object):
         super().__init__()
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
-        self._analyses = ["mvpa", "prda", "rsa", "vwea", "nlea", "cvwea", "cnlea"]
-        self._features = self._brain_networks + self._code_models  # + self._brain_supp
-        self._targets = self._code_benchmarks + self._code_models  # + self._code_supp
+        self._analyses = ["mvpa", "prda"]
+        self._features = self._brain_networks + self._code_models + self._brain_supp
+        self._targets = self._code_benchmarks + self._code_models
 
     @staticmethod
     def _base_args(prefix: str, units: typing.List[str]) -> typing.List[str]:
@@ -28,16 +28,7 @@ class CLI(Object):
 
     @staticmethod
     def _joint_args(prefix: str, units: typing.List[str]) -> typing.List[str]:
-        return [
-            f"{prefix}-{i}+{prefix}-{j}" for i, j in itertools.combinations(units, 2)
-        ]
-
-    @staticmethod
-    def _max_arg(prefix: str, units: typing.List[str]) -> typing.List[str]:
-        arg = ""
-        for unit in units:
-            arg += f"{prefix}-{unit}+"
-        return [arg.strip("+")]
+        return [f"{prefix}-{i}+{j}" for i, j in itertools.combinations(units, 2)]
 
     @property
     def _brain_networks(self) -> typing.List[str]:
@@ -72,12 +63,6 @@ class CLI(Object):
         units = ["MD", "lang", "vis"]
         return self._joint_args(prefix, units)
 
-    @property
-    def _code_supp(self) -> typing.List[str]:
-        prefix = "task"
-        units = ["content", "structure", "tokens", "lines"]
-        return self._max_arg(prefix, units)
-
     def _build_parser(self) -> None:
         self._parser = ArgumentParser(description="run specified analysis type")
         self._parser.add_argument("analysis", choices=self._analyses)
@@ -108,21 +93,12 @@ class CLI(Object):
             self._features = [self._args.feature]
         if self._args.target != self._default_arg:
             self._targets = [self._args.target]
-        if self._args.analysis != "prda":
-            self._features = self._clean_arg(self._features, "brain-", "-f")
-        if self._args.analysis not in ["vwea", "nlea"]:
-            self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
-        if self._args.analysis not in ["mvpa", "prda"]:
-            self._features = self._clean_arg(self._features, "+", "-f", keep=False)
-        if self._args.analysis == "rsa":
-            self._targets = self._clean_arg(self._targets, "test-", "-t", keep=False)
-        if self._args.analysis == "cka":
-            self._targets = self._clean_arg(self._targets, "code-", "-t")
+        self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
         if self._args.analysis == "prda":
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")
-        if self._args.analysis in ["cnlea", "cvwea"]:
-            self._targets = ["test-code"]
+        if self._args.analysis != "prda":
+            self._features = self._clean_arg(self._features, "brain-", "-f")
 
     def _prep_kwargs(self) -> None:
         self._kwargs = {

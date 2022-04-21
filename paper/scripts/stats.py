@@ -87,16 +87,12 @@ def main():
         "mvpa_models",
         "mvpa_properties_all_ablation",
         "mvpa_models_ablation",
-        "rsa_models",
-        "rsa_properties",
-        "vwea_models",
-        "nlea_all",
     ]
     for dataset in datasets:
         try:
             calc_stats(f"{dataset}_subjects")
             calc_anova(f"{dataset}_subjects")
-            if any([id in datasets for id in ["mvpa_models", "rsa", "vwea", "nlea"]]):
+            if any([id in datasets for id in ["mvpa_models"]]):
                 calc_stats(f"{dataset}_subjects", reverse_grouping=True)
                 calc_anova(f"{dataset}_subjects", reverse_grouping=True)
             calc_stats("mvpa_properties_rgr_subjects", reverse_grouping=True)
