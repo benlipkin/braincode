@@ -89,7 +89,7 @@ optional arguments:
   -b, --debug
 ```
 
-note: BASE_PATH must be specified to match setup.sh if changed from default.
+_Note: BASE_PATH must be specified to match setup.sh if changed from default._
 
 **Sample calls**
 
