@@ -1,8 +1,12 @@
+
 [![Tests](https://github.com/benlipkin/braincode/actions/workflows/testing.yml/badge.svg)](https://github.com/benlipkin/braincode/actions/workflows/testing.yml)
 
 # BrainCode
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
+
+To replicate specific papers, `git checkout` the corresponding branch, e.g., `ICML2022`, and follow instructions in the `README.md`.
+
 
 This pipeline supports several major functions.
 
@@ -13,19 +17,6 @@ This pipeline supports several major functions.
 -   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
 
 _Note: **VWEA** and **NLEA** also support ceiling estimates at the network level, calculated via an identical pipeline but with the features being the representations of other participants to the same stimuli rather than the properties extracted from those stimuli. To invoke a ceiling analysis, prefix the requested analysis type with a "C", e.g., **CNLEA**._
-
-To run all core experiments from the paper, the following command will suffice after setup:
-
-```bash
-python braincode mvpa # runs all core MVPA analyses in parallel
-```
-
-To regenerate tables and figures from the paper, run the following after completing the analyses:
-
-```bash
-cd paper/scripts
-source run.sh # pulls scores, runs stats, generates plots and tables
-```
 
 ### Supported Brain Regions
 
@@ -121,10 +112,10 @@ python braincode vwea -t task-content+task-structure+task-tokens+task-lines
 
 ### Make
 
-This package also provides an automated build using [GNU Make](https://www.gnu.org/software/make/manual/make.html). A single pipeline is provided, which starts from an empty environment, and proceeds through to the creation of paper tables and figures.
+This package also provides an automated build using [GNU Make](https://www.gnu.org/software/make/manual/make.html). A single pipeline is provided, which starts from an empty environment, and provides ready to use software.
 
 ```bash
-make paper # see 'make help' for more info
+make setup # see 'make help' for more info
 ```
 
 ### Docker
