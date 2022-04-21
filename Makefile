@@ -59,15 +59,3 @@ ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
 	@docker build -t $(PACKAGE)
 endif
 	@docker run -it $(PACKAGE)
-
-## analysis  : run core analyses to replicate paper.
-.PHONY : analysis
-analysis : setup $(PACKAGE)/outputs/
-$(PACKAGE)/outputs/ : $(PACKAGE)/*.py
-	@$(ACTIVATE) ; $(EXEC) $(PACKAGE) mvpa
-
-## paper     : run scripts to generate final plots and tables.
-.PHONY : paper
-paper : analysis paper/plots/
-paper/plots/ : paper/scripts/*.py
-	@$(ACTIVATE) ; cd $(<D) ; bash run.sh
