@@ -1,8 +1,7 @@
 import os
-import logging
 import pickle as pkl
 import typing
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from functools import lru_cache, partial
 from pathlib import Path
 
@@ -10,19 +9,16 @@ import numpy as np
 from scipy.io import loadmat
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
+from braincode.abstract import Object
 from braincode.benchmarks import ProgramBenchmark
 from braincode.embeddings import ProgramEmbedder
 
 
-class DataLoader(ABC):
-    def __init__(self, base_path: Path, feature: str, target: str) -> None:
-        self._datadir = Path(os.path.join(base_path, "inputs"))
+class DataLoader(Object):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._datadir = Path(os.path.join(self._base_path, "inputs"))
         self._events = (12, 6)  # nruns, nblocks
-        self._feature = feature
-        self._target = target
-        self._base_path = base_path
-        self._name = self.__class__.__name__
-        self._logger = logging.getLogger(self._name)
 
     @property
     def datadir(self) -> Path:
@@ -91,7 +87,6 @@ class DataLoader(ABC):
         lang: np.ndarray,
         structure: np.ndarray,
         ident: np.ndarray,
-        code_model_dim: str,
         encoder=LabelEncoder(),
     ) -> typing.Tuple[np.ndarray, np.ndarray]:
         code = np.array(
@@ -110,7 +105,7 @@ class DataLoader(ABC):
                 )
                 if "code-" in self._target:
                     encoder = ProgramEmbedder(
-                        self._target, self._base_path, code_model_dim
+                        self._target, self._base_path, self._code_model_dim
                     )
                 elif "task-" in self._target:
                     encoder = ProgramBenchmark(self._target, self._base_path, fnames)
@@ -152,20 +147,19 @@ class DataLoader(ABC):
             np.array(fnames),
         )
 
-    def _get_fname(
-        self, analysis: str, subject: str = "", code_model_dim: str = ""
-    ) -> Path:
+    def _get_fname(self, analysis: str, subject: str = "") -> Path:
+        dim = getattr(self, "_code_model_dim")
         if subject != "":
             subject = f"_sub{subject}".replace(".mat", "")
-        if code_model_dim != "":
-            code_model_dim = f"_dim{code_model_dim}"
+        if dim != "":
+            dim = f"_dim{dim}"
         fname = Path(
             os.path.join(
                 self._base_path,
                 ".cache",
                 "representations",
                 analysis,
-                f"rep_{self._feature}_{self._target}{subject}{code_model_dim}.pkl",
+                f"rep_{self._feature}_{self._target}{subject}{dim}.pkl",
             )
         )
         if not fname.parent.exists():
@@ -174,29 +168,27 @@ class DataLoader(ABC):
 
     @abstractmethod
     def _prep_data(
-        self, subject: Path, code_model_dim: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
-    def _get_loader(self, subject: Path, code_model_dim: str) -> partial:
-        return partial(self._prep_data, subject, code_model_dim)
+    def _get_loader(self, subject: Path) -> partial:
+        return partial(self._prep_data, subject)
 
     @lru_cache(maxsize=None)
     def get_data(
         self,
         analysis: str,
         subject: Path = Path(""),
-        code_model_dim: str = "",
-        debug: bool = False,
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        fname = self._get_fname(analysis, subject.name, code_model_dim)
-        if fname.exists() and not debug:
+        fname = self._get_fname(analysis, subject.name)
+        if fname.exists() and not self._debug:
             with open(fname, "rb") as f:
                 data = pkl.load(f)
             return data["X"], data["y"], data["runs"]
-        load_data = self._get_loader(subject, code_model_dim)
+        load_data = self._get_loader(subject)
         X, Y, runs = load_data()
-        if not debug:
+        if not self._debug:
             with open(fname, "wb") as f:
                 pkl.dump({"X": X, "y": Y, "runs": runs}, f)
         self._logger.info(f"Caching '{fname.name}'.")
@@ -220,22 +212,22 @@ class DataLoaderPRDA(DataLoader):
         runs = self._prep_runs(k, (Y.size // k + 1))[: Y.size]  # kfold CV
         return X, Y, runs
 
-    def _get_loader(self, subject: Path, code_model_dim: str) -> partial:
+    def _get_loader(self, subject: Path) -> partial:
         return partial(self._prep_data)
 
 
 class DataLoaderMVPA(DataLoader):
     def _prep_xyr(
-        self, subject: Path, code_model_dim: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         data, parc, content, lang, structure, ident = self._load_brain_data(subject)
-        Y, mask = self._prep_code_reps(content, lang, structure, ident, code_model_dim)
+        Y, mask = self._prep_code_reps(content, lang, structure, ident)
         X = self._prep_brain_reps(data, parc, mask)
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, Y, runs
 
     def _prep_xyr_joint(
-        self, subject: Path, code_model_dim: str, comp: str
+        self, subject: Path, comp: str
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         temp = getattr(self, f"_{comp}")
         parts = temp.split("+")
@@ -247,7 +239,7 @@ class DataLoaderMVPA(DataLoader):
             raise RuntimeError("Unsupported component.")
         for part in parts:
             setattr(self, f"_{comp}", part)
-            x, y, runs = self._prep_xyr(subject, code_model_dim)
+            x, y, runs = self._prep_xyr(subject)
             if comp == "feature":
                 X.append(x)
             else:
@@ -264,7 +256,7 @@ class DataLoaderMVPA(DataLoader):
         return X, Y, runs
 
     def _prep_data(
-        self, subject: Path, code_model_dim: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
         joint_feature = "+" in self._feature
         joint_target = "+" in self._target
@@ -273,19 +265,19 @@ class DataLoaderMVPA(DataLoader):
         if joint_feature:
             if "MVPA" not in self._name:
                 raise RuntimeError("Only MVPA supports joint features.")
-            return self._prep_xyr_joint(subject, code_model_dim, "feature")
+            return self._prep_xyr_joint(subject, "feature")
         if joint_target:
             if "EA" not in self._name:
                 raise RuntimeError("Only encoding analyses support joint targets.")
-            return self._prep_xyr_joint(subject, code_model_dim, "target")
-        return self._prep_xyr(subject, code_model_dim)
+            return self._prep_xyr_joint(subject, "target")
+        return self._prep_xyr(subject)
 
 
 class DataLoaderRSA(DataLoaderMVPA):
     def _prep_data(
-        self, subject: Path, code_model_dim: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = super()._prep_data(subject, code_model_dim)
+        X, Y, runs = super()._prep_data(subject)
         if Y.ndim == 1:
             Y = OneHotEncoder(sparse=False).fit_transform(Y.reshape(-1, 1))
         return X, Y, runs
@@ -293,17 +285,17 @@ class DataLoaderRSA(DataLoaderMVPA):
 
 class DataLoaderVWEA(DataLoaderRSA):
     def _prep_data(
-        self, subject: Path, code_model_dim: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        Y, X, runs = super()._prep_data(subject, code_model_dim)
+        Y, X, runs = super()._prep_data(subject)
         return X, Y, runs
 
 
 class DataLoaderNLEA(DataLoaderVWEA):
     def _prep_data(
-        self, subject: Path, code_model_dim: str
+        self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = super()._prep_data(subject, code_model_dim)
+        X, Y, runs = super()._prep_data(subject)
         Y = Y.mean(axis=1).reshape(-1, 1)
         return X, Y, runs
 

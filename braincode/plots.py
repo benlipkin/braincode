@@ -1,17 +1,18 @@
-import logging
 import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+from braincode.abstract import Object
 
-class Plotter:
+
+class Plotter(Object):
     def __init__(self, analysis) -> None:
+        super().__init__()
         self._analysis = analysis
         self._feature = self._analysis.feature.split("-")[1]
         self._target = self._analysis.target.split("-")[1]
         self._type = self._analysis._name
-        self._logger = logging.getLogger(self.__class__.__name__)
 
     @property
     def _fname(self) -> Path:

@@ -9,17 +9,18 @@ from pathlib import Path
 from joblib import Parallel, delayed, parallel_backend
 
 import braincode
+from braincode.abstract import Object
 from braincode.analyses import Analysis
 
 
-class CLI:
+class CLI(Object):
     def __init__(self) -> None:
+        super().__init__()
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
         self._analyses = ["mvpa", "prda", "rsa", "vwea", "nlea", "cvwea", "cnlea"]
         self._features = self._brain_networks + self._code_models  # + self._brain_supp
         self._targets = self._code_benchmarks + self._code_models  # + self._code_supp
-        self._logger = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
     def _base_args(prefix: str, units: typing.List[str]) -> typing.List[str]:

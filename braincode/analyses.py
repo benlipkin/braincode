@@ -1,9 +1,7 @@
-import itertools
-import logging
 import os
 import re
 import typing
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from itertools import combinations
 from pathlib import Path
 
@@ -15,29 +13,19 @@ from tqdm import tqdm
 
 import braincode.data
 import braincode.metrics
+from braincode.abstract import Object
 from braincode.metrics import Metric, MatrixMetric
 from braincode.plots import Plotter
 
 
-class Analysis(ABC):
+class Analysis(Object):
     def __init__(self, *args, **kwargs) -> None:
-        for name, value in itertools.chain(
-            zip(["feature", "target"], args), kwargs.items()
-        ):
-            setattr(self, f"_{name}", value)
+        super().__init__(*args, **kwargs)
         if "code-" not in self.target:
             self._code_model_dim = ""
-        self._name = self.__class__.__name__
         self._loader = getattr(braincode.data, f"DataLoader{self._name}")(
-            self._base_path, self.feature, self.target
+            *args, **kwargs
         )
-        self._logger = logging.getLogger(self._name)
-
-    def __setattr__(self, name: str, value: typing.Any) -> None:
-        super().__setattr__(name, value)
-
-    def __getattribute__(self, name: str) -> typing.Any:
-        return super().__getattribute__(name)
 
     @property
     def feature(self) -> str:
@@ -172,12 +160,12 @@ class Mapping(Analysis):
     def _get_metric(self, Y: np.ndarray) -> Metric:
         if not getattr(self, "_metric"):
             if Y.ndim == 1:
-                self._metric = "ClassificationAccuracy"
+                setattr(self, "_metric", "ClassificationAccuracy")
             elif Y.ndim == 2:
                 if Y.shape[1] == 1:
-                    self._metric = "PearsonR"
+                    setattr(self, "_metric", "PearsonR")
                 else:
-                    self._metric = "RankAccuracy"
+                    setattr(self, "_metric", "RankAccuracy")
             else:
                 raise NotImplementedError("Metrics only defined for 1D and 2D arrays.")
         metric = getattr(braincode.metrics, self._metric)
@@ -206,12 +194,7 @@ class BrainMapping(BrainAnalysis, Mapping):
     def _load_subject(
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        X, Y, runs = self._loader.get_data(
-            self._name.lower(),
-            subject=subject,
-            code_model_dim=self._code_model_dim,
-            debug=self._debug,
-        )
+        X, Y, runs = self._loader.get_data(self._name.lower(), subject=subject)
         return X, Y, runs
 
     @staticmethod
@@ -235,11 +218,7 @@ class BrainSimilarity(BrainAnalysis):
     def _load_subject(
         self, subject: Path
     ) -> typing.Tuple[np.ndarray, np.ndarray, typing.Any]:
-        X, Y, _ = self._loader.get_data(
-            self._name.lower(),
-            subject=subject,
-            debug=self._debug,
-        )
+        X, Y, _ = self._loader.get_data(self._name.lower(), subject=subject)
         return X, Y, _
 
     @staticmethod
