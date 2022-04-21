@@ -154,8 +154,9 @@ class Mapping(Analysis):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    def _get_metric(self, Y: np.ndarray) -> Metric:
+    def _get_metric(self, Y: np.ndarray, reset: bool = False) -> Metric:
         if not getattr(self, "_metric"):
+            reset = True
             if Y.ndim == 1:
                 setattr(self, "_metric", "ClassificationAccuracy")
             elif Y.ndim == 2:
@@ -168,6 +169,8 @@ class Mapping(Analysis):
         metric = getattr(braincode.metrics, self._metric)
         if not issubclass(metric, Metric):
             raise ValueError("Invalid metric specified.")
+        if reset:
+            setattr(self, "_metric", "")
         return metric()
 
     def _cross_validate_model(
