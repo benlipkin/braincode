@@ -13,7 +13,7 @@ class PRDA(Mapping):
         super().__init__(*args, **kwargs)
 
     def _run_mapping(self, mode: str) -> np.float:
-        X, Y, runs = self._loader.get_data(self._name.lower(), debug=self._debug)
+        X, Y, runs = self._loader.get_data(self._name.lower())
         Y = self._check_metric_compatibility(Y)
         if mode == "null":
             np.random.shuffle(Y)
