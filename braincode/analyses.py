@@ -55,7 +55,6 @@ class Analysis(Object):
             mode,
             self.feature.split("-")[1],
             self.target.split("-")[1],
-            self._metric,
             self._code_model_dim,
         ]
         name = re.sub("_+", "_", "_".join(ids).strip("_") + ".npy")
