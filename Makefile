@@ -65,6 +65,7 @@ endif
 analysis : setup $(PACKAGE)/outputs/
 $(PACKAGE)/outputs/ : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; $(EXEC) $(PACKAGE) mvpa
+	@$(ACTIVATE) ; $(EXEC) $(PACKAGE) prda
 
 ## paper     : run scripts to generate final plots and tables.
 .PHONY : paper
