@@ -29,37 +29,37 @@ source run.sh # pulls scores, runs stats, generates plots and tables
 
 ### Supported Brain Regions
 
--   Language
--   Multiple Demand (MD)
--   Visual
--   Auditory
+-   `brain-MD` (Multiple Demand)
+-   `brain-lang` (Language)
+-   `brain-vis` (Visual)
+-   `brain-aud` (Auditory)
 
 ### Supported Code Features
 
 **Code Properties**
 
--   Code (code vs. sentences)
--   Content (math vs. str) <sup>\*datatype</sup>
--   Language (english vs. japanese)
--   Structure (seq vs. for vs. if) <sup>\*control flow</sup>
--   Token Count (# of tokens in program) <sup>\*static analysis</sup>
--   Lines (# of runtime steps during execution) <sup>\*dynamic analysis</sup>
--   Bytes (# of bytecode ops executed)
--   Node Count (# of nodes in AST)
--   Halstead Difficulty (function of tokens, operations, vocabulary)
--   Cyclomatic Complexity (function of program control flow graph)
+-   `test-code` (code vs. sentences)
+-   `test-lang` (english vs. japanese)
+-   `task-content` (math vs. str) <sup>\*datatype</sup>
+-   `task-structure` (seq vs. for vs. if) <sup>\*control flow</sup>
+-   `task-tokens` (# of tokens in program) <sup>\*static analysis</sup>
+-   `task-lines` (# of runtime steps during execution) <sup>\*dynamic analysis</sup>
+-   `task-bytes` (# of bytecode ops executed)
+-   `task-nodes` (# of nodes in AST)
+-   `task-halstead` (function of tokens, operations, vocabulary)
+-   `task-cyclomatic` (function of program control flow graph)
 
 **Code Models**
 
--   Token Projection
--   BagOfWords
--   TF-IDF
--   seq2seq<sup> [1](https://github.com/IBM/pytorch-seq2seq)</sup>
--   XLNet<sup> [2](https://arxiv.org/pdf/1906.08237.pdf)</sup>
--   CodeTransformer<sup> [3](https://arxiv.org/pdf/2103.11318.pdf)</sup>
--   CodeGPT<sup> [4](https://huggingface.co/microsoft/CodeGPT-small-py)</sup>
--   CodeBERT<sup> [5](https://arxiv.org/pdf/2002.08155.pdf)</sup>
--   CodeBERTa<sup> [6](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup>
+-   `code-projection` (presence of tokens)
+-   `code-bow` (token frequency)
+-   `code-tfidf` (token and document frequency)
+-   `code-seq2seq`<sup> [1](https://github.com/IBM/pytorch-seq2seq)</sup> (sequence modeling)
+-   `code-xlnet`<sup> [2](https://arxiv.org/pdf/1906.08237.pdf)</sup> (autoregressive LM)
+-   `code-gpt2`<sup> [4](https://huggingface.co/microsoft/CodeGPT-small-py)</sup> (autoregressive LM)
+-   `code-bert`<sup> [5](https://arxiv.org/pdf/2002.08155.pdf)</sup> (masked LM)
+-   `code-roberta`<sup> [6](https://huggingface.co/huggingface/CodeBERTa-small-v1)</sup> (masked LM)
+-   `code-transformer`<sup> [3](https://arxiv.org/pdf/2103.11318.pdf)</sup> (LM + structure learning)
 
 ## Installation
 
@@ -78,10 +78,8 @@ source setup.sh # downloads 'large' files, e.g. datasets, models
 ## Run
 
 ```bash
-usage: braincode [-h]
-                 [-f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}]
-                 [-t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}]
-                 [-m METRIC] [-d CODE_MODEL_DIM] [-p BASE_PATH] [-s] [-b]
+usage: braincode [-h] [-f FEATURE] [-t TARGET] [-m METRIC] [-d CODE_MODEL_DIM]
+                 [-p BASE_PATH] [-s] [-b]
                  {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
 
 run specified analysis type
@@ -91,8 +89,8 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}, --feature {all,brain-MD,brain-lang,brain-vis,brain-aud,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,brain-MD+lang,brain-MD+vis,brain-lang+vis}
-  -t {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}, --target {all,test-code,test-lang,task-content,task-structure,task-tokens,task-lines,task-nodes,task-bytes,task-halstead,task-cyclomatic,code-projection,code-bow,code-tfidf,code-seq2seq,code-xlnet,code-bert,code-gpt2,code-transformer,code-roberta,task-content+structure+tokens+lines}
+  -f FEATURE, --feature FEATURE
+  -t TARGET, --target TARGET
   -m METRIC, --metric METRIC
   -d CODE_MODEL_DIM, --code_model_dim CODE_MODEL_DIM
   -p BASE_PATH, --base_path BASE_PATH
@@ -105,16 +103,18 @@ note: BASE_PATH must be specified to match setup.sh if changed from default.
 **Sample calls**
 
 ```bash
-## typical examples
+# basic examples
 python braincode mvpa -f brain-MD -t task-structure # brain -> {task, model}
 python braincode rsa -f brain-lang -t code-gpt2 # brain <-> {task, model}
 python braincode vwea -f brain-vis -t code-bow # brain <- {task, model}
 python braincode nlea -f brain-lang -t test-code # brain <- {task, model}
 python braincode prda -f code-bert -t task-tokens # model -> task
 
-## more complex examples
-python braincode cnlea -f all -m FisherCorr --score_only
-python braincode rsa -f brain-MD -t code-projection -d 64 -p $BASE_PATH
+# more complex examples
+python braincode cnlea -f all -m SpearmanRho --score_only # check metrics module for all options
+python braincode mvpa -f brain-lang+brain-MD -t code-projection -d 64 -p $BASE_PATH
+python braincode vwea -t task-content+task-structure+task-tokens+task-lines
+# note how `+` operator can be used to join multiple representations via concatenation
 ```
 
 ## Automation
