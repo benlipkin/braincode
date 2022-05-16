@@ -13,7 +13,7 @@ help : Makefile
 ## update    : update repo with latest version from GitHub.
 .PHONY : update
 update :
-	@git pull origin ICML2022
+	@git pull origin NeurIPS2022
 
 ## env       : setup environment and install dependencies.
 .PHONY : env
