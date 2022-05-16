@@ -4,7 +4,7 @@
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
 
-This branch `ICML2022` contains a static version of the broader codebase as necessary to replicate the paper.
+This branch `NeurIPS2022` contains a static version of the broader codebase as necessary to replicate the paper.
 
 This pipeline supports several major functions.
 
