@@ -5,7 +5,7 @@
 
 Project investigating human and artificial neural representations of python program comprehension and execution.
 
-To replicate specific papers, `git checkout` the corresponding branch, e.g., `ICML2022`, and follow instructions in the `README.md`.
+To replicate specific papers, `git checkout` the corresponding branch, e.g., `NeurIPS2022`, and follow instructions in the `README.md`.
 
 
 This pipeline supports several major functions.
