@@ -19,8 +19,8 @@ class CLI(Object):
         self._default_path = Path(__file__).parent
         self._default_arg = "all"
         self._analyses = ["mvpa", "prda", "rsa", "vwea", "nlea", "cvwea", "cnlea"]
-        self._features = self._brain_networks + self._code_models  # + self._brain_supp
-        self._targets = self._code_benchmarks + self._code_models  # + self._code_supp
+        self._features = self._brain_networks + self._code_models
+        self._targets = self._code_benchmarks + self._code_models
 
     @staticmethod
     def _base_args(prefix: str, units: typing.List[str]) -> typing.List[str]:
@@ -42,41 +42,35 @@ class CLI(Object):
     @property
     def _brain_networks(self) -> typing.List[str]:
         prefix = "brain"
-        units = ["MD", "lang", "vis", "aud"]
+        units = ["md_lh", "md_rh", "lang_lh", "lang_rh"]
         return self._base_args(prefix, units)
 
     @property
     def _code_models(self) -> typing.List[str]:
         prefix = "code"
-        base_models = ["projection", "bow", "tfidf", "seq2seq"]
-        transformers = ["xlnet", "bert", "gpt2", "transformer", "roberta"]
-        units = base_models + transformers
+        units = [
+            "tokens",
+            "graph",
+            "llm_350m_nl",
+            "llm_350m_mono",
+            "llm_350m_multi",
+            "llm_2b_nl",
+            "llm_2b_mono",
+            "llm_2b_multi",
+            "llm_6b_nl",
+            "llm_6b_mono",
+            "llm_6b_multi",
+            "llm_16b_nl",
+            "llm_16b_mono",
+            "llm_16b_multi",
+        ]
         return self._base_args(prefix, units)
 
     @property
     def _code_benchmarks(self) -> typing.List[str]:
-        prefix = ("test", "task")
-        test_tasks = ["code", "lang"]
-        base_tasks = ["content", "structure", "tokens", "lines"]
-        extra_tasks = ["nodes", "bytes", "halstead", "cyclomatic"]
-        units = (test_tasks, base_tasks + extra_tasks)
-        return list(
-            itertools.chain.from_iterable(
-                self._base_args(p, u) for p, u in zip(prefix, units)
-            )
-        )
-
-    @property
-    def _brain_supp(self) -> typing.List[str]:
-        prefix = "brain"
-        units = ["MD", "lang", "vis"]
-        return self._joint_args(prefix, units)
-
-    @property
-    def _code_supp(self) -> typing.List[str]:
         prefix = "task"
-        units = ["content", "structure", "tokens", "lines"]
-        return self._max_arg(prefix, units)
+        units = ["content", "structure", "nodes", "lines"]
+        return ["test-code"] + self._base_args(prefix, units)
 
     def _build_parser(self) -> None:
         self._parser = ArgumentParser(description="run specified analysis type")

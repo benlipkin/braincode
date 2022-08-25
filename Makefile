@@ -40,11 +40,3 @@ html/pylint/index.json : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; pylint $(PACKAGE) --output-format=colorized,json:$@ || pylint-exit $$?
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
-
-## docker    : build docker image and spin up container.
-.PHONY : docker
-docker :
-ifeq "$(shell docker images | grep $(PACKAGE) | wc -l)" "0"
-	@docker build -t $(PACKAGE)
-endif
-	@docker run -it $(PACKAGE)
