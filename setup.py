@@ -8,7 +8,7 @@ with open("requirements.txt") as reqs_file:
 
 setup(
     name="braincode",
-    version="0.1.0",
+    version="0.2",
     description="an investigation of computer program representations.",
     long_description=readme,
     author="Benjamin Lipkin",
@@ -16,5 +16,5 @@ setup(
     license="MIT",
     packages=find_packages(where="braincode"),
     install_requires=requirements,
-    python_requires=">=3.7",
+    python_requires=">=3.10",
 )

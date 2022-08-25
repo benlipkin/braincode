@@ -9,9 +9,5 @@ HOME_DIR=$1/braincode/
 cd $HOME_DIR
 
 ZIP_NAME=inputs.zip
-wget -O $ZIP_NAME https://www.dropbox.com/s/hxnxdhygk9b05rj/inputs.zip?dl=0
+wget -O $ZIP_NAME https://www.dropbox.com/sh/0k5uqd33l9qcwkr/AAC1sOizqVcI5uUI2rAq0pOJa?dl=0
 unzip $ZIP_NAME -d inputs
-rm $ZIP_NAME
-
-# Process and populate benchmark metrics on input files
-python -m braincode.utils $HOME_DIR 2

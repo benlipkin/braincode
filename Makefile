@@ -17,27 +17,16 @@ update :
 
 ## env       : setup environment and install dependencies.
 .PHONY : env
-env : module seq2seq
-module: conda $(PACKAGE).egg-info/
-seq2seq: conda setup/code_seq2seq.egg-info
+env : $(PACKAGE).egg-info/
 $(PACKAGE).egg-info/ : setup.py requirements.txt
+	@conda create -yn $(PACKAGE) $(EXEC)
 	@$(ACTIVATE) ; $(INSTALL)
-setup/code_seq2seq.egg-info : setup/setup.py
-	@$(ACTIVATE) ; cd $(<D) ; $(INSTALL)
-conda :
-ifeq "$(shell conda info --envs | grep $(PACKAGE) | wc -l)" "0"
-	@conda create -yn $(PACKAGE) $(EXEC)=3.7
-endif
 
 ## setup     : download prerequisite files, e.g. neural data, models.
 .PHONY : setup
-setup : inputs benchmarks
-inputs : env $(PACKAGE)/inputs/
-benchmarks : env $(PACKAGE)/.cache/profiler/
+setup : env $(PACKAGE)/inputs/
 $(PACKAGE)/inputs/ : setup/setup.sh
 	@$(ACTIVATE) ; cd $(<D) ; bash $(<F)
-$(PACKAGE)/.cache/profiler/ : $(PACKAGE)/utils.py
-	@$(ACTIVATE) ; $(EXEC) -m $(PACKAGE).utils $(PACKAGE) 2
 
 ## test      : run testing pipeline.
 .PHONY : test

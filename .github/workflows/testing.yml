@@ -20,7 +20,7 @@ jobs:
       - name:             setup conda
         uses:             s-weigand/setup-conda@v1.1.0
         with:
-          python-version: 3.7
+          python-version: 3.10
 
       - name:             run testing pipeline
         run:              make test
