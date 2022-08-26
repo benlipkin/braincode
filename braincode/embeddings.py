@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from sklearn.random_projection import GaussianRandomProjection
+from transformers import CodeGenConfig, CodeGenTokenizer
 
 from braincode.abstract import Object
 
@@ -12,6 +13,7 @@ from braincode.abstract import Object
 class CodeModel(Object):
     def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
+        self._cache_dir = base_path.joinpath(".cache", "models", self._name)
 
     @abstractmethod
     def _get_rep(self, program: str) -> np.ndarray:
@@ -62,11 +64,20 @@ class ProgramEmbedder:
 class TokenProjection(CodeModel):
     def __init__(self, base_path: Path) -> None:
         super().__init__(base_path)
-        # Use CodeGen tokenizer to get vocab size and tokenize program
-        raise NotImplementedError("under development")
+        default_id = "Salesforce/codegen-350M-mono"
+        cfg = CodeGenConfig.from_pretrained(default_id, cache_dir=self._cache_dir)
+        self._tokenizer = CodeGenTokenizer.from_pretrained(
+            default_id, cache_dir=self._cache_dir
+        )
+        self._projection = np.random.default_rng(0).standard_normal(
+            (cfg.vocab_size, cfg.n_embd)
+        )
 
     def _get_rep(self, program: str) -> np.ndarray:
-        raise NotImplementedError("under development")
+        rep = np.zeros(self._projection.shape[1])
+        for token in self._tokenizer(program)["input_ids"]:
+            rep += self._projection[token, :]
+        return rep
 
 
 class GraphProjection(CodeModel):
@@ -79,7 +90,7 @@ class GraphProjection(CodeModel):
 
 
 class HFModel(CodeModel):
-    def __init__(self, config: str, base_path: Path) -> None:
+    def __init__(self, spec: str, base_path: Path) -> None:
         super().__init__(base_path)
         raise NotImplementedError("under development")
 
