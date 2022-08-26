@@ -34,7 +34,7 @@ class DataLoader(Object):
 
     @property
     def samples(self) -> int:
-        return np.prod(self._events)
+        return int(np.prod(self._events))
 
     def _load_brain_data(
         self, subject: Path
@@ -193,9 +193,7 @@ class DataLoader(Object):
 
 
 class DataLoaderPRDA(DataLoader):
-    def _prep_data(  # type: ignore
-        self, k: int = 5
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _prep_data(self, k: int = 5):  # type: ignore
         if "+" in self._feature or "+" in self._target:
             raise RuntimeError("PRDA does not support joint variables.")
         programs, content, lang, structure, fnames = self._load_all_programs()
@@ -223,9 +221,7 @@ class DataLoaderMVPA(DataLoader):
         runs = self._prep_runs(self._runs, self._blocks)[mask]
         return X, Y, runs
 
-    def _prep_xyr_joint(
-        self, subject: Path, comp: str
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _prep_xyr_joint(self, subject: Path, comp: str):
         temp = getattr(self, f"_{comp}")
         parts = temp.split("+")
         if comp == "feature":
@@ -246,9 +242,9 @@ class DataLoaderMVPA(DataLoader):
         setattr(self, f"_{comp}", temp)
         if comp == "feature":
             X = np.concatenate(X, axis=1)
-            Y = y
+            Y = y  # type: ignore
         else:
-            X = x
+            X = x  # type: ignore
             Y = np.concatenate(Y, axis=1)
         return X, Y, runs
 

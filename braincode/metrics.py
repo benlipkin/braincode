@@ -12,7 +12,7 @@ class Metric(ABC):
 
     def __call__(
         self, X: np.ndarray, Y: np.ndarray
-    ) -> typing.Union[np.float, np.ndarray]:
+    ) -> typing.Union[np.float64, np.ndarray]:
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         if Y.ndim == 1:
@@ -29,7 +29,7 @@ class Metric(ABC):
     @abstractmethod
     def _apply_metric(
         self, X: np.ndarray, Y: np.ndarray
-    ) -> typing.Union[np.float, np.ndarray]:
+    ) -> typing.Union[np.float64, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
 
@@ -43,7 +43,7 @@ class VectorMetric(Metric):
 
     def _apply_metric(
         self, X: np.ndarray, Y: np.ndarray
-    ) -> typing.Union[np.float, np.ndarray]:
+    ) -> typing.Union[np.float64, np.ndarray]:
         scores = np.zeros(X.shape[1])
         for i in range(scores.size):
             scores[i] = self._score(X[:, i], Y[:, i])
@@ -53,7 +53,7 @@ class VectorMetric(Metric):
 
     @staticmethod
     @abstractmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         raise NotImplementedError("Handled by subclass.")
 
 
@@ -66,34 +66,34 @@ class MatrixMetric(Metric):
         return score
 
     @abstractmethod
-    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float64:
         raise NotImplementedError("Handled by subclass.")
 
 
 class PearsonR(VectorMetric):
     @staticmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         r, _ = pearsonr(x, y)
         return r
 
 
 class SpearmanRho(VectorMetric):
     @staticmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         rho, _ = spearmanr(x, y)
         return rho
 
 
 class KendallTau(VectorMetric):
     @staticmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         tau, _ = kendalltau(x, y)
         return tau
 
 
 class FisherCorr(VectorMetric):
     @staticmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         r, _ = pearsonr(x, y)
         corr = np.arctanh(r)
         return corr
@@ -101,14 +101,14 @@ class FisherCorr(VectorMetric):
 
 class RMSE(VectorMetric):
     @staticmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         loss = mean_squared_error(x, y, squared=False)
         return loss
 
 
 class ClassificationAccuracy(VectorMetric):
     @staticmethod
-    def _score(x: np.ndarray, y: np.ndarray) -> np.float:
+    def _score(x: np.ndarray, y: np.ndarray) -> np.float64:
         score = accuracy_score(x, y, normalize=True)
         return score
 
@@ -118,7 +118,7 @@ class RankAccuracy(MatrixMetric):
         self._distance = distance
         super().__init__()
 
-    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float64:
         distances = pairwise_distances(X, Y, metric=self._distance)
         scores = (distances.T > np.diag(distances)).sum(axis=0) / (
             distances.shape[1] - 1
@@ -134,7 +134,7 @@ class RepresentationalSimilarity(MatrixMetric):
         self._comparison = comparison
         super().__init__()
 
-    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
+    def _score(self, X: np.ndarray, Y: np.ndarray):
         X_rdm = pairwise_distances(X, metric=self._distance)
         Y_rdm = pairwise_distances(Y, metric=self._distance)
         if any(m.shape[1] == 1 for m in (X, Y)):  # can't calc 1D corr dists
@@ -159,13 +159,13 @@ class LinearCKA(MatrixMetric):
         centered = H @ K @ H
         return centered
 
-    def _HSIC(self, A: np.ndarray, B: np.ndarray) -> np.float:
+    def _HSIC(self, A: np.ndarray, B: np.ndarray) -> np.float64:
         L_A = A @ A.T
         L_B = B @ B.T
         HSIC = np.sum(self._center(L_A) * self._center(L_B))
         return HSIC
 
-    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float:
+    def _score(self, X: np.ndarray, Y: np.ndarray) -> np.float64:
         HSIC_XY = self._HSIC(X, Y)
         HSIC_XX = self._HSIC(X, X)
         HSIC_YY = self._HSIC(Y, Y)

@@ -37,6 +37,9 @@ html/pylint/index.html : html/pylint/index.json
 	@$(ACTIVATE) ; pylint-json2html -o $@ -e utf-8 $<
 html/pylint/index.json : $(PACKAGE)/*.py
 	@mkdir -p $(@D)
-	@$(ACTIVATE) ; pylint $(PACKAGE) --output-format=colorized,json:$@ || pylint-exit $$?
+	@$(ACTIVATE) ; pylint $(PACKAGE) \
+	--disable C0114,C0115,C0116,C0103 \
+	--output-format=colorized,json:$@ \
+	|| pylint-exit $$?
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)

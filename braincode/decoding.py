@@ -12,7 +12,7 @@ class PRDA(Mapping):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    def _run_mapping(self, mode: str) -> np.float:
+    def _run_mapping(self, mode: str) -> np.float64:
         X, Y, runs = self._loader.get_data(self._name.lower())
         Y = self._check_metric_compatibility(Y)
         if mode == "null":

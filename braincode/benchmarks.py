@@ -13,9 +13,7 @@ import numpy as np
 
 
 class ProgramBenchmark:
-    def __init__(
-        self, benchmark: str, basepath: Path, fnames: typing.List[str]
-    ) -> None:
+    def __init__(self, benchmark: str, basepath: Path, fnames: np.ndarray) -> None:
         self._benchmark = benchmark
         self._base_path = basepath
         self._fnames = fnames

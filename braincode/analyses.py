@@ -35,7 +35,7 @@ class Analysis(Object):
         return self._target
 
     @property
-    def score(self) -> np.float:
+    def score(self) -> np.float64:
         if not self._score:
             raise RuntimeError("Score not set. Need to run.")
         return self._score
@@ -47,7 +47,7 @@ class Analysis(Object):
         return self._null
 
     @property
-    def pval(self) -> np.float:
+    def pval(self) -> np.float64:
         return (self.score < self.null).sum() / self.null.size
 
     def _get_fname(self, mode: str) -> Path:
@@ -62,7 +62,7 @@ class Analysis(Object):
         return self._base_path.joinpath(".cache", "scores", self._name.lower(), name)
 
     def _set_and_save(
-        self, mode: str, val: typing.Union[np.float, np.ndarray], fname: Path
+        self, mode: str, val: typing.Union[np.float64, np.ndarray], fname: Path
     ) -> None:
         setattr(self, f"_{mode}", val)
         if not self._debug:
@@ -95,7 +95,7 @@ class Analysis(Object):
         return Y
 
     @abstractmethod
-    def _run_mapping(self, mode: str) -> typing.Union[np.float, np.ndarray]:
+    def _run_mapping(self, mode: str) -> typing.Union[np.float64, np.ndarray]:
         raise NotImplementedError("Handled by subclass.")
 
     def _plot(self) -> None:
@@ -133,10 +133,10 @@ class BrainAnalysis(Analysis):
         raise NotImplementedError("Handled by subclass.")
 
     @abstractmethod
-    def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float:
+    def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float64:
         raise NotImplementedError("Handled by subclass.")
 
-    def _run_mapping(self, mode: str, cache_subject_scores: bool = True) -> np.float:
+    def _run_mapping(self, mode: str, cache_subject_scores: bool = True) -> np.float64:
         scores = np.zeros(len(self.subjects))
         for idx, subject in enumerate(self.subjects):
             X, Y, runs = self._load_subject(subject)
@@ -175,7 +175,7 @@ class Mapping(Analysis):
 
     def _cross_validate_model(
         self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray
-    ) -> np.float:
+    ) -> np.float64:
         if any(a.shape[0] != b.shape[0] for a, b in combinations([X, Y, runs], 2)):
             raise ValueError("X Y and runs must all have the same number of samples.")
         model_class = RidgeClassifierCV if Y.ndim == 1 else RidgeCV
@@ -206,7 +206,7 @@ class BrainMapping(BrainAnalysis, Mapping):
             Y_shuffled[runs == run] = np.random.permutation(Y[runs == run])
         return Y_shuffled
 
-    def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float:
+    def _calc_score(self, X: np.ndarray, Y: np.ndarray, runs: np.ndarray) -> np.float64:
         score = self._cross_validate_model(X, Y, runs)
         return score
 
@@ -226,7 +226,7 @@ class BrainSimilarity(BrainAnalysis):
         np.random.shuffle(Y)
         return Y
 
-    def _calc_score(self, X: np.ndarray, Y: np.ndarray, _: np.ndarray) -> np.float:
+    def _calc_score(self, X: np.ndarray, Y: np.ndarray, _: np.ndarray):
         score = self._similarity_metric(X, Y)
         return score
 
@@ -240,9 +240,7 @@ class BrainMappingCeiling(BrainMapping):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    def _load_subject(
-        self, subject: Path
-    ) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _load_subject(self, subject: Path):
         _, Y, runs = super()._load_subject(subject)
         X = []
         for other in self.subjects:
