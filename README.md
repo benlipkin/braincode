@@ -3,7 +3,7 @@
 
 # BrainCode
 
-Project investigating human and artificial neural representations of python program comprehension and execution.
+Project investigating human and artificial neural representations of code.
 
 This branch is currently under development, and should be considered unstable. To replicate specific papers, `git checkout` the corresponding branch, e.g., `NeurIPS2022`, and follow instructions in the `README.md`.
 
@@ -34,14 +34,12 @@ _Note: **VWEA** and **NLEA** also support ceiling estimates at the network level
 -   `task-content` (math vs. str) <sup>\*DataType</sup>
 -   `task-nodes` (# of nodes in AST) <sup>\*ASTNodes</sup>
 -   `task-lines` (# of runtime steps during execution) <sup>\*LinesExecuted</sup>
--   `task-memory` (UNDER DEVELOPMENT) <sup>\*MemoryLoad</sup>
 
-**Code Models** [UNDER DEVEOPMENT]
+**Code Models**
 
-Baselines:
+Baseline:
 
 -   `code-tokens` (arbitrary projection encoding presence of individual tokens)
--   `code-graph` (arbitrary projection encoding properties of program graph)
 
 LLM Suite (CodeGen<sup>[1](https://arxiv.org/pdf/2203.13474.pdf)</sup>):
 

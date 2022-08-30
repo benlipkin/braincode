@@ -1,3 +1,4 @@
+import os
 import typing
 from abc import abstractmethod
 from functools import partial
@@ -5,9 +6,11 @@ from pathlib import Path
 
 import numpy as np
 from sklearn.random_projection import GaussianRandomProjection
-from transformers import CodeGenConfig, CodeGenTokenizer
+from transformers import CodeGenConfig, CodeGenTokenizer, CodeGenModel
 
 from braincode.abstract import Object
+
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 
 
 class CodeModel(Object):
@@ -37,19 +40,18 @@ class ProgramEmbedder:
     ) -> typing.Dict[str, typing.Union[typing.Type[CodeModel], partial[CodeModel]]]:
         return {
             "code-tokens": TokenProjection,
-            "code-graph": GraphProjection,
-            "code-llm_350m_nl": partial(HFModel, "Salesforce/codegen-350M-nl"),
-            "code-llm_350m_mono": partial(HFModel, "Salesforce/codegen-350M-mono"),
-            "code-llm_350m_multi": partial(HFModel, "Salesforce/codegen-350M-multi"),
-            "code-llm_2b_nl": partial(HFModel, "Salesforce/codegen-2B-nl"),
-            "code-llm_2b_mono": partial(HFModel, "Salesforce/codegen-2B-mono"),
-            "code-llm_2b_multi": partial(HFModel, "Salesforce/codegen-2B-multi"),
-            "code-llm_6b_nl": partial(HFModel, "Salesforce/codegen-6B-nl"),
-            "code-llm_6b_mono": partial(HFModel, "Salesforce/codegen-6B-mono"),
-            "code-llm_6b_multi": partial(HFModel, "Salesforce/codegen-6B-multi"),
-            "code-llm_16b_nl": partial(HFModel, "Salesforce/codegen-16B-nl"),
-            "code-llm_16b_mono": partial(HFModel, "Salesforce/codegen-16B-mono"),
-            "code-llm_16b_multi": partial(HFModel, "Salesforce/codegen-16B-multi"),
+            "code-llm_350m_nl": partial(HFCodeGen, "Salesforce/codegen-350M-nl"),
+            "code-llm_350m_mono": partial(HFCodeGen, "Salesforce/codegen-350M-mono"),
+            "code-llm_350m_multi": partial(HFCodeGen, "Salesforce/codegen-350M-multi"),
+            "code-llm_2b_nl": partial(HFCodeGen, "Salesforce/codegen-2B-nl"),
+            "code-llm_2b_mono": partial(HFCodeGen, "Salesforce/codegen-2B-mono"),
+            "code-llm_2b_multi": partial(HFCodeGen, "Salesforce/codegen-2B-multi"),
+            "code-llm_6b_nl": partial(HFCodeGen, "Salesforce/codegen-6B-nl"),
+            "code-llm_6b_mono": partial(HFCodeGen, "Salesforce/codegen-6B-mono"),
+            "code-llm_6b_multi": partial(HFCodeGen, "Salesforce/codegen-6B-multi"),
+            "code-llm_16b_nl": partial(HFCodeGen, "Salesforce/codegen-16B-nl"),
+            "code-llm_16b_mono": partial(HFCodeGen, "Salesforce/codegen-16B-mono"),
+            "code-llm_16b_multi": partial(HFCodeGen, "Salesforce/codegen-16B-multi"),
         }
 
     def fit_transform(self, programs: np.ndarray) -> np.ndarray:
@@ -80,19 +82,16 @@ class TokenProjection(CodeModel):
         return rep
 
 
-class GraphProjection(CodeModel):
-    def __init__(self, base_path: Path) -> None:
-        super().__init__(base_path)
-        raise NotImplementedError("under development")
-
-    def _get_rep(self, program: str) -> np.ndarray:
-        raise NotImplementedError("under development")
-
-
-class HFModel(CodeModel):
+class HFCodeGen(CodeModel):
     def __init__(self, spec: str, base_path: Path) -> None:
         super().__init__(base_path)
-        raise NotImplementedError("under development")
+        self._tokenizer = CodeGenTokenizer.from_pretrained(
+            spec, cache_dir=self._cache_dir
+        )
+        self._model = CodeGenModel.from_pretrained(spec, cache_dir=self._cache_dir)
 
     def _get_rep(self, program: str) -> np.ndarray:
-        raise NotImplementedError("under development")
+        inputs = self._tokenizer(program, return_tensors="pt")
+        outputs = self._model(**inputs)
+        embedding = outputs.last_hidden_state.mean(axis=1)
+        return embedding.detach().numpy().squeeze()
