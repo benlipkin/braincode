@@ -4,6 +4,7 @@ import typing
 from abc import abstractmethod
 from functools import lru_cache, partial
 from pathlib import Path
+from webbrowser import get
 
 import numpy as np
 from scipy.io import loadmat
@@ -209,6 +210,32 @@ class DataLoaderPRDA(DataLoader):
 
     def _get_loader(self, subject: Path) -> partial:
         return partial(self._prep_data)
+
+
+class DataLoaderMREA(DataLoaderPRDA):
+    def _prep_data(self, k: int = 5):
+        if "+" in self._feature:
+            raise RuntimeError("MREA does not support joint variables.")
+        elif "+" in self._target:
+            temp = getattr(self, "_target")
+            parts = temp.split("+")
+            X = []
+            for part in parts:
+                setattr(self, "_target", part)
+                y, x, runs = super()._prep_data(k)
+                if x.ndim == 1:
+                    x = OneHotEncoder(sparse=False).fit_transform(x.reshape(-1, 1))
+                X.append(x)
+            setattr(self, "_target", temp)
+            X = np.concatenate(X, axis=1)
+            Y = y  # type: ignore
+            return X, y, runs
+        else:
+            Y, X, runs = super()._prep_data(k)
+            if X.ndim == 1:
+                X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
+            return X, Y, runs
+
 
 
 class DataLoaderMVPA(DataLoader):

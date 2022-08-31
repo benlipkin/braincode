@@ -12,10 +12,10 @@ This pipeline supports several major functions.
 
 -   **MVPA** (multivariate pattern analysis) evaluates decoding of **code properties** or **code model** representations from their respective **brain representations** within a collection of canonical **brain regions**.
 -   **RSA** (representational similarity analysis) is also supported as an alternative to MVPA.
--   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
 -   **VWEA** (voxel-wise encoding analysis) evaluates prediction of voxel-level activation patterns using **code properties** and **code model** representations as features.
 -   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
--   **MREA** (model representation encoding analysis) evaluates encoding of model representations using the set of hand-picked features explored in this work. [UNDER DEVELOPMENT]
+-   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
+-   **MREA** (model representation encoding analysis) evaluates encoding of **code model** representations using the set of **code properties** explored in this work.
 
 _Note: **VWEA** and **NLEA** also support ceiling estimates at the network level, calculated via an identical pipeline but with the features being the representations of other participants to the same stimuli rather than the properties extracted from those stimuli. To invoke a ceiling analysis, prefix the requested analysis type with a "C", e.g., **CNLEA**._
 
@@ -45,17 +45,14 @@ LLM Suite (CodeGen<sup>[1](https://arxiv.org/pdf/2203.13474.pdf)</sup>):
 
 -   `code-llm_350m_nl`
 -   `code-llm_350m_mono`
--   `code-llm_350m_multi`
 -   `code-llm_2b_nl`
 -   `code-llm_2b_mono`
--   `code-llm_2b_multi`
 -   `code-llm_6b_nl`
 -   `code-llm_6b_mono`
--   `code-llm_6b_multi`
 -   `code-llm_16b_nl`
 -   `code-llm_16b_mono`
--   `code-llm_16b_multi`
 
+_Note: checkpoints vary in size and pre-training (`nl`—ThePile; `mono`—ThePile+BigQuery+BigPython)_
 ## Installation
 
 Requirements: [Anaconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html), [GNU Make](https://www.gnu.org/software/make/manual/make.html)
@@ -69,14 +66,12 @@ make setup
 ## Run
 
 ```bash
-usage: braincode [-h] [-f FEATURE] [-t TARGET] [-m METRIC] [-d CODE_MODEL_DIM]
-                 [-p BASE_PATH] [-s] [-b]
-                 {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
+usage: __main__.py [-h] [-f FEATURE] [-t TARGET] [-m METRIC] [-d CODE_MODEL_DIM] [-p BASE_PATH] [-s] [-b] {mvpa,rsa,vwea,nlea,cvwea,cnlea,prda,mrea}
 
 run specified analysis type
 
 positional arguments:
-  {mvpa,prda,rsa,vwea,nlea,cvwea,cnlea}
+  {mvpa,rsa,vwea,nlea,cvwea,cnlea,prda,mrea}
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -95,16 +90,17 @@ _Note: BASE_PATH must be specified to match setup.sh if changed from default._
 
 ```bash
 # basic examples
-python braincode mvpa -f brain-md_lh -t task-structure # brain -> {task, model}
-python braincode rsa -f brain-lang_lh -t code-llm_2b_nl # brain <-> {task, model}
-python braincode vwea -f brain-md_rh -t code-tokens # brain <- {task, model}
-python braincode nlea -f brain-lang_rh -t task-content # brain <- {task, model}
-python braincode prda -f code-graph -t task-lines # model -> task
+python -m braincode mvpa -f brain-md_lh -t task-structure # brain -> {task, model}
+python -m braincode rsa -f brain-lang_lh -t code-llm_2b_nl # brain <-> {task, model}
+python -m braincode vwea -f brain-md_rh -t code-tokens # brain <- {task, model}
+python -m braincode nlea -f brain-lang_rh -t task-content # brain <- {task, model}
+python -m braincode prda -f code-llm_350m_mono -t task-lines # model -> task
+python -m braincode mrea -f code-tokens -f task-content # model <- task
 
 # more complex examples
-python braincode cnlea -f all -m SpearmanRho --score_only # check metrics module for all options
-python braincode mvpa -f brain-lang_lh+brain-lang_rh -t code-tokens -d 64 -p $BASE_PATH
-python braincode vwea -t task-content+task-structure+task-nodes+task-lines
+python -m braincode cnlea -f all -m SpearmanRho --score_only # check metrics module for all options
+python -m braincode mvpa -f brain-lang_lh+brain-lang_rh -t code-tokens -d 64 -p $BASE_PATH
+python -m braincode vwea -t task-content+task-structure+task-nodes+task-lines
 # note how `+` operator can be used to join multiple representations via concatenation
 ```
 
