@@ -19,7 +19,7 @@ update :
 .PHONY : env
 env : $(PACKAGE).egg-info/
 $(PACKAGE).egg-info/ : setup.py requirements.txt
-	@conda create -yn $(PACKAGE) $(EXEC)
+	@conda create -yn $(PACKAGE) $(EXEC)=3.9
 	@$(ACTIVATE) ; $(INSTALL)
 
 ## setup     : download prerequisite files, e.g. neural data, models.
