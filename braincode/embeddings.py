@@ -95,7 +95,7 @@ class HFCodeGen(CodeModel):
     def _set_torch_device(self) -> None:
         if torch.cuda.is_available():
             self._device = torch.device("cuda")
-            torch.set_default_tensor_type(torch.cuda.FloatTensor)
+            torch.set_default_tensor_type(torch.cuda.FloatTensor)  # type: ignore
             try:
                 self._model = self._model.to(self._device)
                 return

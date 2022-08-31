@@ -38,6 +38,7 @@ html/pylint/index.html : html/pylint/index.json
 html/pylint/index.json : $(PACKAGE)/*.py
 	@mkdir -p $(@D)
 	@$(ACTIVATE) ; pylint $(PACKAGE) \
+	--generated-members torch.* \
 	--disable C0114,C0115,C0116,C0103 \
 	--output-format=colorized,json:$@ \
 	|| pylint-exit $$?
