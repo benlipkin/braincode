@@ -4,7 +4,6 @@ import json
 import os
 import pickle as pkl
 import subprocess
-import typing
 from io import BytesIO
 from pathlib import Path
 from tokenize import tok_name, tokenize

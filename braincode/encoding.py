@@ -1,5 +1,3 @@
-import numpy as np
-
 from braincode.analyses import BrainMapping
 from braincode.decoding import PRDA
 
