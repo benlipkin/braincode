@@ -1,5 +1,6 @@
 import os
 import typing
+import warnings
 from abc import abstractmethod
 from functools import partial
 from pathlib import Path
@@ -110,7 +111,9 @@ class HFCodeGen(CodeModel):
     def _get_rep(self, program: str) -> np.ndarray:
         with torch.no_grad():
             inputs = self._tokenizer(program, return_tensors="pt").to(self._device)
-            outputs = self._model(**inputs)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                outputs = self._model(**inputs)
             embedding = (
                 outputs.last_hidden_state.mean(axis=1).cpu().detach().numpy().squeeze()
             )
