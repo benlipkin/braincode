@@ -27,7 +27,7 @@ class CLI(Object):
             "cvwea",
             "cnlea",
             "prda",
-            "mrea",
+            "prea",
         ]
         self._features = self._brain_networks + self._code_models
         self._targets = self._code_benchmarks + self._code_models
@@ -118,9 +118,9 @@ class CLI(Object):
             self._targets = list(filter(r.match, self._targets))
         elif self._args.target != self._default_arg:
             self._targets = [self._args.target]
-        if self._args.analysis not in ["prda", "mrea"]:
+        if self._args.analysis not in ["prda", "prea"]:
             self._features = self._clean_arg(self._features, "brain-", "-f")
-        if self._args.analysis not in ["vwea", "nlea", "mrea"]:
+        if self._args.analysis not in ["vwea", "nlea", "prea"]:
             self._targets = self._clean_arg(self._targets, "+", "-t", keep=False)
         if self._args.analysis not in ["mvpa", "prda"]:
             self._features = self._clean_arg(self._features, "+", "-f", keep=False)
@@ -128,7 +128,7 @@ class CLI(Object):
             self._targets = self._clean_arg(self._targets, "test-", "-t", keep=False)
         if self._args.analysis == "cka":
             self._targets = self._clean_arg(self._targets, "code-", "-t")
-        if self._args.analysis in ["prda", "mrea"]:
+        if self._args.analysis in ["prda", "prea"]:
             self._features = self._clean_arg(self._features, "code-", "-f")
             self._targets = self._clean_arg(self._targets, "task-", "-t")
         if self._args.analysis in ["cnlea", "cvwea"]:

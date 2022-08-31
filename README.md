@@ -15,7 +15,7 @@ This pipeline supports several major functions.
 -   **VWEA** (voxel-wise encoding analysis) evaluates prediction of voxel-level activation patterns using **code properties** and **code model** representations as features.
 -   **NLEA** (network-level encoding analysis) uses the same features to evaluate encoding of mean network-level activation strength.
 -   **PRDA** (program representation decoding analysis) evaluates decoding of **code properties** from **code model** representations.
--   **MREA** (model representation encoding analysis) evaluates encoding of **code model** representations using the set of **code properties** explored in this work.
+-   **PREA** (program representation encoding analysis) evaluates encoding of **code model** representations using the set of **code properties** explored in this work.
 
 _Note: **VWEA** and **NLEA** also support ceiling estimates at the network level, calculated via an identical pipeline but with the features being the representations of other participants to the same stimuli rather than the properties extracted from those stimuli. To invoke a ceiling analysis, prefix the requested analysis type with a "C", e.g., **CNLEA**._
 
@@ -66,12 +66,12 @@ make setup
 ## Run
 
 ```bash
-usage: __main__.py [-h] [-f FEATURE] [-t TARGET] [-m METRIC] [-d CODE_MODEL_DIM] [-p BASE_PATH] [-s] [-b] {mvpa,rsa,vwea,nlea,cvwea,cnlea,prda,mrea}
+usage: __main__.py [-h] [-f FEATURE] [-t TARGET] [-m METRIC] [-d CODE_MODEL_DIM] [-p BASE_PATH] [-s] [-b] {mvpa,rsa,vwea,nlea,cvwea,cnlea,prda,prea}
 
 run specified analysis type
 
 positional arguments:
-  {mvpa,rsa,vwea,nlea,cvwea,cnlea,prda,mrea}
+  {mvpa,rsa,vwea,nlea,cvwea,cnlea,prda,prea}
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -95,7 +95,7 @@ python -m braincode rsa -f brain-lang_lh -t code-llm_2b_nl # brain <-> {task, mo
 python -m braincode vwea -f brain-md_rh -t code-tokens # brain <- {task, model}
 python -m braincode nlea -f brain-lang_rh -t task-content # brain <- {task, model}
 python -m braincode prda -f code-llm_350m_mono -t task-lines # model -> task
-python -m braincode mrea -f code-tokens -f task-content # model <- task
+python -m braincode prea -f code-tokens -f task-content # model <- task
 
 # more complex examples
 python -m braincode cnlea -f all -m SpearmanRho --score_only # check metrics module for all options

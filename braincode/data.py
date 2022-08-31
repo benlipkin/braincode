@@ -212,7 +212,7 @@ class DataLoaderPRDA(DataLoader):
         return partial(self._prep_data)
 
 
-class DataLoaderMREA(DataLoaderPRDA):
+class DataLoaderPREA(DataLoaderPRDA):
     def _prep_data(self, k: int = 5):
         if "+" in self._feature:
             raise RuntimeError("MREA does not support joint variables.")
@@ -235,7 +235,6 @@ class DataLoaderMREA(DataLoaderPRDA):
             if X.ndim == 1:
                 X = OneHotEncoder(sparse=False).fit_transform(X.reshape(-1, 1))
             return X, Y, runs
-
 
 
 class DataLoaderMVPA(DataLoader):
