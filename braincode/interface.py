@@ -1,6 +1,7 @@
 import itertools
 import logging
 import multiprocessing
+import re
 import sys
 import typing
 from argparse import ArgumentParser
@@ -98,9 +99,15 @@ class CLI(Object):
         )
 
     def _prep_args(self) -> None:
-        if self._args.feature != self._default_arg:
+        if "*" in self._args.feature:
+            r = re.compile(self._args.feature)
+            self._features = list(filter(r.match, self._features))
+        elif self._args.feature != self._default_arg:
             self._features = [self._args.feature]
-        if self._args.target != self._default_arg:
+        if "*" in self._args.target:
+            r = re.compile(self._args.target)
+            self._targets = list(filter(r.match, self._targets))
+        elif self._args.target != self._default_arg:
             self._targets = [self._args.target]
         if self._args.analysis != "prda":
             self._features = self._clean_arg(self._features, "brain-", "-f")
