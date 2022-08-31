@@ -5,6 +5,7 @@ from functools import partial
 from pathlib import Path
 
 import numpy as np
+import torch
 from sklearn.random_projection import GaussianRandomProjection
 from transformers import CodeGenConfig, CodeGenTokenizer, CodeGenModel
 
@@ -89,9 +90,28 @@ class HFCodeGen(CodeModel):
             spec, cache_dir=self._cache_dir
         )
         self._model = CodeGenModel.from_pretrained(spec, cache_dir=self._cache_dir)
+        self._set_torch_device()
+
+    def _set_torch_device(self) -> None:
+        if torch.cuda.is_available():
+            self._device = torch.device("cuda")
+            torch.set_default_tensor_type(torch.cuda.FloatTensor)
+            try:
+                self._model = self._model.to(self._device)
+                return
+            except RuntimeError:
+                self._device = torch.device("cpu")
+                torch.set_default_tensor_type(torch.FloatTensor)
+                self._model = self._model.to(self._device)
+        else:
+            self._device = torch.device("cpu")
+            self._model = self._model.to(self._device)
 
     def _get_rep(self, program: str) -> np.ndarray:
-        inputs = self._tokenizer(program, return_tensors="pt")
-        outputs = self._model(**inputs)
-        embedding = outputs.last_hidden_state.mean(axis=1)
-        return embedding.detach().numpy().squeeze()
+        with torch.no_grad():
+            inputs = self._tokenizer(program, return_tensors="pt").to(self._device)
+            outputs = self._model(**inputs)
+            embedding = (
+                outputs.last_hidden_state.mean(axis=1).cpu().detach().numpy().squeeze()
+            )
+        return embedding
