@@ -60,7 +60,6 @@ class CLI(Object):
         prefix = "code"
         units = [
             "tokens",
-            "graph",
             "llm_350m_nl",
             "llm_350m_mono",
             "llm_2b_nl",
