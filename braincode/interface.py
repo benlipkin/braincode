@@ -63,16 +63,12 @@ class CLI(Object):
             "graph",
             "llm_350m_nl",
             "llm_350m_mono",
-            "llm_350m_multi",
             "llm_2b_nl",
             "llm_2b_mono",
-            "llm_2b_multi",
             "llm_6b_nl",
             "llm_6b_mono",
-            "llm_6b_multi",
             "llm_16b_nl",
             "llm_16b_mono",
-            "llm_16b_multi",
         ]
         return self._base_args(prefix, units)
 

@@ -44,16 +44,12 @@ class ProgramEmbedder:
             "code-tokens": TokenProjection,
             "code-llm_350m_nl": partial(HFCodeGen, "Salesforce/codegen-350M-nl"),
             "code-llm_350m_mono": partial(HFCodeGen, "Salesforce/codegen-350M-mono"),
-            "code-llm_350m_multi": partial(HFCodeGen, "Salesforce/codegen-350M-multi"),
             "code-llm_2b_nl": partial(HFCodeGen, "Salesforce/codegen-2B-nl"),
             "code-llm_2b_mono": partial(HFCodeGen, "Salesforce/codegen-2B-mono"),
-            "code-llm_2b_multi": partial(HFCodeGen, "Salesforce/codegen-2B-multi"),
             "code-llm_6b_nl": partial(HFCodeGen, "Salesforce/codegen-6B-nl"),
             "code-llm_6b_mono": partial(HFCodeGen, "Salesforce/codegen-6B-mono"),
-            "code-llm_6b_multi": partial(HFCodeGen, "Salesforce/codegen-6B-multi"),
             "code-llm_16b_nl": partial(HFCodeGen, "Salesforce/codegen-16B-nl"),
             "code-llm_16b_mono": partial(HFCodeGen, "Salesforce/codegen-16B-mono"),
-            "code-llm_16b_multi": partial(HFCodeGen, "Salesforce/codegen-16B-multi"),
         }
 
     def fit_transform(self, programs: np.ndarray) -> np.ndarray:
