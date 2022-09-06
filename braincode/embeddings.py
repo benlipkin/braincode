@@ -1,4 +1,3 @@
-import os
 import typing
 import warnings
 from abc import abstractmethod
@@ -8,11 +7,11 @@ from pathlib import Path
 import numpy as np
 import torch
 from sklearn.random_projection import GaussianRandomProjection
-from transformers import CodeGenConfig, CodeGenTokenizer, CodeGenModel
+from transformers import CodeGenConfig, CodeGenTokenizer, CodeGenModel, logging
 
 from braincode.abstract import Object
 
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+logging.set_verbosity_error()
 
 
 class CodeModel(Object):
@@ -86,23 +85,30 @@ class HFCodeGen(CodeModel):
         self._tokenizer = CodeGenTokenizer.from_pretrained(
             spec, cache_dir=self._cache_dir
         )
-        self._model = CodeGenModel.from_pretrained(spec, cache_dir=self._cache_dir)
+        self._model = CodeGenModel.from_pretrained(
+            spec, cache_dir=self._cache_dir, torch_dtype=torch.bfloat16
+        )
         self._set_torch_device()
 
     def _set_torch_device(self) -> None:
         if torch.cuda.is_available():
             self._device = torch.device("cuda")
-            torch.set_default_tensor_type(torch.cuda.FloatTensor)  # type: ignore
+            torch.set_default_tensor_type(torch.cuda.BFloat16Tensor)  # type: ignore
             try:
                 self._model = self._model.to(self._device)
+                self._logger.info("Model inference running on GPU.")
                 return
-            except RuntimeError:
+            except RuntimeError as e:
+                self._logger.error(e)
                 self._device = torch.device("cpu")
-                torch.set_default_tensor_type(torch.FloatTensor)
+                torch.set_default_tensor_type(torch.BFloat16Tensor)
                 self._model = self._model.to(self._device)
+                self._logger.warning("GPU error. Model inference running on CPU.")
         else:
             self._device = torch.device("cpu")
+            torch.set_default_tensor_type(torch.BFloat16Tensor)
             self._model = self._model.to(self._device)
+            self._logger.info("No GPU found. Model inference running on CPU.")
 
     def _get_rep(self, program: str) -> np.ndarray:
         with torch.no_grad():
@@ -111,6 +117,11 @@ class HFCodeGen(CodeModel):
                 warnings.simplefilter("ignore")
                 outputs = self._model(**inputs)
             embedding = (
-                outputs.last_hidden_state.mean(axis=1).cpu().detach().numpy().squeeze()
+                outputs.last_hidden_state.mean(axis=1)
+                .cpu()
+                .detach()
+                .float()
+                .numpy()
+                .squeeze()
             )
         return embedding
