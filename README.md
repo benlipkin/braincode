@@ -44,12 +44,12 @@ Baseline:
 LLM Suite (CodeGen<sup>[1](https://arxiv.org/pdf/2203.13474.pdf)</sup>):
 
 -   `code-llm_350m_nl`
--   `code-llm_350m_mono`
 -   `code-llm_2b_nl`
--   `code-llm_2b_mono`
 -   `code-llm_6b_nl`
--   `code-llm_6b_mono`
 -   `code-llm_16b_nl`
+-   `code-llm_350m_mono`
+-   `code-llm_2b_mono`
+-   `code-llm_6b_mono`
 -   `code-llm_16b_mono`
 
 _Note: checkpoints vary in size and pre-training (`nl`—ThePile; `mono`—ThePile+BigQuery+BigPython)_
