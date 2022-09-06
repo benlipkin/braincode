@@ -44,3 +44,9 @@ html/pylint/index.json : $(PACKAGE)/*.py
 	|| pylint-exit $$?
 html/mypy/index.html : $(PACKAGE)/*.py
 	@$(ACTIVATE) ; mypy --ignore-missing-import -p $(PACKAGE) --html-report $(@D)
+
+## analysis  : run core analyses.
+.PHONY : analysis
+analysis : $(PACKAGE)/.cache/scores
+$(PACKAGE)/.cache/scores : analysis/expts/run_expts.sh
+	@$(ACTIVATE) ; cd $(<D) ; bash $(<F)
