@@ -101,12 +101,12 @@ class HFCodeGen(CodeModel):
             except RuntimeError as e:
                 self._logger.error(e)
                 self._device = torch.device("cpu")
-                torch.set_default_tensor_type(torch.BFloat16Tensor)
+                torch.set_default_tensor_type(torch.BFloat16Tensor)  # type: ignore
                 self._model = self._model.to(self._device)
                 self._logger.warning("GPU error. Model inference running on CPU.")
         else:
             self._device = torch.device("cpu")
-            torch.set_default_tensor_type(torch.BFloat16Tensor)
+            torch.set_default_tensor_type(torch.BFloat16Tensor)  # type: ignore
             self._model = self._model.to(self._device)
             self._logger.info("No GPU found. Model inference running on CPU.")
 
