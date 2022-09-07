@@ -21,10 +21,14 @@ def load_encoding_results():
         score = np.tanh(
             np.load(f"{cache}/scores/{prefix}/score_{emb[0]}_{prop[0]}_FisherCorr.npy")
         )
-        subjects = np.tanh(
-            np.load(
-                f"{cache}/scores/{prefix}/subjects_{emb[0]}_{prop[0]}_FisherCorr.npy"
+        subjects = (
+            np.tanh(
+                np.load(
+                    f"{cache}/scores/{prefix}/subjects_{emb[0]}_{prop[0]}_FisherCorr.npy"
+                )
             )
+            if prefix == "nlea"
+            else np.array([0] * 24)
         )
         table["Analysis"].append(prefix)
         table["Embedding"].append(emb[1])
@@ -44,10 +48,14 @@ def plot_encoding(data):
         + ["forestgreen"] * 4
         + ["darkgreen"] * 4
     )
-    plt.bar(x, samples.Score, width=1, color=colors, edgecolor="black")
+    scores = samples["Score"]
+    errors = [arr.std() / np.sqrt(arr.size) for arr in samples["Subjects"]]
+    plt.bar(x, scores, yerr=errors, width=1, color=colors, edgecolor="black")
     ceilings = data[data.Property == "Ceiling"].Score.values
     for i, ceil in enumerate(ceilings):
         plt.plot([i - 0.5, i + 0.5], [ceil, ceil], "--", color="black", linewidth=2)
+    for spine in ["right", "top"]:
+        ax.spines[spine].set_visible(False)
     plt.xlabel("Code Representation", fontweight="bold")
     plt.ylabel("Encoding Score (Pearson R)", fontweight="bold")
     plt.xticks(x, samples["Embedding"].unique(), rotation=45)
