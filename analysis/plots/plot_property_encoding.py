@@ -60,7 +60,8 @@ def plot_encoding(data):
     plt.ylabel("Encoding Score (Pearson R)", fontweight="bold")
     plt.xticks(x, samples["Embedding"].unique(), rotation=45)
     plt.ylim([0, 1])
-    plt.show()
+    plt.savefig(f"fig_enc_allemb_allprops.png", bbox_inches="tight", dpi=600)
+    plt.close()
 
 
 def main():

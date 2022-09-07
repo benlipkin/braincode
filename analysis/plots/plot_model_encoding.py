@@ -61,7 +61,7 @@ def plot_model_encoding_by_network(data):
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"fig_enc_brain_models_byregion.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
@@ -129,7 +129,7 @@ def plot_model_encoding_by_corpus(data):
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"fig_enc_brain_models_bycorpus.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
@@ -164,7 +164,8 @@ def plot_model_encoding_correlations(data):
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"fig_enc_brain_models_regioncorrs.png", bbox_inches="tight", dpi=600)
+    plt.close()
 
 
 def main():

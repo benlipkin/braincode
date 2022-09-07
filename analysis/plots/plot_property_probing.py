@@ -71,7 +71,7 @@ def plot_brain_probing(data, bar_width=0.2):
         ax.spines[spine].set_visible(False)
     ax.yaxis.set_ticks_position("left")
     ax.xaxis.set_ticks_position("bottom")
-    plt.show()
+    plt.savefig(f"fig_dec_brain_props.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
@@ -97,7 +97,7 @@ def plot_model_probing(data):
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"fig_dec_models_props.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
