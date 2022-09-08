@@ -33,7 +33,7 @@ def load_encoding_results():
 
 def plot_model_encoding_by_network(data):
     for i, region in enumerate(data["Region"].unique()):
-        ax = plt.subplot(2, 2, i + 1)
+        ax = plt.subplot(3, 2, i + 1)
         samples = data[data["Region"] == region]
         baseline = samples[samples["Model"] == "Token Projection"].Score.values
         samples_nl = samples[samples["Model"].str.contains("NL")]
@@ -51,15 +51,27 @@ def plot_model_encoding_by_network(data):
             n_params, scores_py, err_py, color="darkgreen", capsize=2, label="Python"
         )
         plt.title(region, fontweight="bold")
-        plt.xlabel("# of Model Parameters", fontweight="bold")
-        plt.ylabel("Encoding Score (Pearson R)", fontweight="bold")
-        plt.legend()
+        plt.xlabel("# of Model Parameters", fontweight="bold") if i == 2 else None
+        plt.ylabel("Encoding Score (Pearson R)", fontweight="bold") if i == 2 else None
         plt.xscale("log")
         plt.ylim([-0.1, 0.3])
         for spine in ["left", "right", "top", "bottom"]:
             ax.spines[spine].set_visible(False)
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
+    ax = plt.subplot(3, 2, 5)
+    plt.axhline(baseline, color="black", linestyle="--", label="Token Projection")
+    plt.errorbar(
+        n_params, scores_nl, err_nl, color="forestgreen", capsize=2, label="NL"
+    )
+    plt.errorbar(
+        n_params, scores_py, err_py, color="darkgreen", capsize=2, label="Python"
+    )
+    h, l = ax.get_legend_handles_labels()
+    ax.clear()
+    ax.legend(h, l, loc="center left")
+    ax.axis("off")
+    plt.gcf().set_size_inches(6, 6)
     plt.tight_layout()
     plt.savefig(f"fig_enc_brain_models_byregion.png", bbox_inches="tight", dpi=600)
     plt.close()
@@ -67,7 +79,7 @@ def plot_model_encoding_by_network(data):
 
 def plot_model_encoding_by_corpus(data):
     for i, corpus in enumerate(["NL", "Python"]):
-        ax = plt.subplot(1, 2, i + 1)
+        ax = plt.subplot(2, 2, i + 1)
         samples = data[data["Model"].str.contains(corpus)]
         samples_md_lh = samples[samples["Region"] == "MD LH"]
         scores_md_lh = samples_md_lh.Score.values
@@ -121,13 +133,50 @@ def plot_model_encoding_by_corpus(data):
         plt.title(corpus, fontweight="bold")
         plt.xlabel("# of Model Parameters", fontweight="bold")
         plt.ylabel("Encoding Score (Pearson R)", fontweight="bold")
-        plt.legend()
         plt.xscale("log")
         plt.ylim([-0.1, 0.3])
         for spine in ["left", "right", "top", "bottom"]:
             ax.spines[spine].set_visible(False)
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
+    ax = plt.subplot(2, 2, 3)
+    plt.errorbar(
+        n_params,
+        scores_md_lh,
+        err_md_lh,
+        color="navy",
+        capsize=2,
+        label="MD LH",
+    )
+    plt.errorbar(
+        n_params,
+        scores_md_rh,
+        err_md_rh,
+        color="royalblue",
+        capsize=2,
+        label="MD RH",
+    )
+    plt.errorbar(
+        n_params,
+        scores_lang_lh,
+        err_lang_lh,
+        color="maroon",
+        capsize=2,
+        label="Lang LH",
+    )
+    plt.errorbar(
+        n_params,
+        scores_lang_rh,
+        err_lang_rh,
+        color="indianred",
+        capsize=2,
+        label="Lang RH",
+    )
+    h, l = ax.get_legend_handles_labels()
+    ax.clear()
+    ax.legend(h, l, loc="center left")
+    ax.axis("off")
+    plt.gcf().set_size_inches(6, 4)
     plt.tight_layout()
     plt.savefig(f"fig_enc_brain_models_bycorpus.png", bbox_inches="tight", dpi=600)
     plt.close()
@@ -142,19 +191,6 @@ def plot_model_encoding_correlations(data):
         ax = plt.subplot(2, 3, i + 1)
         plt.scatter(samples_a, samples_b, color="black", s=1)
         scale = 0.8
-        # plt.text(
-        #     -scale / 2,
-        #     3 * scale / 4,
-        #     f"r={np.corrcoef(samples_a,samples_b)[0,1]:.2f}",
-        #     c="k",
-        #     ha="center",
-        #     ma="center",
-        #     bbox=dict(
-        #         boxstyle="square",
-        #         ec="k",
-        #         fc=(0.8, 0.8, 0.8),
-        #     ),
-        # )
         plt.xlabel(region_a, fontweight="bold")
         plt.ylabel(region_b, fontweight="bold")
         plt.xlim([-scale, scale])

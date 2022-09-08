@@ -50,16 +50,24 @@ def plot_encoding(data):
     )
     scores = samples["Score"]
     errors = [arr.std() / np.sqrt(arr.size) for arr in samples["Subjects"]]
-    plt.bar(x, scores, yerr=errors, width=1, color=colors, edgecolor="black")
+    plt.bar(x, scores, yerr=errors, width=1, color=colors, edgecolor="black", capsize=3)
     ceilings = data[data.Property == "Ceiling"].Score.values
     for i, ceil in enumerate(ceilings):
-        plt.plot([i - 0.5, i + 0.5], [ceil, ceil], "--", color="black", linewidth=2)
+        plt.plot([i - 0.5, i + 0.5], [ceil, ceil], "--", color="black", linewidth=1)
     for spine in ["right", "top"]:
         ax.spines[spine].set_visible(False)
     plt.xlabel("Code Representation", fontweight="bold")
     plt.ylabel("Encoding Score (Pearson R)", fontweight="bold")
-    plt.xticks(x, samples["Embedding"].unique(), rotation=45)
-    plt.ylim([0, 1])
+    plt.xticks(
+        x,
+        samples["Embedding"].unique(),
+        rotation=45,
+        ha="right",
+        rotation_mode="anchor",
+    )
+    plt.ylim([0, 0.8])
+    plt.gcf().set_size_inches(6, 4)
+    plt.tight_layout()
     plt.savefig(f"fig_enc_allemb_allprops.png", bbox_inches="tight", dpi=600)
     plt.close()
 

@@ -60,7 +60,7 @@ def plot_brain_probing(data, bar_width=0.2):
         )
     plt.xlabel("Code Property", fontweight="bold")
     plt.ylabel("Probing Score (Pearson R)", fontweight="bold")
-    plt.legend()
+    plt.legend(loc="center left", bbox_to_anchor=[1, 1])
     plt.ylim([0, 0.5])
     plt.xticks(
         [r + bar_width for r in range(len(scores))],
@@ -71,13 +71,15 @@ def plot_brain_probing(data, bar_width=0.2):
         ax.spines[spine].set_visible(False)
     ax.yaxis.set_ticks_position("left")
     ax.xaxis.set_ticks_position("bottom")
+    plt.gcf().set_size_inches(6, 4)
+    plt.tight_layout()
     plt.savefig(f"fig_dec_brain_props.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
 def plot_model_probing(data):
     for i, prop in enumerate(data["Property"].unique()):
-        ax = plt.subplot(2, 2, i + 1)
+        ax = plt.subplot(3, 2, i + 1)
         samples = data[data["Property"] == prop]
         baseline = samples[samples["Embedding"] == "Token Projection"].Score.values
         scores_nl = samples[samples["Embedding"].str.contains("NL")].Score.values
@@ -87,15 +89,23 @@ def plot_model_probing(data):
         plt.plot(n_params, scores_nl, "o-", color="forestgreen", label="NL")
         plt.plot(n_params, scores_py, "o-", color="darkgreen", label="Python")
         plt.title(prop, fontweight="bold")
-        plt.xlabel("# of Model Parameters", fontweight="bold")
-        plt.ylabel("Probing Score (Pearson R)", fontweight="bold")
-        plt.legend()
+        plt.xlabel("# of Model Parameters", fontweight="bold") if i == 2 else None
+        plt.ylabel("Probing Score (Pearson R)", fontweight="bold") if i == 2 else None
         plt.xscale("log")
         plt.ylim([0.7, 1.0])
         for spine in ["left", "right", "top", "bottom"]:
             ax.spines[spine].set_visible(False)
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
+    ax = plt.subplot(3, 2, 5)
+    plt.axhline(baseline, color="black", linestyle="--", label="Token Projection")
+    plt.plot(n_params, scores_nl, "o-", color="forestgreen", label="NL")
+    plt.plot(n_params, scores_py, "o-", color="darkgreen", label="Python")
+    h, l = ax.get_legend_handles_labels()
+    ax.clear()
+    ax.legend(h, l, loc="center left")
+    ax.axis("off")
+    plt.gcf().set_size_inches(6, 6)
     plt.tight_layout()
     plt.savefig(f"fig_dec_models_props.png", bbox_inches="tight", dpi=600)
     plt.close()
