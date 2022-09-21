@@ -4,11 +4,10 @@ The repository for the paper `Convergent Representations of Computer Programs in
 
 If you use this work, please cite:
 ```bibtex
-@inproceeedings{SrikantLipkin2022,
+@inproceedings{SrikantLipkin2022,
 	author = {Srikant, Shashank and Lipkin, Benjamin and Ivanova, Anna and Fedorenko, Evelina and O'Reilly, Una-May},
 	title = {Convergent Representations of Computer Programs in Human and Artificial Neural Networks},
 	year = {2022},
 	journal = {Advances in Neural Information Processing Systems},
-	url = {}
 }
 ```
