@@ -106,7 +106,15 @@ python -m braincode vwea -t task-content+task-structure+task-nodes+task-lines
 
 ## Citation
 
-If you use this work, please cite XXX (under review)
+If you use this work, please cite:
+```bibtex
+@inproceedings{SrikantLipkin2022,
+	author = {Srikant, Shashank and Lipkin, Benjamin and Ivanova, Anna and Fedorenko, Evelina and O'Reilly, Una-May},
+	title = {Convergent Representations of Computer Programs in Human and Artificial Neural Networks},
+	year = {2022},
+	journal = {Advances in Neural Information Processing Systems},
+}
+```
 
 ## License
 
